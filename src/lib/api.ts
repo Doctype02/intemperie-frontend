@@ -1,6 +1,6 @@
 import type { ApiResponse } from "@/types";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 class ApiError extends Error {
   status: number;

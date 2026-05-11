@@ -32,3 +32,11 @@ export async function getFeaturedProducts(): Promise<Product[]> {
   const res = await request<ApiResponse<Product[]>>("/products/featured");
   return res.data;
 }
+
+export async function getCategories(): Promise<any> {
+  return request("/categories");
+}
+
+export async function getCollections(): Promise<any> {
+  return request("/collections");
+}
