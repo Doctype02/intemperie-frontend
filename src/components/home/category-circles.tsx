@@ -13,17 +13,17 @@ export function CategoryCircles() {
   return (
     <section className="bg-white py-10">
       <div className="mx-auto max-w-7xl px-4">
-        <div className="flex items-center justify-center gap-4 md:gap-8 flex-wrap">
+        <div className="flex items-center justify-center gap-3 md:gap-8 flex-wrap">
           {categories.map((cat) => (
             <Link
               key={cat.slug}
               href={`/categorias/${cat.slug}`}
               className="group flex flex-col items-center gap-2"
             >
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 transition-colors group-hover:bg-green-100 md:h-20 md:w-20">
-                <cat.icon className="h-7 w-7 text-gray-600 transition-colors group-hover:text-green-700 md:h-8 md:w-8" />
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 transition-colors group-hover:bg-green-100 md:h-20 md:w-20">
+                <cat.icon className="h-6 w-6 text-gray-600 transition-colors group-hover:text-green-700 md:h-8 md:w-8" />
               </div>
-              <span className="text-xs font-medium text-gray-600 group-hover:text-green-700 md:text-sm">
+              <span className="text-[11px] font-medium text-gray-600 group-hover:text-green-700 md:text-sm">
                 {cat.name}
               </span>
             </Link>
@@ -32,10 +32,10 @@ export function CategoryCircles() {
             href="/productos"
             className="group flex flex-col items-center gap-2"
           >
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-600 transition-colors group-hover:bg-green-700 md:h-20 md:w-20">
-              <Grid3X3 className="h-7 w-7 text-white md:h-8 md:w-8" />
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-green-600 transition-colors group-hover:bg-green-700 md:h-20 md:w-20">
+              <Grid3X3 className="h-6 w-6 text-white md:h-8 md:w-8" />
             </div>
-            <span className="text-xs font-medium text-green-700 md:text-sm">Ver todo</span>
+            <span className="text-[11px] font-medium text-green-700 md:text-sm">Ver todo</span>
           </Link>
         </div>
       </div>

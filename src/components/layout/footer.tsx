@@ -36,10 +36,10 @@ export function Footer() {
   return (
     <footer className="bg-gray-900 text-gray-300">
       <div className="mx-auto max-w-7xl px-4 py-12">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-5">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-5">
           {/* Brand */}
-          <div className="lg:col-span-2">
-            <Link href="/" className="flex items-center gap-2 mb-4">
+          <div className="lg:col-span-2 text-center sm:text-left">
+            <Link href="/" className="flex items-center justify-center sm:justify-start gap-2 mb-4">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-600 text-white font-bold text-lg">
                 I
               </div>
@@ -48,25 +48,25 @@ export function Footer() {
                 <p className="text-xs text-gray-500">Seguridad y Elegancia Al Aire Libre</p>
               </div>
             </Link>
-            <p className="mb-4 text-sm text-gray-400 max-w-sm">
+            <p className="mb-4 text-xs md:text-sm text-gray-400 max-w-sm mx-auto sm:mx-0">
               Especialistas en Cercas PVC y Mallas Electrosoldadas para todo tipo de cerramientos.
               Más de 15 años protegiendo hogares, industrias y proyectos en Panamá.
             </p>
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center gap-2">
+            <div className="space-y-2 text-xs md:text-sm">
+              <div className="flex items-center justify-center sm:justify-start gap-2">
                 <Phone className="h-4 w-4 text-green-500" />
                 <span>+507 6287-4042</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center justify-center sm:justify-start gap-2">
                 <Mail className="h-4 w-4 text-green-500" />
                 <span>ventas@tiendasintemperie.com</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center justify-center sm:justify-start gap-2">
                 <MapPin className="h-4 w-4 text-green-500" />
                 <span>Panamá Oeste, La Chorrera, Barrio Colón</span>
               </div>
             </div>
-            <div className="mt-4 flex gap-3">
+            <div className="mt-4 flex justify-center sm:justify-start gap-3">
               {socialLinks.map((s) => (
                 <a
                   key={s.label}
@@ -83,8 +83,8 @@ export function Footer() {
 
           {/* Link columns */}
           {Object.entries(footerLinks).map(([title, links]) => (
-            <div key={title}>
-              <h3 className="mb-4 font-semibold text-white text-sm uppercase tracking-wider">
+            <div key={title} className="text-center sm:text-left">
+              <h3 className="mb-4 font-semibold text-white text-xs md:text-sm uppercase tracking-wider">
                 {title}
               </h3>
               <ul className="space-y-2.5">
@@ -92,7 +92,7 @@ export function Footer() {
                   <li key={link.label}>
                     <Link
                       href={link.href}
-                      className="text-sm text-gray-400 hover:text-green-400 transition-colors"
+                      className="text-xs md:text-sm text-gray-400 hover:text-green-400 transition-colors"
                     >
                       {link.label}
                     </Link>

@@ -30,7 +30,7 @@ export function ProductCard(product: ProductCardProps) {
   return (
     <Link href={`/productos/${product.slug}`} className="group">
       <Card className="h-full overflow-hidden border-gray-200 transition-all hover:border-green-300 hover:shadow-lg">
-        <div className="relative h-52 bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center">
+        <div className="relative h-40 md:h-52 bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center">
           <div className="text-center select-none">
             <span className="text-5xl opacity-20">🏗️</span>
             <p className="mt-2 text-xs font-medium text-green-700">{collectionName}</p>
@@ -46,19 +46,19 @@ export function ProductCard(product: ProductCardProps) {
             </Badge>
           )}
         </div>
-        <CardContent className="p-4">
-          <p className="mb-0.5 text-xs text-gray-400">{collectionName}</p>
-          <h3 className="font-semibold text-gray-900 group-hover:text-green-700 transition-colors line-clamp-2 leading-snug">
+        <CardContent className="p-3 md:p-4">
+          <p className="mb-0.5 text-[10px] md:text-xs text-gray-400">{collectionName}</p>
+          <h3 className="font-semibold text-sm md:text-base text-gray-900 group-hover:text-green-700 transition-colors line-clamp-2 leading-snug">
             {product.name}
           </h3>
-          <div className="mt-3 flex items-baseline gap-1">
-            <span className="text-2xl font-bold text-gray-900">
+          <div className="mt-2 md:mt-3 flex items-baseline gap-1">
+            <span className="text-xl md:text-2xl font-bold text-gray-900">
               ${Number(product.basePrice).toFixed(2)}
             </span>
-            <span className="text-sm text-gray-500">{unitLabel}</span>
+            <span className="text-xs md:text-sm text-gray-500">{unitLabel}</span>
           </div>
-          <div className="mt-3">
-            <Badge className={`text-xs ${stock.cls}`}>
+          <div className="mt-2 md:mt-3">
+            <Badge className={`text-[10px] md:text-xs ${stock.cls}`}>
               {stock.text}
             </Badge>
           </div>

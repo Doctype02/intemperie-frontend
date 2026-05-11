@@ -25,12 +25,12 @@ export default async function HomePage() {
       <main className="flex-1">
         <BannerGrid />
         <CategoryCircles />
-        <section className="bg-white pb-16">
-          <div className="mx-auto max-w-7xl px-4">
+        <section className="bg-white px-4 py-8 md:pb-16">
+          <div className="mx-auto max-w-7xl">
             <div className="mb-6 flex items-end justify-between">
               <div>
-                <h2 className="text-xl font-bold text-gray-900">Todos los productos</h2>
-                <p className="text-sm text-gray-500">{products.length} productos disponibles</p>
+                <h2 className="text-lg md:text-xl font-bold text-gray-900">Todos los productos</h2>
+                <p className="text-xs md:text-sm text-gray-500">{products.length} productos disponibles</p>
               </div>
             </div>
             <ProductGridClient products={products} />

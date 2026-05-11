@@ -49,7 +49,7 @@ export function ProductDetailClient({ product }: { product: any }) {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
       {/* Breadcrumb */}
-      <div className="mb-6 flex items-center gap-2 text-sm text-gray-400">
+      <div className="mb-6 hidden sm:flex items-center gap-2 text-xs md:text-sm text-gray-400">
         <Link href="/" className="hover:text-green-600">Inicio</Link>
         <ChevronRight className="h-3 w-3" />
         <Link href="/productos" className="hover:text-green-600">Productos</Link>
@@ -57,9 +57,9 @@ export function ProductDetailClient({ product }: { product: any }) {
         <span className="text-gray-600">{product.name}</span>
       </div>
 
-      <div className="grid gap-10 lg:grid-cols-2">
+      <div className="grid gap-6 lg:gap-10 lg:grid-cols-2">
         {/* Image */}
-        <div className="flex items-center justify-center rounded-2xl bg-gradient-to-br from-green-50 to-green-100 h-96 lg:h-[500px]">
+        <div className="flex items-center justify-center rounded-2xl bg-gradient-to-br from-green-50 to-green-100 h-72 sm:h-96 lg:h-[500px]">
           <div className="text-center select-none">
             <span className="text-8xl opacity-20">🏗️</span>
             <p className="mt-4 text-sm font-medium text-green-700">
@@ -73,12 +73,12 @@ export function ProductDetailClient({ product }: { product: any }) {
           <p className="text-sm text-gray-400 mb-1">
             {product.collection?.name || product.category?.name || "Intemperie"} · SKU: {product.slug}
           </p>
-          <h1 className="text-3xl font-bold text-gray-900">{product.name}</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">{product.name}</h1>
 
           {/* Price */}
           <div className="mt-6 flex items-baseline gap-2">
-            <span className="text-4xl font-bold text-gray-900">${price.toFixed(2)}</span>
-            <span className="text-lg text-gray-500">/ {unitLabel(product.unit).slice(0, -1)} lineal</span>
+            <span className="text-3xl md:text-4xl font-bold text-gray-900">${price.toFixed(2)}</span>
+            <span className="text-base md:text-lg text-gray-500">/ {unitLabel(product.unit).slice(0, -1)} lineal</span>
           </div>
 
           {/* Stock */}
@@ -97,7 +97,7 @@ export function ProductDetailClient({ product }: { product: any }) {
 
           {/* Quick specs */}
           {(heightOptions || colorOptions) && (
-            <div className="mt-6 grid grid-cols-2 gap-4">
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
               {heightOptions && (
                 <div className="rounded-lg bg-gray-50 p-3">
                   <p className="text-xs text-gray-400 font-medium uppercase">Alturas disponibles</p>
@@ -163,7 +163,7 @@ export function ProductDetailClient({ product }: { product: any }) {
           )}
 
           {/* Payment info */}
-          <div className="mt-6 rounded-lg border border-gray-200 p-4">
+          <div className="mt-6 rounded-lg border border-gray-200 p-3 md:p-4">
             <p className="text-xs text-gray-400 font-medium uppercase mb-2">Pago seguro con</p>
             <div className="flex gap-2">
               {["Visa", "Mastercard", "Yappy", "Clave"].map((m) => (
@@ -178,11 +178,11 @@ export function ProductDetailClient({ product }: { product: any }) {
 
       {/* Specifications */}
       {specs.length > 0 && (
-        <div className="mt-16">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Especificaciones</h2>
+        <div className="mt-12 md:mt-16">
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-6">Especificaciones</h2>
           <Card>
-            <CardContent className="p-0">
-              <table className="w-full text-sm">
+            <CardContent className="p-0 overflow-x-auto">
+              <table className="w-full text-xs md:text-sm min-w-[400px]">
                 <tbody>
                   {specs.map((spec: any, i: number) => (
                     <tr key={i} className={i % 2 === 0 ? "bg-gray-50/50" : ""}>

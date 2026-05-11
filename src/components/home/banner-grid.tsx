@@ -9,7 +9,7 @@ const banners = [
     color: "from-green-600 to-green-700",
     textColor: "text-white",
     subColor: "text-green-100",
-    size: "lg:col-span-2 lg:row-span-2",
+    size: "",
   },
   {
     title: "Mallas Electrosoldadas",
@@ -46,19 +46,19 @@ export function BannerGrid() {
   return (
     <section className="bg-gray-50 py-6">
       <div className="mx-auto max-w-7xl px-4">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           {banners.map((banner) => (
             <Link
               key={banner.title}
               href={banner.href}
               target={banner.href.startsWith("http") ? "_blank" : undefined}
-              className={`group relative overflow-hidden rounded-xl bg-gradient-to-br ${banner.color} ${banner.size} p-5 transition-transform hover:scale-[1.02] hover:shadow-lg`}
+              className={`group relative overflow-hidden rounded-xl bg-gradient-to-br ${banner.color} ${banner.size} p-3 md:p-5 transition-transform hover:scale-[1.02] hover:shadow-lg`}
             >
               <div className="relative z-10">
-                <h3 className={`font-bold text-lg ${banner.textColor}`}>
+                <h3 className={`font-bold text-sm md:text-lg ${banner.textColor}`}>
                   {banner.title}
                 </h3>
-                <p className={`mt-1 text-sm ${banner.subColor}`}>
+                <p className={`mt-1 text-xs md:text-sm ${banner.subColor}`}>
                   {banner.subtitle}
                 </p>
               </div>

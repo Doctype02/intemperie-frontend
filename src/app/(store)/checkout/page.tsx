@@ -61,22 +61,22 @@ export default function CheckoutPage() {
       <main className="flex-1 bg-gray-50">
         <div className="mx-auto max-w-4xl px-4 py-8">
           {/* Steps */}
-          <div className="mb-8 flex items-center justify-center gap-2">
+          <div className="mb-8 flex items-center justify-center gap-1 md:gap-2">
             {[
               { key: "address", label: "Dirección" },
               { key: "review", label: "Revisar" },
               { key: "payment", label: "Pago" },
             ].map((s, i) => (
-              <div key={s.key} className="flex items-center gap-2">
-                <div className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold ${
+              <div key={s.key} className="flex items-center gap-1 md:gap-2">
+                <div className={`flex h-7 w-7 md:h-8 md:w-8 items-center justify-center rounded-full text-xs md:text-sm font-bold ${
                   step === s.key ? "bg-green-700 text-white" : "bg-gray-200 text-gray-500"
                 }`}>
                   {i + 1}
                 </div>
-                <span className={`text-sm font-medium ${step === s.key ? "text-green-700" : "text-gray-400"}`}>
+                <span className={`text-xs md:text-sm font-medium hidden sm:inline ${step === s.key ? "text-green-700" : "text-gray-400"}`}>
                   {s.label}
                 </span>
-                {i < 2 && <div className="mx-1 h-px w-8 bg-gray-200" />}
+                {i < 2 && <div className="mx-1 h-px w-4 md:w-8 bg-gray-200" />}
               </div>
             ))}
           </div>
@@ -89,7 +89,7 @@ export default function CheckoutPage() {
                   <div>
                     <h2 className="text-lg font-bold text-gray-900 mb-4">Dirección de envío</h2>
                     <form onSubmit={handleAddressSubmit}>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">Nombre completo</label>
                           <input
@@ -108,7 +108,7 @@ export default function CheckoutPage() {
                             onChange={(e) => setAddress({ ...address, phone: e.target.value })}
                           />
                         </div>
-                        <div className="col-span-2">
+                        <div className="sm:col-span-2">
                           <label className="block text-sm font-medium text-gray-700 mb-1">Dirección</label>
                           <input
                             required
@@ -170,7 +170,7 @@ export default function CheckoutPage() {
                       <div className="flex justify-between text-sm"><span className="text-gray-500">ITBMS (7%)</span><span>${tax.toFixed(2)}</span></div>
                       <div className="border-t pt-2 flex justify-between font-bold text-lg"><span>Total</span><span>${total.toFixed(2)}</span></div>
                     </div>
-                    <div className="mt-6 flex gap-3">
+                    <div className="mt-6 flex flex-col sm:flex-row gap-3">
                       <Button variant="outline" className="flex-1" onClick={() => setStep("address")}>
                         <ArrowLeft className="mr-2 h-4 w-4" /> Editar dirección
                       </Button>

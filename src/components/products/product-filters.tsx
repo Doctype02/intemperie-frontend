@@ -34,7 +34,7 @@ export function ProductFilters({ categories, collections }: ProductFiltersProps)
   const hasFilters = activeCategory || activeCollection;
 
   return (
-    <aside className="w-56 shrink-0">
+    <aside className="w-full">
       {hasFilters && (
         <div className="mb-4 flex items-center justify-between">
           <span className="text-sm font-medium text-gray-700">Filtros activos</span>

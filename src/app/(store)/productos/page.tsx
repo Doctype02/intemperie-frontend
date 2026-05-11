@@ -2,10 +2,8 @@ import { Suspense } from "react";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { ProductGrid } from "@/components/products/product-grid";
-import { ProductFilters } from "@/components/products/product-filters";
+import { ProductFiltersWrapper } from "@/components/products/product-filters-wrapper";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
 import SearchWrapper from "./search-wrapper";
 
 async function getProducts(searchParams: Record<string, string>) {
@@ -78,9 +76,9 @@ export default async function ProductosPage({
           </div>
         </div>
         <div className="mx-auto max-w-7xl px-4 py-8">
-          <div className="flex gap-8">
-            <Suspense fallback={<div className="w-56" />}>
-              <ProductFilters categories={categories} collections={collections} />
+          <div className="flex flex-col md:flex-row gap-6 md:gap-8">
+            <Suspense fallback={<div className="w-56 hidden md:block" />}>
+              <ProductFiltersWrapper categories={categories} collections={collections} />
             </Suspense>
             <div className="flex-1">
               {products.length > 0 ? (
