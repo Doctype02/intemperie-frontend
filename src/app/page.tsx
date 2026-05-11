@@ -17,11 +17,11 @@ async function getProducts() {
 }
 
 const categories = [
-  { name: "Residencial", slug: "residencial", icon: Home, desc: "Hogares y urbanizaciones", count: "7 productos" },
-  { name: "Industrial", slug: "industrial", icon: Building2, desc: "Bodegas y zonas de trabajo", count: "5 productos" },
-  { name: "Gubernamental", slug: "gubernamental", icon: Landmark, desc: "Instituciones públicas", count: "1 producto" },
-  { name: "Agropecuario", slug: "agropecuario", icon: Sprout, desc: "Fincas y producción", count: "1 producto" },
-  { name: "Zonas Costeras", slug: "zonas-costeras", icon: Waves, desc: "Resistentes al salitre", count: "2 productos" },
+  { name: "Residencial", slug: "residencial", icon: Home },
+  { name: "Industrial", slug: "industrial", icon: Building2 },
+  { name: "Gubernamental", slug: "gubernamental", icon: Landmark },
+  { name: "Agropecuario", slug: "agropecuario", icon: Sprout },
+  { name: "Zonas Costeras", slug: "zonas-costeras", icon: Waves },
 ];
 
 export default async function HomePage() {
@@ -31,79 +31,77 @@ export default async function HomePage() {
     <>
       <Header />
       <main className="flex-1">
-        {/* Hero */}
         <HeroSection />
 
-        {/* Categories - compact chips */}
-        <section className="bg-white border-b">
-          <div className="mx-auto max-w-7xl px-4 py-4">
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
-              <Link href="/productos" className="flex shrink-0 items-center gap-2 rounded-full bg-gray-900 text-white px-4 py-2 text-sm font-bold hover:bg-gray-800 transition-colors">
-                Todos
+        {/* Category chips */}
+        <section className="bg-white border-b border-gray-100">
+          <div className="mx-auto max-w-7xl px-4 py-3">
+            <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-0.5">
+              <Link href="/productos" className="flex shrink-0 items-center gap-1.5 rounded-full bg-gray-900 text-white px-4 py-2 text-sm font-bold hover:bg-gray-800 transition-colors">
+                Todos los productos
               </Link>
               {categories.map((cat) => (
                 <Link
                   key={cat.slug}
                   href={`/productos?category=${cat.slug}`}
-                  className="flex shrink-0 items-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:border-green-300 hover:text-green-700 transition-colors"
+                  className="flex shrink-0 items-center gap-1.5 rounded-full border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:border-green-300 hover:text-green-700 hover:bg-green-50 transition-all"
                 >
-                  <cat.icon className="h-4 w-4" />
+                  <cat.icon className="h-3.5 w-3.5" />
                   {cat.name}
                 </Link>
               ))}
+              <Link
+                href="/calculadora"
+                className="flex shrink-0 items-center gap-1.5 rounded-full border border-green-200 bg-green-50 px-4 py-2 text-sm font-medium text-green-700 hover:bg-green-100 transition-all"
+              >
+                <Calculator className="h-3.5 w-3.5" />
+                Calculadora
+              </Link>
             </div>
           </div>
         </section>
 
-        {/* Bestsellers section */}
-        <section className="bg-white py-10 md:py-14">
+        {/* Bestsellers */}
+        <section className="bg-white py-10 md:py-12">
           <div className="mx-auto max-w-7xl px-4">
-            <div className="mb-8 flex items-end justify-between">
+            <div className="mb-7 flex items-end justify-between">
               <div>
-                <h2 className="text-2xl md:text-3xl font-black text-gray-900">Productos más vendidos</h2>
-                <p className="mt-1 text-sm text-gray-500">Las cercas que nuestros clientes más compran</p>
+                <h2 className="text-xl md:text-2xl font-extrabold text-gray-900">Productos más vendidos</h2>
+                <p className="mt-0.5 text-sm text-gray-500">Las cercas que más eligen nuestros clientes</p>
               </div>
-              <Link href="/productos" className="hidden sm:flex items-center gap-1 text-sm font-bold text-green-700 hover:text-green-800">
-                Ver todos <ArrowRight className="h-4 w-4" />
+              <Link href="/productos" className="hidden sm:flex items-center gap-1 text-sm font-bold text-green-600 hover:text-green-700">
+                Ver catálogo completo <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
               {products.slice(0, 8).map((p: any) => (
                 <ProductCard key={p.id} {...p} />
               ))}
             </div>
-          </div>
-        </section>
-
-        {/* CTA Banner */}
-        <section className="bg-gradient-to-r from-green-700 to-emerald-700 py-12 md:py-16">
-          <div className="mx-auto max-w-7xl px-4 text-center">
-            <div className="inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-white/10 backdrop-blur mb-6">
-              <Calculator className="h-8 w-8 text-green-300" />
+            <div className="mt-6 text-center sm:hidden">
+              <Button variant="outline" className="border-green-200 text-green-700 hover:bg-green-50 font-bold" asChild>
+                <Link href="/productos">Ver todos los productos <ArrowRight className="ml-2 h-4 w-4" /></Link>
+              </Button>
             </div>
-            <h2 className="text-2xl md:text-4xl font-black text-white">¿No sabes cuánta cerca necesitas?</h2>
-            <p className="mt-3 text-green-100 text-sm md:text-base max-w-lg mx-auto">
-              Usa nuestra calculadora gratuita. Ingresa los metros y el tipo de cerca para obtener un presupuesto al instante.
-            </p>
-            <Button size="lg" className="mt-6 bg-white text-green-800 hover:bg-green-50 font-bold h-14 px-10 rounded-full text-base shadow-xl" asChild>
-              <Link href="/calculadora">
-                Calcular precio ahora <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
           </div>
         </section>
 
-        {/* All products */}
-        <section className="bg-gray-50 py-10 md:py-14">
+        {/* CTA Calculator */}
+        <section className="bg-green-600 py-12 md:py-14">
           <div className="mx-auto max-w-7xl px-4">
-            <div className="mb-8">
-              <h2 className="text-2xl md:text-3xl font-black text-gray-900">Catálogo completo</h2>
-              <p className="mt-1 text-sm text-gray-500">{products.length} productos disponibles para entrega inmediata</p>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-              {products.map((p: any) => (
-                <ProductCard key={p.id} {...p} />
-              ))}
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="text-center md:text-left">
+                <h2 className="text-2xl md:text-3xl font-extrabold text-white">¿Cuánta cerca necesitas?</h2>
+                <p className="mt-2 text-green-100 text-sm md:text-base max-w-md">
+                  Calcula el costo de tu proyecto en segundos. Selecciona el tipo de cerca, ingresa los metros y obtén un presupuesto al instante.
+                </p>
+              </div>
+              <Button size="lg" className="shrink-0 bg-white text-green-700 hover:bg-green-50 font-bold h-14 px-8 rounded-full text-base shadow-xl" asChild>
+                <Link href="/calculadora">
+                  <Calculator className="mr-2 h-5 w-5" />
+                  Calcular precio ahora
+                </Link>
+              </Button>
             </div>
           </div>
         </section>
