@@ -1,6 +1,5 @@
 import { Metadata } from "next";
 import { API_BASE } from "@/lib/api";
-import type { Product } from "@/types";
 import { FenceCalculator } from "@/components/calculator/fence-calculator";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -11,11 +10,11 @@ export const metadata: Metadata = {
   description: "Calcula el costo de tu cerca de PVC o malla electrosoldada. Presupuesto estimado al instante.",
 };
 
-async function getProducts(): Promise<Product[]> {
+async function getProducts() {
   const res = await fetch(`${API_BASE}/products?limit=50`, { cache: "no-store" });
   if (!res.ok) return [];
   const data = await res.json();
-  return data.data || [];
+  return data.data || data || [];
 }
 
 export default async function CalculatorPage() {

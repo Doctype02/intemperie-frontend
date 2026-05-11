@@ -10,53 +10,86 @@ interface ProductCardProps {
   isActive?: boolean;
 }
 
-const gradients: Record<string, string> = {
-  Residencial: "from-green-100 to-emerald-100",
-  Industrial: "from-gray-100 to-gray-200",
-  Gubernamental: "from-blue-100 to-indigo-100",
-  Agropecuario: "from-amber-50 to-yellow-100",
-  "Zonas Costeras": "from-cyan-100 to-sky-100",
+const placeholderImages: Record<string, string> = {
+  "cerca-pvc-oceanides-101": "2563EB/FFFFFF?text=Oceanides+101",
+  "cerca-pvc-super-oceanides-103": "16A34A/FFFFFF?text=Super+Oceanides",
+  "cerca-pvc-atlas": "475569/FFFFFF?text=Atlas",
+  "cerca-pvc-pandora-201": "7C3AED/FFFFFF?text=Pandora+201",
+  "cerca-pvc-pandora-204": "9333EA/FFFFFF?text=Pandora+204",
+  "cerca-pvc-afrodita-401": "DB2777/FFFFFF?text=Afrodita+401",
+  "cerca-pvc-atenea-305": "EA580C/FFFFFF?text=Atenea+305",
+  "cerca-pvc-poseidon-502": "0891B2/FFFFFF?text=Poseidon+502",
+  "cerca-pvc-atenea-303": "059669/FFFFFF?text=Atenea+303",
+  "cerca-pvc-vesta-601": "4B5563/FFFFFF?text=Vesta+601",
+  "cerca-pvc-selene-701": "0E7490/FFFFFF?text=Selene+701",
+  "malla-electrosoldada-mini-titan": "6B7280/FFFFFF?text=Mini+Titan",
+  "malla-electrosoldada-titan": "374151/FFFFFF?text=Titan",
+  "malla-electrosoldada-super-titan": "1F2937/FFFFFF?text=Super+Titan",
+  "malla-electrosoldada-maximus": "111827/FFFFFF?text=Maximus",
+};
+
+const categoryPatterns: Record<string, string> = {
+  Residencial: "from-green-100 to-emerald-200",
+  Industrial: "from-gray-100 to-gray-300",
+  Gubernamental: "from-blue-100 to-indigo-200",
+  Agropecuario: "from-amber-50 to-yellow-200",
+  "Zonas Costeras": "from-cyan-100 to-sky-200",
 };
 
 export function ProductCard(p: ProductCardProps) {
   const catName = p.collection?.name || p.category?.name || "Intemperie";
-  const grad = gradients[p.category?.name || "Residencial"] || "from-green-100 to-emerald-100";
+  const bg = categoryPatterns[p.category?.name || "Residencial"] || "from-green-100 to-emerald-200";
+  const imgUrl = placeholderImages[p.slug];
   const unitLabel = p.unit === "METRO" ? "/m" : p.unit === "PANEL" ? "/panel" : "";
 
   return (
-    <div className="group bg-white rounded-lg border border-gray-200 hover:border-green-300 hover:shadow-sm transition-all duration-200">
+    <div className="group bg-white rounded-xl border border-gray-100 hover:border-green-200 hover:shadow-xl transition-all duration-300">
       <Link href={`/productos/${p.slug}`} className="block">
-        <div className={`relative h-48 md:h-52 bg-gradient-to-br ${grad} flex items-center justify-center rounded-t-lg overflow-hidden`}>
-          <div className="text-center p-4">
-            <div className="w-16 h-16 mx-auto mb-2 rounded-full bg-white/60 flex items-center justify-center">
-              <span className="text-2xl font-bold text-green-700">
-                {p.stock === 0 ? "✕" : "⊞"}
-              </span>
+        <div className="relative h-48 md:h-52 rounded-t-xl overflow-hidden">
+          {imgUrl ? (
+            <img
+              src={`https://placehold.co/600x400/${imgUrl}`}
+              alt={p.name}
+              className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
+              loading="lazy"
+            />
+          ) : (
+            <div className={`h-full w-full bg-gradient-to-br ${bg} flex items-center justify-center`}>
+              <div className="text-center">
+                <div className="w-14 h-14 mx-auto rounded-2xl bg-white/60 flex items-center justify-center">
+                  <span className="text-xl font-extrabold text-green-700">
+                    {catName.charAt(0)}
+                  </span>
+                </div>
+              </div>
             </div>
-            <p className="text-xs font-semibold text-green-800/70 uppercase tracking-wider">{catName}</p>
-          </div>
+          )}
           {p.stock > 0 && p.stock <= 3 && (
-            <span className="absolute top-2 right-2 bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">¡Quedan {p.stock}!</span>
+            <span className="absolute top-2 right-2 bg-amber-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-md">
+              ¡{p.stock} unid.!
+            </span>
           )}
           {p.stock === 0 && (
-            <span className="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">Agotado</span>
+            <span className="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-md">
+              Agotado
+            </span>
           )}
         </div>
       </Link>
 
       <div className="p-3 md:p-4">
         <Link href={`/productos/${p.slug}`}>
-          <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-0.5">{catName}</p>
-          <h3 className="text-sm font-semibold text-gray-900 leading-snug line-clamp-2 group-hover:text-green-700">{p.name}</h3>
+          <p className="text-[10px] text-gray-400 uppercase tracking-wider font-medium mb-0.5">{catName}</p>
+          <h3 className="text-sm font-bold text-gray-900 leading-snug line-clamp-2 group-hover:text-green-700 transition-colors">{p.name}</h3>
         </Link>
 
         <div className="mt-2 flex items-baseline gap-1">
           <span className="text-xl font-extrabold text-gray-900">${Number(p.basePrice).toFixed(2)}</span>
-          <span className="text-xs text-gray-500">{unitLabel}</span>
+          <span className="text-xs text-gray-400">{unitLabel}</span>
         </div>
 
-        <div className="mt-3 flex items-center gap-2">
-          <span className={`text-[10px] font-medium ${p.stock === 0 ? "text-red-600" : p.stock <= 5 ? "text-amber-600" : "text-green-600"}`}>
+        <div className="mt-2 flex items-center gap-2">
+          <span className={`text-[11px] font-semibold ${p.stock === 0 ? "text-red-600" : p.stock <= 5 ? "text-amber-600" : "text-green-600"}`}>
             {p.stock === 0 ? "Agotado" : p.stock <= 5 ? `Solo ${p.stock}` : "Disponible"}
           </span>
         </div>
@@ -64,7 +97,7 @@ export function ProductCard(p: ProductCardProps) {
         {p.stock > 0 && (
           <Link
             href={`/productos/${p.slug}`}
-            className="mt-3 flex w-full items-center justify-center gap-1.5 rounded bg-green-700 py-2 text-xs font-semibold text-white hover:bg-green-800 transition-colors"
+            className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg bg-green-700 py-2.5 text-xs font-bold text-white hover:bg-green-800 transition-all hover:shadow-lg hover:shadow-green-200"
           >
             <ShoppingCart className="h-3.5 w-3.5" />
             Ver producto

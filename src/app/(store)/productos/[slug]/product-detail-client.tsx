@@ -40,14 +40,24 @@ export function ProductDetailClient({ product }: { product: any }) {
       <div className="grid gap-6 md:gap-8 lg:grid-cols-3">
         {/* Image */}
         <div className="lg:col-span-2">
-          <div className="flex items-center justify-center rounded-xl bg-gradient-to-br from-green-50 to-emerald-50 h-56 sm:h-72 lg:h-96 border border-gray-100">
-            <div className="text-center">
-              <div className="w-16 h-16 mx-auto rounded-full bg-white shadow-sm flex items-center justify-center">
-                <span className="text-2xl font-extrabold text-green-600">IP</span>
+        <div className="flex items-center justify-center rounded-2xl overflow-hidden border border-gray-100 h-56 sm:h-72 lg:h-96">
+          {product.slug ? (
+            <img
+              src={`https://placehold.co/800x600/059669/FFFFFF?text=${encodeURIComponent(product.collection?.name || product.name)}`}
+              alt={product.name}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-green-50 to-emerald-50">
+              <div className="text-center">
+                <div className="w-16 h-16 mx-auto rounded-full bg-white shadow-sm flex items-center justify-center">
+                  <span className="text-2xl font-extrabold text-green-600">IP</span>
+                </div>
+                <p className="mt-2 text-sm font-semibold text-green-700">{product.collection?.name}</p>
               </div>
-              <p className="mt-2 text-sm font-semibold text-green-700">{product.collection?.name}</p>
             </div>
-          </div>
+          )}
+        </div>
 
           {/* Specs */}
           {specs.length > 0 && (
