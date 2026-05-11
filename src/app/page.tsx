@@ -2,7 +2,8 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { BannerGrid } from "@/components/home/banner-grid";
 import { CategoryCircles } from "@/components/home/category-circles";
-import { ProductGridClient } from "@/components/products/product-grid-client";
+import { HeroSection } from "@/components/home/hero-section";
+import { ProductGrid } from "@/components/products/product-grid";
 
 async function getProducts() {
   try {
@@ -11,9 +12,7 @@ async function getProducts() {
     if (!res.ok) return [];
     const data = await res.json();
     return data.data || data || [];
-  } catch {
-    return [];
-  }
+  } catch { return []; }
 }
 
 export default async function HomePage() {
@@ -23,17 +22,18 @@ export default async function HomePage() {
     <>
       <Header />
       <main className="flex-1">
+        <HeroSection />
         <BannerGrid />
         <CategoryCircles />
-        <section className="bg-white px-4 py-8 md:pb-16">
-          <div className="mx-auto max-w-7xl">
+        <section className="bg-white pb-12">
+          <div className="mx-auto max-w-7xl px-4">
             <div className="mb-6 flex items-end justify-between">
               <div>
-                <h2 className="text-lg md:text-xl font-bold text-gray-900">Todos los productos</h2>
-                <p className="text-xs md:text-sm text-gray-500">{products.length} productos disponibles</p>
+                <h2 className="text-xl font-bold text-gray-900">Nuestros productos</h2>
+                <p className="text-sm text-gray-500">{products.length} productos disponibles</p>
               </div>
             </div>
-            <ProductGridClient products={products} />
+            <ProductGrid products={products} />
           </div>
         </section>
       </main>
