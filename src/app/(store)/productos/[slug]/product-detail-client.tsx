@@ -40,7 +40,7 @@ export function ProductDetailClient({ product }: { product: any }) {
       <div className="grid gap-6 md:gap-8 lg:grid-cols-3">
         {/* Image */}
         <div className="lg:col-span-2">
-          <div className="flex items-center justify-center rounded-xl bg-gradient-to-br from-green-50 to-emerald-50 h-64 sm:h-80 lg:h-96 border border-gray-100">
+          <div className="flex items-center justify-center rounded-xl bg-gradient-to-br from-green-50 to-emerald-50 h-56 sm:h-72 lg:h-96 border border-gray-100">
             <div className="text-center">
               <div className="w-16 h-16 mx-auto rounded-full bg-white shadow-sm flex items-center justify-center">
                 <span className="text-2xl font-extrabold text-green-600">IP</span>
@@ -72,12 +72,12 @@ export function ProductDetailClient({ product }: { product: any }) {
         </div>
 
         {/* Sidebar - Product info + Calculator */}
-        <div>
+        <div className="lg:sticky lg:top-[77px] lg:h-fit">
           <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">{product.collection?.name || product.category?.name} | SKU: {product.slug}</p>
           <h1 className="text-xl md:text-2xl font-extrabold text-gray-900 tracking-tight mt-1">{product.name}</h1>
 
           <div className="mt-4 flex items-baseline gap-1.5">
-            <span className="text-3xl font-extrabold text-gray-900">${price.toFixed(2)}</span>
+            <span className="text-2xl md:text-3xl font-extrabold text-gray-900">${price.toFixed(2)}</span>
             <span className="text-sm text-gray-400">/m lineal</span>
           </div>
 

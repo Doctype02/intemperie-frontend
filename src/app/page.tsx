@@ -25,11 +25,11 @@ export default async function HomePage() {
         <HeroSection />
         <BannerGrid />
         <CategoryCircles />
-        <section className="bg-white pb-12">
-          <div className="mx-auto max-w-7xl px-4">
+        <section className="bg-white pb-12 px-4">
+          <div className="mx-auto max-w-7xl">
             <div className="mb-6 flex items-end justify-between">
               <div>
-                <h2 className="text-xl font-bold text-gray-900">Nuestros productos</h2>
+                <h2 className="text-lg md:text-xl font-bold text-gray-900">Nuestros productos</h2>
                 <p className="text-sm text-gray-500">{products.length} productos disponibles</p>
               </div>
             </div>

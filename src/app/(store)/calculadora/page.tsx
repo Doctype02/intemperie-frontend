@@ -24,7 +24,7 @@ export default async function CalculatorPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
           Calculadora de Cercas
         </h1>
         <p className="text-gray-600 max-w-2xl mx-auto">
@@ -33,7 +33,7 @@ export default async function CalculatorPage() {
         </p>
       </div>
 
-      <div className="grid lg:grid-cols-5 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
         <div className="lg:col-span-3">
           <FenceCalculator products={products} />
         </div>

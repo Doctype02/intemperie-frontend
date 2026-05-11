@@ -51,7 +51,7 @@ export default async function ProductosPage({ searchParams }: { searchParams: Pr
       {/* Breadcrumb */}
       <div className="border-b bg-gray-50">
         <div className="mx-auto max-w-7xl px-4 py-2.5">
-          <div className="flex items-center gap-1.5 text-xs text-gray-400">
+          <div className="flex items-center gap-1.5 text-[10px] md:text-xs text-gray-400">
             <Link href="/" className="hover:text-green-600">Inicio</Link>
             <ChevronRight className="h-3 w-3" />
             <span className="text-gray-700 font-medium">
@@ -122,15 +122,20 @@ export default async function ProductosPage({ searchParams }: { searchParams: Pr
               </div>
 
               {/* Mobile filter buttons */}
-              <div className="mt-3 flex gap-2 lg:hidden">
+              <div className="mt-3 flex flex-wrap gap-2 lg:hidden">
                 <Link href="/productos" className={`rounded-full px-3 py-1 text-xs font-medium ${!activeCategory && !activeCollection ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"}`}>
                   Todos
                 </Link>
-                {categories.slice(0, 5).map((cat: any) => (
+                {categories.slice(0, 4).map((cat: any) => (
                   <Link key={cat.slug} href={`/productos?category=${cat.slug}`} className={`rounded-full px-3 py-1 text-xs font-medium ${activeCategory === cat.slug ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"}`}>
                     {cat.name}
                   </Link>
                 ))}
+                {categories.length > 4 && (
+                  <Link href="/productos" className="rounded-full px-3 py-1 text-xs font-medium bg-gray-100 text-gray-500 hover:bg-gray-200">
+                    Más
+                  </Link>
+                )}
               </div>
 
               <Suspense fallback={null}>

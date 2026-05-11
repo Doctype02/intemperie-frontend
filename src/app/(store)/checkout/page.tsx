@@ -60,7 +60,7 @@ export default function CheckoutPage() {
               { key: "payment", label: "Pago" },
             ].map((s, i) => (
               <div key={s.key} className="flex items-center gap-1 md:gap-2">
-                <div className={`flex h-7 w-7 md:h-8 md:w-8 items-center justify-center rounded-full text-xs md:text-sm font-bold ${
+                <div className={`flex h-6 w-6 md:h-8 md:w-8 items-center justify-center rounded-full text-xs md:text-sm font-bold ${
                   step === s.key ? "bg-green-700 text-white" : "bg-gray-200 text-gray-500"
                 }`}>
                   {i + 1}

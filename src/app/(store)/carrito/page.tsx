@@ -10,8 +10,8 @@ export default function CartPage() {
 
   if (items.length === 0) {
     return (
-      <main className="flex-1 bg-gray-50">
-          <div className="mx-auto max-w-3xl px-4 py-20 text-center">
+      <main className="flex-1 bg-gray-50 flex items-center justify-center">
+          <div className="mx-auto max-w-3xl px-4 py-12 text-center">
             <ShoppingCart className="mx-auto mb-4 h-20 w-20 text-gray-200" />
             <h1 className="text-2xl font-bold text-gray-900">Tu carrito está vacío</h1>
             <p className="mt-2 text-gray-500">Parece que aún no has agregado productos a tu carrito</p>
