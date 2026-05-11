@@ -1,12 +1,12 @@
 "use client";
 
-import { Truck, BadgePercent, Sparkles } from "lucide-react";
+import { Truck, Phone, Wrench } from "lucide-react";
 import Link from "next/link";
 
 const promos = [
-  { icon: Truck, text: "Envío gratis en pedidos web mayores a $500", href: "/productos" },
-  { icon: BadgePercent, text: "Hasta 15% OFF en pedidos +100m lineales", href: "/calculadora" },
-  { icon: Sparkles, text: "Nuevas colecciones de cercas PVC", href: "/productos" },
+  { icon: Truck, text: "Envíos a todo Panamá", href: "/productos" },
+  { icon: Wrench, text: "Instalación profesional", href: "/calculadora" },
+  { icon: Phone, text: "Cotiza al +507 6287-4042", href: "https://wa.me/50762874042" },
 ];
 
 export function TopBar() {

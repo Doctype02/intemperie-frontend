@@ -1,7 +1,7 @@
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import Link from "next/link";
-import { ArrowRight, ChevronRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { ProductCard } from "@/components/products/product-card";
 
 async function getProducts() {
@@ -14,20 +14,20 @@ async function getProducts() {
   } catch { return []; }
 }
 
-const pinboardBanners = [
-  { title: "Cercas PVC Residenciales", subtitle: "Desde $18.50 el metro", href: "/productos?category=residencial", img: "22c55e/ffffff?text=CERCAS+PVC", wide: true, tall: true },
-  { title: "Malla Electrosoldada", subtitle: "Desde $8.50 el metro", href: "/productos?category=industrial", img: "475569/ffffff?text=MALLAS", wide: false, tall: false },
-  { title: "Calcula tu proyecto", subtitle: "Presupuesto al instante", href: "/calculadora", img: "ea580c/ffffff?text=CALCULADORA", wide: false, tall: false },
-  { title: "Cercas para Zonas Costeras", subtitle: "Resistentes al salitre", href: "/productos?category=zonas-costeras", img: "0891B2/ffffff?text=COSTERO", wide: false, tall: false },
-  { title: "Envíos a todo Panamá", subtitle: "Contáctanos por WhatsApp", href: "https://wa.me/50762874042", img: "7C3AED/ffffff?text=ENVIOS", wide: false, tall: false },
+const banners = [
+  { title: "Cercas PVC", subtitle: "Desde $18.50/m", href: "/productos?category=residencial", bg: "from-green-700 to-emerald-800", icon: "🏡", wide: true, tall: true },
+  { title: "Malla Electrosoldada", subtitle: "Desde $8.50/m", href: "/productos?category=industrial", bg: "from-gray-800 to-gray-900", icon: "🏭", wide: false, tall: false },
+  { title: "Calcula tu proyecto", subtitle: "Presupuesto al instante", href: "/calculadora", bg: "from-amber-600 to-orange-700", icon: "🧮", wide: false, tall: false },
+  { title: "Zonas Costeras", subtitle: "Desde $38/m", href: "/productos?category=zonas-costeras", bg: "from-cyan-700 to-blue-800", icon: "🌊", wide: false, tall: false },
+  { title: "Contáctanos", subtitle: "Cotiza por WhatsApp", href: "https://wa.me/50762874042", bg: "from-violet-700 to-purple-800", icon: "💬", wide: false, tall: false },
 ];
 
-const categoryTabs = [
-  { name: "Residencial", slug: "residencial", img: "22c55e/ffffff?text=CERCAS" },
-  { name: "Industrial", slug: "industrial", img: "475569/ffffff?text=MALLAS" },
-  { name: "Gubernamental", slug: "gubernamental", img: "2563EB/ffffff?text=GOBIERNO" },
-  { name: "Zonas Costeras", slug: "zonas-costeras", img: "0891B2/ffffff?text=COSTERO" },
-  { name: "Agropecuario", slug: "agropecuario", img: "d97706/ffffff?text=AGRO" },
+const categoryCircles = [
+  { name: "Residencial", slug: "residencial", color: "bg-green-500", ring: "ring-green-200" },
+  { name: "Industrial", slug: "industrial", color: "bg-gray-600", ring: "ring-gray-200" },
+  { name: "Gubernamental", slug: "gubernamental", color: "bg-blue-500", ring: "ring-blue-200" },
+  { name: "Agropecuario", slug: "agropecuario", color: "bg-amber-500", ring: "ring-amber-200" },
+  { name: "Z. Costeras", slug: "zonas-costeras", color: "bg-cyan-500", ring: "ring-cyan-200" },
 ];
 
 export default async function HomePage() {
@@ -36,120 +36,96 @@ export default async function HomePage() {
   return (
     <>
       <Header />
-      <main className="flex-1 bg-white">
+      <main className="flex-1 bg-gray-50">
         {/* Pinboard Banner Grid */}
-        <section className="bg-gray-50 py-3 sm:py-5">
+        <section className="bg-white py-4 sm:py-6">
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-              {pinboardBanners.map((banner, i) => {
-                const wide = banner.wide && i === 0 ? "sm:col-span-2" : "";
-                const tall = banner.tall && i === 0 ? "sm:row-span-2" : "";
-                return (
-                  <Link
-                    key={i}
-                    href={banner.href}
-                    target={banner.href.startsWith("http") ? "_blank" : undefined}
-                    className={`group relative overflow-hidden rounded-lg sm:rounded-xl ${wide} ${tall}`}
-                  >
-                    <img
-                      src={`https://placehold.co/600x400/${banner.img}`}
-                      alt={banner.title}
-                      className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      loading={i < 3 ? "eager" : "lazy"}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                    <div className="absolute bottom-0 left-0 right-0 p-2.5 sm:p-4">
-                      <p className="text-white font-bold text-[11px] sm:text-sm leading-tight">{banner.title}</p>
-                      <p className="text-white/80 text-[10px] sm:text-xs mt-0.5">{banner.subtitle}</p>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-
-        {/* Product Tabs Section */}
-        <section className="py-6 sm:py-8">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <div className="mb-4">
-              <h2 className="text-lg sm:text-xl font-extrabold text-gray-900">Nuestros productos</h2>
-            </div>
-
-            {/* Category tabs */}
-            <div className="flex gap-2 overflow-x-auto pb-3 mb-4 scrollbar-none">
-              <Link
-                href="/productos"
-                className="shrink-0 rounded-full bg-gray-900 text-white px-4 py-2 text-xs sm:text-sm font-bold hover:bg-gray-800 transition-colors"
-              >
-                Todos
-              </Link>
-              {categoryTabs.map((tab) => (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+              {banners.map((banner, i) => (
                 <Link
-                  key={tab.slug}
-                  href={`/productos?category=${tab.slug}`}
-                  className="shrink-0 rounded-full border border-gray-200 px-4 py-2 text-xs sm:text-sm font-medium text-gray-600 hover:border-green-300 hover:text-green-700 hover:bg-green-50 transition-all"
+                  key={i}
+                  href={banner.href}
+                  target={banner.href.startsWith("http") ? "_blank" : undefined}
+                  className={`group relative overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-br ${banner.bg} ${
+                    banner.wide && i === 0 ? "sm:col-span-2" : ""
+                  } ${banner.tall && i === 0 ? "sm:row-span-2" : ""} 
+                  hover:shadow-xl transition-all duration-300 hover:scale-[1.02]`}
                 >
-                  {tab.name}
+                  <div className="absolute -right-4 -bottom-4 text-6xl sm:text-8xl opacity-20 select-none group-hover:scale-125 transition-transform duration-500">
+                    {banner.icon}
+                  </div>
+                  <div className="relative z-10 flex h-full flex-col justify-end p-4 sm:p-5 min-h-[120px] sm:min-h-[140px]">
+                    <p className="text-white font-extrabold text-sm sm:text-lg leading-tight">{banner.title}</p>
+                    <p className="text-white/70 text-[11px] sm:text-sm mt-1">{banner.subtitle}</p>
+                  </div>
                 </Link>
               ))}
-            </div>
-
-            {/* Product grid */}
-            {allProducts.length > 0 && (
-              <div className="relative">
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
-                  {allProducts.slice(0, 12).map((p: any) => (
-                    <ProductCard key={p.id} {...p} />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="mt-5 text-center">
-              <Link
-                href="/productos"
-                className="inline-flex items-center gap-1.5 rounded-full border-2 border-green-200 px-6 py-2.5 text-sm font-bold text-green-700 hover:bg-green-50 transition-colors"
-              >
-                Ver catálogo completo <ArrowRight className="h-4 w-4" />
-              </Link>
             </div>
           </div>
         </section>
 
         {/* Category Circles */}
-        <section className="bg-gray-50 py-6 sm:py-8">
+        <section className="py-6 sm:py-8 bg-white border-t border-gray-100">
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <h2 className="text-base sm:text-lg font-extrabold text-gray-900 mb-5 text-center">Encuentra lo que necesitas</h2>
-            <div className="flex items-center justify-center gap-4 sm:gap-6 flex-wrap">
-              {categoryTabs.map((cat) => (
-                <Link key={cat.slug} href={`/productos?category=${cat.slug}`} className="group flex flex-col items-center gap-2">
-                  <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-full overflow-hidden border-2 border-gray-100 group-hover:border-green-400 transition-colors">
-                    <img src={`https://placehold.co/200x200/${cat.img}`} alt={cat.name} className="h-full w-full object-cover" />
+            <div className="flex items-center justify-center gap-5 sm:gap-8 flex-wrap">
+              {categoryCircles.map((cat) => (
+                <Link key={cat.slug} href={`/productos?category=${cat.slug}`} className="group flex flex-col items-center gap-2.5">
+                  <div className={`h-16 w-16 sm:h-18 sm:w-18 rounded-full ${cat.color} flex items-center justify-center ring-4 ring-transparent group-hover:${cat.ring} transition-all duration-300 group-hover:scale-110 shadow-md`}>
+                    <span className="text-white font-bold text-xl sm:text-2xl">{cat.name.charAt(0)}</span>
                   </div>
-                  <span className="text-[11px] sm:text-xs font-medium text-gray-600 group-hover:text-green-700">{cat.name}</span>
+                  <span className="text-[11px] sm:text-xs font-semibold text-gray-600 group-hover:text-gray-900 transition-colors">{cat.name}</span>
                 </Link>
               ))}
-              <Link href="/productos" className="group flex flex-col items-center gap-2">
-                <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-green-600 flex items-center justify-center group-hover:bg-green-700 transition-colors">
-                  <span className="text-white text-[11px] sm:text-sm font-bold">Ver todo</span>
+              <Link href="/productos" className="group flex flex-col items-center gap-2.5">
+                <div className="h-16 w-16 sm:h-18 sm:w-18 rounded-full bg-green-600 flex items-center justify-center ring-4 ring-transparent group-hover:ring-green-200 transition-all duration-300 group-hover:scale-110 shadow-md">
+                  <span className="text-white text-[10px] sm:text-xs font-bold">Todos</span>
                 </div>
-                <span className="text-[11px] sm:text-xs font-medium text-green-700">Catálogo</span>
+                <span className="text-[11px] sm:text-xs font-semibold text-green-700">Ver todo</span>
               </Link>
             </div>
           </div>
         </section>
 
-        {/* Long Banner */}
-        <section className="py-4 sm:py-6">
+        {/* Products */}
+        <section className="py-8 sm:py-10">
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <Link href="/calculadora" className="group block overflow-hidden rounded-xl">
-              <img
-                src="https://placehold.co/1800x240/16a34a/ffffff?text=CALCULA+TU+PROYECTO+AHORA"
-                alt="Calcula tu proyecto"
-                className="w-full h-16 sm:h-24 object-cover group-hover:scale-[1.02] transition-transform duration-500"
-              />
-            </Link>
+            <div className="mb-6 flex items-end justify-between">
+              <div>
+                <h2 className="text-xl sm:text-2xl font-extrabold text-gray-900">Nuestros productos</h2>
+                <p className="text-xs sm:text-sm text-gray-500 mt-1">{allProducts.length} productos disponibles</p>
+              </div>
+              <Link href="/productos" className="hidden sm:flex items-center gap-1 text-sm font-bold text-green-600 hover:text-green-700">
+                Ver catálogo <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+
+            {/* Category filter chips */}
+            <div className="flex gap-2 overflow-x-auto pb-4 mb-2">
+              <Link href="/productos" className="shrink-0 rounded-full bg-gray-900 text-white px-4 py-2 text-xs sm:text-sm font-bold hover:bg-gray-800 transition-colors">
+                Todos
+              </Link>
+              {["Residencial","Industrial","Gubernamental","Agropecuario","Zonas Costeras"].map((cat) => (
+                <Link
+                  key={cat}
+                  href={`/productos?category=${cat.toLowerCase().replace(" ","-")}`}
+                  className="shrink-0 rounded-full border border-gray-200 px-4 py-2 text-xs sm:text-sm font-medium text-gray-600 hover:border-green-300 hover:text-green-700 hover:bg-green-50 transition-all"
+                >
+                  {cat}
+                </Link>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
+              {allProducts.slice(0, 12).map((p: any) => (
+                <ProductCard key={p.id} {...p} />
+              ))}
+            </div>
+
+            <div className="mt-8 text-center sm:hidden">
+              <Link href="/productos" className="inline-flex items-center gap-1.5 rounded-full border-2 border-green-200 px-6 py-2.5 text-sm font-bold text-green-700 hover:bg-green-50 transition-colors">
+                Ver catálogo completo <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
           </div>
         </section>
       </main>
