@@ -36,7 +36,7 @@ export default async function HomePage() {
         {/* Category chips */}
         <section className="bg-white border-b border-gray-100">
           <div className="mx-auto max-w-7xl px-4 py-3">
-            <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-0.5">
+            <div className="flex items-center gap-2 overflow-x-auto pb-0.5">
               <Link href="/productos" className="flex shrink-0 items-center gap-1.5 rounded-full bg-gray-900 text-white px-4 py-2 text-sm font-bold hover:bg-gray-800 transition-colors">
                 Todos los productos
               </Link>
@@ -87,21 +87,22 @@ export default async function HomePage() {
         </section>
 
         {/* CTA Calculator */}
-        <section className="bg-green-600 py-12 md:py-14">
+        <section className="bg-gradient-to-r from-green-600 via-green-600 to-emerald-600 py-12 md:py-14">
           <div className="mx-auto max-w-7xl px-4">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-              <div className="text-center md:text-left">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+              <div className="text-center md:text-left flex-1">
                 <h2 className="text-2xl md:text-3xl font-extrabold text-white">¿Cuánta cerca necesitas?</h2>
-                <p className="mt-2 text-green-100 text-sm md:text-base max-w-md">
+                <p className="mt-2 text-green-100 text-sm md:text-base max-w-lg">
                   Calcula el costo de tu proyecto en segundos. Selecciona el tipo de cerca, ingresa los metros y obtén un presupuesto al instante.
                 </p>
               </div>
-              <Button size="lg" className="shrink-0 bg-white text-green-700 hover:bg-green-50 font-bold h-14 px-8 rounded-full text-base shadow-xl" asChild>
-                <Link href="/calculadora">
-                  <Calculator className="mr-2 h-5 w-5" />
-                  Calcular precio ahora
-                </Link>
-              </Button>
+              <Link
+                href="/calculadora"
+                className="inline-flex shrink-0 items-center gap-2 rounded-full bg-white px-8 py-4 text-base font-extrabold text-green-700 shadow-xl hover:bg-green-50 transition-colors"
+              >
+                <Calculator className="h-5 w-5" />
+                Calcular precio ahora
+              </Link>
             </div>
           </div>
         </section>
