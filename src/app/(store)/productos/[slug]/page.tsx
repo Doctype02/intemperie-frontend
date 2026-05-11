@@ -1,7 +1,5 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Header } from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
 import { ProductDetailClient } from "./product-detail-client";
 
 async function getProduct(slug: string) {
@@ -43,12 +41,8 @@ export default async function ProductDetailPage({
   }
 
   return (
-    <>
-      <Header />
-      <main className="flex-1 bg-white">
-        <ProductDetailClient product={product} />
-      </main>
-      <Footer />
-    </>
+    <main className="flex-1 bg-white">
+      <ProductDetailClient product={product} />
+    </main>
   );
 }

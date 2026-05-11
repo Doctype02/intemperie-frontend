@@ -7,8 +7,6 @@ import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/lib/store/cart-store";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { Check, ArrowLeft, ShoppingCart } from "lucide-react";
-import { Header } from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
 
 type Step = "address" | "review" | "payment";
 
@@ -29,9 +27,7 @@ export default function CheckoutPage() {
 
   if (!isAuthenticated) {
     return (
-      <>
-        <Header />
-        <main className="flex-1 bg-gray-50 flex items-center justify-center py-20">
+      <main className="flex-1 bg-gray-50 flex items-center justify-center py-20">
           <div className="text-center bg-white rounded-xl border border-gray-200 p-8 max-w-md">
             <ShoppingCart className="mx-auto mb-4 h-12 w-12 text-gray-300" />
             <h1 className="text-xl font-bold text-gray-900">Inicia sesión para comprar</h1>
@@ -41,8 +37,6 @@ export default function CheckoutPage() {
             </Button>
           </div>
         </main>
-        <Footer />
-      </>
     );
   }
 
@@ -56,9 +50,7 @@ export default function CheckoutPage() {
   const handleAddressSubmit = (e: React.FormEvent) => { e.preventDefault(); setStep("review"); };
 
   return (
-    <>
-      <Header />
-      <main className="flex-1 bg-gray-50">
+    <main className="flex-1 bg-gray-50">
         <div className="mx-auto max-w-4xl px-4 py-8">
           {/* Steps */}
           <div className="mb-8 flex items-center justify-center gap-1 md:gap-2">
@@ -240,7 +232,5 @@ export default function CheckoutPage() {
           </div>
         </div>
       </main>
-      <Footer />
-    </>
   );
 }

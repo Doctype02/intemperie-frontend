@@ -3,19 +3,14 @@
 import Link from "next/link";
 import { useCartStore } from "@/lib/store/cart-store";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Minus, Plus, Trash2, ArrowLeft, ShoppingCart } from "lucide-react";
-import { Header } from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
 
 export default function CartPage() {
   const { items, updateQuantity, removeItem, subtotal } = useCartStore();
 
   if (items.length === 0) {
     return (
-      <>
-        <Header />
-        <main className="flex-1 bg-gray-50">
+      <main className="flex-1 bg-gray-50">
           <div className="mx-auto max-w-3xl px-4 py-20 text-center">
             <ShoppingCart className="mx-auto mb-4 h-20 w-20 text-gray-200" />
             <h1 className="text-2xl font-bold text-gray-900">Tu carrito está vacío</h1>
@@ -25,15 +20,11 @@ export default function CartPage() {
             </Button>
           </div>
         </main>
-        <Footer />
-      </>
     );
   }
 
   return (
-    <>
-      <Header />
-      <main className="flex-1 bg-gray-50">
+    <main className="flex-1 bg-gray-50">
         <div className="mx-auto max-w-4xl px-4 py-8">
           <div className="flex items-center justify-between mb-8">
             <h1 className="text-2xl font-bold text-gray-900">Carrito de compras</h1>
@@ -165,7 +156,5 @@ export default function CartPage() {
           </div>
         </div>
       </main>
-      <Footer />
-    </>
   );
 }

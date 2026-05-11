@@ -1,6 +1,4 @@
 import { Suspense } from "react";
-import { Header } from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
 import { ProductGrid } from "@/components/products/product-grid";
 import { ProductFiltersWrapper } from "@/components/products/product-filters-wrapper";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -57,9 +55,7 @@ export default async function ProductosPage({
   ]);
 
   return (
-    <>
-      <Header />
-      <main className="flex-1 bg-gray-50">
+    <div className="flex-1 bg-gray-50">
         <div className="border-b bg-white">
           <div className="mx-auto max-w-7xl px-4 py-6">
             <h1 className="text-2xl font-bold text-gray-900">
@@ -93,8 +89,6 @@ export default async function ProductosPage({
             </div>
           </div>
         </div>
-      </main>
-      <Footer />
-    </>
+      </div>
   );
 }

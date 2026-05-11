@@ -1,16 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { Header } from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
 import { CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function CheckoutSuccessPage() {
   return (
-    <>
-      <Header />
-      <main className="flex-1 bg-white">
+    <main className="flex-1 bg-white">
         <div className="mx-auto max-w-xl px-4 py-20 text-center">
           <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
             <CheckCircle className="h-10 w-10 text-green-600" />
@@ -41,7 +37,5 @@ export default function CheckoutSuccessPage() {
           </div>
         </div>
       </main>
-      <Footer />
-    </>
   );
 }
