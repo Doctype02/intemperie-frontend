@@ -35,28 +35,6 @@ const socialLinks = [
 export function Footer() {
   return (
     <footer className="bg-gray-900 text-gray-300">
-      {/* Newsletter */}
-      <div className="border-b border-gray-800">
-        <div className="mx-auto max-w-7xl px-4 py-8">
-          <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
-            <div>
-              <p className="font-bold text-white text-lg">¿Buscas ofertas en cercas?</p>
-              <p className="text-sm text-gray-400">Suscríbete y recibe descuentos exclusivos</p>
-            </div>
-            <form className="flex w-full gap-2 md:w-auto" onSubmit={(e) => e.preventDefault()}>
-              <input
-                type="email"
-                placeholder="tu@email.com"
-                className="flex-1 rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 md:w-64"
-              />
-              <button className="rounded-lg bg-green-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-green-700 transition-colors">
-                Suscribirme
-              </button>
-            </form>
-          </div>
-        </div>
-      </div>
-
       <div className="mx-auto max-w-7xl px-4 py-12">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-5">
           {/* Brand */}

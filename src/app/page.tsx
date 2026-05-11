@@ -1,16 +1,13 @@
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
-import { HeroSection } from "@/components/home/hero-section";
-import { CategoriesGrid } from "@/components/home/categories-grid";
-import { CollectionsGrid } from "@/components/home/collections-grid";
-import { PromoBanner } from "@/components/home/promo-banner";
-import { BenefitsSection } from "@/components/home/benefits-section";
-import { Testimonials } from "@/components/home/testimonials";
+import { BannerGrid } from "@/components/home/banner-grid";
+import { CategoryCircles } from "@/components/home/category-circles";
+import { ProductGridClient } from "@/components/products/product-grid-client";
 
 async function getProducts() {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-    const res = await fetch(`${baseUrl}/products?limit=8`, { next: { revalidate: 60 } });
+    const res = await fetch(`${baseUrl}/products?limit=50`, { next: { revalidate: 60 } });
     if (!res.ok) return [];
     const data = await res.json();
     return data.data || data || [];
@@ -26,12 +23,19 @@ export default async function HomePage() {
     <>
       <Header />
       <main className="flex-1">
-        <HeroSection />
-        <CategoriesGrid />
-        {products.length > 0 && <CollectionsGrid products={products} />}
-        <PromoBanner />
-        <BenefitsSection />
-        <Testimonials />
+        <BannerGrid />
+        <CategoryCircles />
+        <section className="bg-white pb-16">
+          <div className="mx-auto max-w-7xl px-4">
+            <div className="mb-6 flex items-end justify-between">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Todos los productos</h2>
+                <p className="text-sm text-gray-500">{products.length} productos disponibles</p>
+              </div>
+            </div>
+            <ProductGridClient products={products} />
+          </div>
+        </section>
       </main>
       <Footer />
     </>
