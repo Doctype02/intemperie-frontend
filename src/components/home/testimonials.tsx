@@ -1,71 +1,59 @@
 import { Star } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
 
 const testimonials = [
   {
-    name: "María Rodríguez",
-    location: "Panamá Oeste",
+    name: "Gilberto Diaz",
     rating: 5,
-    text: "Excelente servicio. Instalaron la cerca de PVC en mi casa en solo 3 días. Quedó hermosa y ha resistido muy bien la lluvia.",
+    text: "Excelente calidad de materiales. Las cercas de PVC se ven increíbles y no he tenido que hacerles nada en 2 años.",
+    date: "Marzo 2025",
   },
   {
-    name: "Carlos Mendoza",
-    location: "Ciudad de Panamá",
+    name: "Alejandro Zurita",
     rating: 5,
-    text: "Contraté la malla electrosoldada para mi bodega. Precio justo y trabajo garantizado. Los recomiendo ampliamente.",
+    text: "Soluciones en cercas de PVC con excelente control de calidad, buena atención y asesoría personalizada.",
+    date: "Octubre 2024",
   },
   {
-    name: "Ana Lucía Pérez",
-    location: "Chorrera",
+    name: "Alberto Barrios",
     rating: 5,
-    text: "Pensé que sería mucho más caro. La calculadora en línea me ayudó a planificar el presupuesto y el resultado superó mis expectativas.",
+    text: "Excelente servicio y calidad de producto. Personal altamente profesional. 100% fiable.",
+    date: "Marzo 2024",
   },
   {
-    name: "Roberto Castillo",
-    location: "Colón",
-    rating: 4,
-    text: "Muy profesionales desde la cotización hasta la instalación. Mi finca quedó perfectamente cercada con material de primera calidad.",
+    name: "Roberth Castillo",
+    rating: 5,
+    text: "Especialistas en cercas de PVC. La instalación fue rápida y el resultado superó nuestras expectativas.",
+    date: "Marzo 2024",
   },
 ];
 
 export function Testimonials() {
   return (
     <section className="py-16 bg-white">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-3">
-            Lo Que Dicen Nuestros Clientes
-          </h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            La satisfacción de nuestros clientes es nuestra mejor garantía.
-          </p>
+      <div className="mx-auto max-w-7xl px-4">
+        <div className="mb-10 text-center">
+          <h2 className="text-3xl font-bold text-gray-900">Nuestros clientes confían en nosotros</h2>
+          <div className="mt-3 flex items-center justify-center gap-1">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <Star key={star} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+            ))}
+            <span className="ml-2 text-sm font-medium text-gray-500">4.8 · 17 reseñas en Google</span>
+          </div>
         </div>
-
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {testimonials.map((t, i) => (
-            <Card key={i} className="border-gray-100">
-              <CardContent className="p-5 space-y-3">
-                <div className="flex gap-0.5">
-                  {Array.from({ length: 5 }).map((_, j) => (
-                    <Star
-                      key={j}
-                      className={`h-4 w-4 ${
-                        j < t.rating
-                          ? "fill-amber-400 text-amber-400"
-                          : "fill-gray-200 text-gray-200"
-                      }`}
-                    />
-                  ))}
-                </div>
-                <p className="text-sm text-gray-600 leading-relaxed italic">
-                  &ldquo;{t.text}&rdquo;
-                </p>
-                <div>
-                  <p className="font-semibold text-gray-900 text-sm">{t.name}</p>
-                  <p className="text-xs text-gray-500">{t.location}</p>
-                </div>
-              </CardContent>
-            </Card>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+          {testimonials.map((t) => (
+            <div key={t.name} className="rounded-xl border border-gray-200 p-6 hover:border-green-200 transition-colors">
+              <div className="mb-3 flex items-center gap-1">
+                {Array.from({ length: t.rating }).map((_, i) => (
+                  <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                ))}
+              </div>
+              <p className="text-sm text-gray-600 leading-relaxed">&ldquo;{t.text}&rdquo;</p>
+              <div className="mt-4 border-t pt-3">
+                <p className="text-sm font-medium text-gray-900">{t.name}</p>
+                <p className="text-xs text-gray-400">{t.date}</p>
+              </div>
+            </div>
           ))}
         </div>
       </div>

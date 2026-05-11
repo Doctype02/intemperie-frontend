@@ -1,123 +1,149 @@
+"use client";
+
 import Link from "next/link";
-import { Phone, Mail, MapPin, Globe } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
+import { Phone, Mail, MapPin, Globe, ExternalLink } from "lucide-react";
+
+const paymentMethods = ["Visa", "Mastercard", "Yappy", "Clave"];
+
+const footerLinks = {
+  Productos: [
+    { label: "Cercas PVC", href: "/categorias/residencial" },
+    { label: "Mallas Electrosoldadas", href: "/categorias/industrial" },
+    { label: "Todas las colecciones", href: "/productos" },
+    { label: "Calculadora", href: "/calculadora" },
+  ],
+  Empresa: [
+    { label: "Nosotros", href: "/nosotros" },
+    { label: "Contacto", href: "/contacto" },
+    { label: "Blog", href: "/blog" },
+    { label: "FAQ", href: "/faq" },
+  ],
+  Ayuda: [
+    { label: "Mi cuenta", href: "/cuenta" },
+    { label: "Mis pedidos", href: "/cuenta/pedidos" },
+    { label: "Envíos", href: "/envios" },
+    { label: "Cotizar", href: "/calculadora" },
+  ],
+};
+
+const socialLinks = [
+  { icon: Globe, href: "https://www.facebook.com/tiendasintemperiepanama/", label: "Facebook" },
+  { icon: Globe, href: "https://www.instagram.com/tiendasintemperie/", label: "Instagram" },
+  { icon: Globe, href: "https://www.youtube.com/@tiendasintemperie1886", label: "YouTube" },
+];
 
 export function Footer() {
   return (
-    <footer id="contacto" className="bg-gray-900 text-gray-300">
-      <div className="max-w-7xl mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <div className="h-9 w-9 rounded bg-green-700 flex items-center justify-center">
-                <span className="text-white font-bold text-xs">I</span>
+    <footer className="bg-gray-900 text-gray-300">
+      {/* Newsletter */}
+      <div className="border-b border-gray-800">
+        <div className="mx-auto max-w-7xl px-4 py-8">
+          <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
+            <div>
+              <p className="font-bold text-white text-lg">¿Buscas ofertas en cercas?</p>
+              <p className="text-sm text-gray-400">Suscríbete y recibe descuentos exclusivos</p>
+            </div>
+            <form className="flex w-full gap-2 md:w-auto" onSubmit={(e) => e.preventDefault()}>
+              <input
+                type="email"
+                placeholder="tu@email.com"
+                className="flex-1 rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 md:w-64"
+              />
+              <button className="rounded-lg bg-green-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-green-700 transition-colors">
+                Suscribirme
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div className="mx-auto max-w-7xl px-4 py-12">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-5">
+          {/* Brand */}
+          <div className="lg:col-span-2">
+            <Link href="/" className="flex items-center gap-2 mb-4">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-600 text-white font-bold text-lg">
+                I
               </div>
-              <span className="text-xl font-bold text-white tracking-tight">
-                INTEMPERIE
-              </span>
-            </div>
-            <p className="text-sm text-gray-400">
-              Seguridad y Elegancia Al Aire Libre.
+              <div>
+                <p className="text-lg font-bold text-white leading-tight">INTEMPERIE</p>
+                <p className="text-xs text-gray-500">Seguridad y Elegancia Al Aire Libre</p>
+              </div>
+            </Link>
+            <p className="mb-4 text-sm text-gray-400 max-w-sm">
+              Especialistas en Cercas PVC y Mallas Electrosoldadas para todo tipo de cerramientos.
+              Más de 15 años protegiendo hogares, industrias y proyectos en Panamá.
             </p>
-            <p className="text-sm text-gray-400">
-              Especialistas en cercas de PVC y malla electrosoldada con cobertura en todo Panamá.
-            </p>
-          </div>
-
-          <div>
-            <h4 className="font-semibold text-white mb-4">Enlaces</h4>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <Link href="/productos" className="hover:text-white transition-colors">
-                  Productos
-                </Link>
-              </li>
-              <li>
-                <Link href="/calculadora" className="hover:text-white transition-colors">
-                  Calculadora
-                </Link>
-              </li>
-              <li>
-                <Link href="/colecciones/residencial" className="hover:text-white transition-colors">
-                  Colección Residencial
-                </Link>
-              </li>
-              <li>
-                <Link href="/colecciones/industrial" className="hover:text-white transition-colors">
-                  Colección Industrial
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="font-semibold text-white mb-4">Contacto</h4>
-            <ul className="space-y-3 text-sm">
-              <li className="flex items-center gap-2">
+            <div className="space-y-2 text-sm">
+              <div className="flex items-center gap-2">
                 <Phone className="h-4 w-4 text-green-500" />
-                <a href="tel:+50762874042" className="hover:text-white transition-colors">
-                  +507 6287-4042
-                </a>
-              </li>
-              <li className="flex items-center gap-2">
+                <span>+507 6287-4042</span>
+              </div>
+              <div className="flex items-center gap-2">
                 <Mail className="h-4 w-4 text-green-500" />
-                <a href="mailto:ventas@tiendasintemperie.com" className="hover:text-white transition-colors">
-                  ventas@tiendasintemperie.com
+                <span>ventas@tiendasintemperie.com</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-green-500" />
+                <span>Panamá Oeste, La Chorrera, Barrio Colón</span>
+              </div>
+            </div>
+            <div className="mt-4 flex gap-3">
+              {socialLinks.map((s) => (
+                <a
+                  key={s.label}
+                  href={s.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-800 text-gray-400 hover:bg-green-700 hover:text-white transition-colors"
+                >
+                  <s.icon className="h-4 w-4" />
                 </a>
-              </li>
-              <li className="flex items-start gap-2">
-                <MapPin className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
-                <span>Provincia de Panamá Oeste, La Chorrera, Barrio Colón</span>
-              </li>
-            </ul>
+              ))}
+            </div>
           </div>
 
-          <div>
-            <h4 className="font-semibold text-white mb-4">Síguenos</h4>
-            <div className="flex gap-3">
-              <a
-                href="https://facebook.com/tiendasintemperie"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="h-10 w-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-green-700 transition-colors"
-                aria-label="Facebook"
-              >
-                <Globe className="h-5 w-5" />
-              </a>
-              <a
-                href="https://instagram.com/tiendasintemperie"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="h-10 w-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-green-700 transition-colors"
-                aria-label="Instagram"
-              >
-                <Globe className="h-5 w-5" />
-              </a>
-              <a
-                href="https://youtube.com/@tiendasintemperie"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="h-10 w-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-green-700 transition-colors"
-                aria-label="YouTube"
-              >
-                <Globe className="h-5 w-5" />
-              </a>
+          {/* Link columns */}
+          {Object.entries(footerLinks).map(([title, links]) => (
+            <div key={title}>
+              <h3 className="mb-4 font-semibold text-white text-sm uppercase tracking-wider">
+                {title}
+              </h3>
+              <ul className="space-y-2.5">
+                {links.map((link) => (
+                  <li key={link.label}>
+                    <Link
+                      href={link.href}
+                      className="text-sm text-gray-400 hover:text-green-400 transition-colors"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             </div>
-            <div className="mt-6">
-              <h4 className="font-semibold text-white mb-2 text-sm">Horario</h4>
-              <p className="text-sm text-gray-400">
-                Lunes a Viernes: 7:00 AM - 5:00 PM<br />
-                Sábados: 8:00 AM - 12:00 PM
-              </p>
+          ))}
+        </div>
+
+        {/* Bottom bar */}
+        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-gray-800 pt-8 md:flex-row">
+          <p className="text-sm text-gray-500">
+            &copy; {new Date().getFullYear()} INTEMPERIE. Todos los derechos reservados.
+          </p>
+          <div className="flex items-center gap-4">
+            <span className="text-xs text-gray-500">Pago seguro:</span>
+            <div className="flex gap-2">
+              {paymentMethods.map((m) => (
+                <div
+                  key={m}
+                  className="rounded border border-gray-700 bg-gray-800 px-3 py-1 text-xs text-gray-400"
+                >
+                  {m}
+                </div>
+              ))}
             </div>
           </div>
         </div>
-
-        <Separator className="my-8 bg-gray-800" />
-
-        <p className="text-center text-sm text-gray-500">
-          &copy; {new Date().getFullYear()} Intemperie. Todos los derechos reservados.
-        </p>
       </div>
     </footer>
   );

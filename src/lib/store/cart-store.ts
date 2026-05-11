@@ -1,10 +1,27 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { CartItem, Product } from "@/types";
+
+interface CartProduct {
+  id: string;
+  name: string;
+  slug: string;
+  basePrice: number;
+  unit: string;
+  stock: number;
+  collection?: { name: string };
+  category?: { name: string };
+}
+
+interface CartItem {
+  id: string;
+  productId: string;
+  product: CartProduct;
+  quantity: number;
+}
 
 interface CartState {
   items: CartItem[];
-  addItem: (product: Product, quantity: number, unit: "meters" | "panels") => void;
+  addItem: (product: CartProduct, quantity: number) => void;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
@@ -17,28 +34,26 @@ export const useCartStore = create<CartState>()(
     (set, get) => ({
       items: [],
 
-      addItem: (product, quantity, unit) => {
+      addItem: (product, quantity) => {
         set((state) => {
-          const existing = state.items.find(
-            (item) => item.productId === product.id && item.unit === unit
-          );
+          const existing = state.items.find((item) => item.productId === product.id);
           if (existing) {
             return {
               items: state.items.map((item) =>
-                item.productId === product.id && item.unit === unit
+                item.productId === product.id
                   ? { ...item, quantity: item.quantity + quantity }
                   : item
               ),
             };
           }
-          const newItem: CartItem = {
-            id: crypto.randomUUID(),
-            productId: product.id,
-            product,
-            quantity,
-            unit,
+          return {
+            items: [...state.items, {
+              id: crypto.randomUUID(),
+              productId: product.id,
+              product,
+              quantity,
+            }],
           };
-          return { items: [...state.items, newItem] };
         });
       },
 
@@ -62,25 +77,10 @@ export const useCartStore = create<CartState>()(
 
       clearCart: () => set({ items: [] }),
 
-      itemCount: () => {
-        return get().items.reduce((sum, item) => sum + item.quantity, 0);
-      },
+      itemCount: () => get().items.reduce((sum, item) => sum + item.quantity, 0),
 
-      subtotal: () => {
-        return get().items.reduce((sum, item) => {
-          const { product, quantity, unit } = item;
-          if (unit === "meters") {
-            return sum + quantity * product.pricePerMeter;
-          }
-          const panelPrice =
-            product.pricePerPanel ??
-            product.pricePerMeter * (product.panelWidth ?? 2.5);
-          return sum + quantity * panelPrice;
-        }, 0);
-      },
+      subtotal: () => get().items.reduce((sum, item) => sum + item.product.basePrice * item.quantity, 0),
     }),
-    {
-      name: "intemperie-cart",
-    }
+    { name: "intemperie-cart" }
   )
 );

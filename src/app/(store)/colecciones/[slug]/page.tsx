@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { API_BASE } from "@/lib/api";
-import type { Product, Collection } from "@/types";
+import type { Collection } from "@/types";
 import { ProductGrid } from "@/components/products/product-grid";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
@@ -17,7 +17,7 @@ async function getCollectionBySlug(slug: string): Promise<Collection | null> {
   return data.data || null;
 }
 
-async function getProductsByCollection(slug: string): Promise<Product[]> {
+async function getProductsByCollection(slug: string) {
   const res = await fetch(`${API_BASE}/products?collection=${slug}`, { cache: "no-store" });
   if (!res.ok) return [];
   const data = await res.json();

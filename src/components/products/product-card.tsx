@@ -1,50 +1,66 @@
+"use client";
+
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { formatCurrency } from "@/lib/utils";
-import type { Product } from "@/types";
 
 interface ProductCardProps {
-  product: Product;
+  id: string;
+  name: string;
+  slug: string;
+  basePrice: number;
+  unit: string;
+  stock: number;
+  category?: { name: string };
+  collection?: { name: string };
+  isActive?: boolean;
 }
 
-export function ProductCard({ product }: ProductCardProps) {
+const stockBadge = (stock: number) => {
+  if (stock === 0) return { text: "Agotado", cls: "bg-red-100 text-red-700 border-0" };
+  if (stock <= 5) return { text: `Solo ${stock} unid.`, cls: "bg-orange-100 text-orange-700 border-0" };
+  return { text: "En inventario", cls: "bg-green-100 text-green-700 border-0" };
+};
+
+export function ProductCard(product: ProductCardProps) {
+  const stock = stockBadge(product.stock);
+  const collectionName = product.collection?.name || product.category?.name || "Intemperie";
+  const unitLabel = product.unit === "METRO" ? "/m" : product.unit === "PANEL" ? "/panel" : "/unid.";
+
   return (
-    <Link href={`/productos/${product.slug}`}>
-      <Card className="group h-full overflow-hidden hover:shadow-lg transition-shadow border-gray-200">
-        <div className="aspect-[4/3] bg-gray-100 relative overflow-hidden">
-          {product.images.length > 0 ? (
-            <img
-              src={product.images[0].url}
-              alt={product.images[0].alt || product.name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-green-100 to-green-200">
-              <div className="text-green-700 text-center p-4">
-                <div className="w-12 h-12 mx-auto mb-2 rounded-full bg-green-200 flex items-center justify-center">
-                  <span className="text-xl font-bold">{product.name.charAt(0)}</span>
-                </div>
-                <span className="text-sm font-medium">{product.name}</span>
-              </div>
-            </div>
+    <Link href={`/productos/${product.slug}`} className="group">
+      <Card className="h-full overflow-hidden border-gray-200 transition-all hover:border-green-300 hover:shadow-lg">
+        <div className="relative h-52 bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center">
+          <div className="text-center select-none">
+            <span className="text-5xl opacity-20">🏗️</span>
+            <p className="mt-2 text-xs font-medium text-green-700">{collectionName}</p>
+          </div>
+          {product.stock > 0 && product.stock <= 5 && (
+            <Badge className="absolute left-3 top-3 bg-orange-500 border-0 text-white text-xs">
+              ¡Quedan pocos!
+            </Badge>
           )}
-          {product.collection && (
-            <Badge className="absolute top-2 left-2 bg-white/90 text-gray-800 border-0">
-              {product.collection.name}
+          {product.stock === 0 && (
+            <Badge className="absolute left-3 top-3 bg-red-500 border-0 text-white text-xs">
+              Agotado
             </Badge>
           )}
         </div>
         <CardContent className="p-4">
-          <h3 className="font-semibold text-gray-900 group-hover:text-green-700 transition-colors">
+          <p className="mb-0.5 text-xs text-gray-400">{collectionName}</p>
+          <h3 className="font-semibold text-gray-900 group-hover:text-green-700 transition-colors line-clamp-2 leading-snug">
             {product.name}
           </h3>
-          <p className="text-sm text-gray-500 mt-1 line-clamp-2">{product.description}</p>
-          <div className="mt-3 flex items-center justify-between">
-            <span className="text-lg font-bold text-green-700">
-              {formatCurrency(product.pricePerMeter)}
+          <div className="mt-3 flex items-baseline gap-1">
+            <span className="text-2xl font-bold text-gray-900">
+              ${Number(product.basePrice).toFixed(2)}
             </span>
-            <span className="text-xs text-gray-400">/metro lineal</span>
+            <span className="text-sm text-gray-500">{unitLabel}</span>
+          </div>
+          <div className="mt-3">
+            <Badge className={`text-xs ${stock.cls}`}>
+              {stock.text}
+            </Badge>
           </div>
         </CardContent>
       </Card>

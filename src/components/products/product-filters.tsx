@@ -1,161 +1,101 @@
 "use client";
 
-import { useState } from "react";
-import { SlidersHorizontal } from "lucide-react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import type { Category, Collection } from "@/types";
+import { X } from "lucide-react";
 
 interface ProductFiltersProps {
-  categories: Category[];
-  collections: Collection[];
-  selectedCategories: string[];
-  selectedCollections: string[];
-  search: string;
-  onCategoriesChange: (ids: string[]) => void;
-  onCollectionsChange: (ids: string[]) => void;
-  onSearchChange: (search: string) => void;
+  categories: Array<{ id: string; slug: string; name: string }>;
+  collections: Array<{ id: string; slug: string; name: string }>;
 }
 
-export function ProductFilters({
-  categories,
-  collections,
-  selectedCategories,
-  selectedCollections,
-  search,
-  onCategoriesChange,
-  onCollectionsChange,
-  onSearchChange,
-}: ProductFiltersProps) {
-  const [open, setOpen] = useState(false);
+export function ProductFilters({ categories, collections }: ProductFiltersProps) {
+  const searchParams = useSearchParams();
+  const activeCategory = searchParams.get("category");
+  const activeCollection = searchParams.get("collection");
 
-  const toggleCategory = (id: string) => {
-    if (selectedCategories.includes(id)) {
-      onCategoriesChange(selectedCategories.filter((c) => c !== id));
+  const buildHref = (key: string, value: string | null) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value) {
+      params.set(key, value);
     } else {
-      onCategoriesChange([...selectedCategories, id]);
+      params.delete(key);
     }
+    params.delete("page");
+    const qs = params.toString();
+    return `/productos${qs ? `?${qs}` : ""}`;
   };
 
-  const toggleCollection = (id: string) => {
-    if (selectedCollections.includes(id)) {
-      onCollectionsChange(selectedCollections.filter((c) => c !== id));
-    } else {
-      onCollectionsChange([...selectedCollections, id]);
-    }
+  const clearAll = () => {
+    return "/productos";
   };
 
-  const clearFilters = () => {
-    onCategoriesChange([]);
-    onCollectionsChange([]);
-    onSearchChange("");
-  };
+  const hasFilters = activeCategory || activeCollection;
 
-  const hasFilters =
-    selectedCategories.length > 0 ||
-    selectedCollections.length > 0 ||
-    search.length > 0;
+  return (
+    <aside className="w-56 shrink-0">
+      {hasFilters && (
+        <div className="mb-4 flex items-center justify-between">
+          <span className="text-sm font-medium text-gray-700">Filtros activos</span>
+          <Button variant="ghost" size="sm" className="h-auto p-0 text-xs text-red-500 hover:text-red-700" asChild>
+            <Link href={clearAll()}>
+              <X className="mr-1 h-3 w-3" />
+              Limpiar
+            </Link>
+          </Button>
+        </div>
+      )}
 
-  const FilterContent = () => (
-    <div className="space-y-6">
-      <div>
-        <h3 className="font-semibold text-sm mb-3">Categoría</h3>
-        <div className="space-y-2">
+      {/* Categories */}
+      <div className="mb-6">
+        <h3 className="mb-3 text-sm font-semibold text-gray-900 uppercase tracking-wider">Categorías</h3>
+        <div className="space-y-1">
+          <Link
+            href={buildHref("category", null)}
+            className={`block rounded-lg px-3 py-2 text-sm transition-colors ${
+              !activeCategory
+                ? "bg-green-50 text-green-700 font-medium"
+                : "text-gray-600 hover:bg-gray-100"
+            }`}
+          >
+            Todas
+          </Link>
           {categories.map((cat) => (
-            <div key={cat.id} className="flex items-center gap-2">
-              <Checkbox
-                id={`cat-${cat.id}`}
-                checked={selectedCategories.includes(cat.id)}
-                onCheckedChange={() => toggleCategory(cat.id)}
-              />
-              <Label htmlFor={`cat-${cat.id}`} className="text-sm cursor-pointer">
-                {cat.name}
-              </Label>
-            </div>
+            <Link
+              key={cat.id}
+              href={buildHref("category", cat.slug)}
+              className={`block rounded-lg px-3 py-2 text-sm transition-colors ${
+                activeCategory === cat.slug
+                  ? "bg-green-50 text-green-700 font-medium"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              {cat.name}
+            </Link>
           ))}
         </div>
       </div>
 
-      {collections.length > 0 && (
-        <div>
-          <h3 className="font-semibold text-sm mb-3">Colección</h3>
-          <div className="space-y-2">
-            {collections.map((col) => (
-              <div key={col.id} className="flex items-center gap-2">
-                <Checkbox
-                  id={`col-${col.id}`}
-                  checked={selectedCollections.includes(col.id)}
-                  onCheckedChange={() => toggleCollection(col.id)}
-                />
-                <Label htmlFor={`col-${col.id}`} className="text-sm cursor-pointer">
-                  {col.name}
-                </Label>
-              </div>
-            ))}
-          </div>
+      {/* Collections */}
+      <div>
+        <h3 className="mb-3 text-sm font-semibold text-gray-900 uppercase tracking-wider">Colecciones</h3>
+        <div className="space-y-1 max-h-80 overflow-y-auto">
+          {collections.map((col) => (
+            <Link
+              key={col.id}
+              href={buildHref("collection", col.slug)}
+              className={`block rounded-lg px-3 py-2 text-sm transition-colors ${
+                activeCollection === col.slug
+                  ? "bg-green-50 text-green-700 font-medium"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              {col.name}
+            </Link>
+          ))}
         </div>
-      )}
-
-      {hasFilters && (
-        <Button variant="outline" size="sm" className="w-full" onClick={clearFilters}>
-          Limpiar filtros
-        </Button>
-      )}
-    </div>
-  );
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-3">
-        <div className="relative flex-1">
-          <Input
-            type="search"
-            placeholder="Buscar productos..."
-            value={search}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-9"
-          />
-          <svg
-            className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-        </div>
-
-        <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger asChild>
-            <Button variant="outline" size="icon" className="shrink-0">
-              <SlidersHorizontal className="h-4 w-4" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-72">
-            <SheetHeader>
-              <SheetTitle>Filtros</SheetTitle>
-            </SheetHeader>
-            <div className="mt-6">
-              <FilterContent />
-            </div>
-          </SheetContent>
-        </Sheet>
       </div>
-
-      {/* Desktop filters sidebar */}
-      <div className="hidden lg:block">
-        <FilterContent />
-      </div>
-    </div>
+    </aside>
   );
 }
