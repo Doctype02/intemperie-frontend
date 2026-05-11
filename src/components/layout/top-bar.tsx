@@ -1,15 +1,26 @@
 "use client";
 
-import { Truck } from "lucide-react";
+import { Truck, BadgePercent, Sparkles } from "lucide-react";
+import Link from "next/link";
+
+const promos = [
+  { icon: Truck, text: "Envío gratis en pedidos web mayores a $500", href: "/productos" },
+  { icon: BadgePercent, text: "Hasta 15% OFF en pedidos +100m lineales", href: "/calculadora" },
+  { icon: Sparkles, text: "Nuevas colecciones de cercas PVC", href: "/productos" },
+];
 
 export function TopBar() {
   return (
-    <div className="bg-green-800 text-white text-[10px] md:text-xs">
-      <div className="mx-auto flex max-w-7xl items-center justify-center gap-2 md:gap-4 px-3 md:px-4 py-1.5">
-        <span className="flex items-center gap-1.5 truncate">
-          <Truck className="h-3 w-3 md:h-3.5 md:w-3.5 shrink-0" />
-          <span className="truncate">Envíos a todo Panamá · +507 6287-4042</span>
-        </span>
+    <div className="bg-gray-100 border-b border-gray-200">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+        <div className="flex items-center justify-center sm:justify-between gap-4 sm:gap-6 py-2 overflow-x-auto text-xs sm:text-sm text-gray-600">
+          {promos.map((promo, i) => (
+            <Link key={i} href={promo.href} className="flex items-center gap-1.5 shrink-0 hover:text-green-700 transition-colors">
+              <promo.icon className="h-4 w-4 text-green-600" />
+              <span className="whitespace-nowrap">{promo.text}</span>
+            </Link>
+          ))}
+        </div>
       </div>
     </div>
   );

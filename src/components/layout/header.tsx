@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Search, ShoppingCart, User, Menu, X, ChevronDown, Phone, Mail } from "lucide-react";
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { useCartStore } from "@/lib/store/cart-store";
+import { TopBar } from "./top-bar";
 
 const categories = [
   { name: "Residencial", slug: "residencial" },
@@ -33,16 +34,7 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
-      {/* Top bar */}
-      <div className="bg-green-800 text-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-1.5 text-[11px]">
-          <span className="flex items-center gap-1.5">🚚 Envíos a todo Panamá</span>
-          <div className="hidden sm:flex items-center gap-4">
-            <a href="mailto:ventas@tiendasintemperie.com" className="flex items-center gap-1 hover:underline"><Mail className="h-3 w-3" />ventas@tiendasintemperie.com</a>
-            <a href="tel:+50762874042" className="flex items-center gap-1 hover:underline"><Phone className="h-3 w-3" />+507 6287-4042</a>
-          </div>
-        </div>
-      </div>
+      <TopBar />
 
       {/* Main header */}
       <div className="mx-auto max-w-7xl px-4">
