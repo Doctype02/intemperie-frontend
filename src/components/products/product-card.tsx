@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ShoppingCart } from "lucide-react";
+import { useCartStore } from "@/lib/store/cart-store";
 
 interface ProductCardProps {
   id: string; name: string; slug: string;
@@ -28,24 +29,16 @@ const placeholderImages: Record<string, string> = {
   "malla-electrosoldada-maximus": "111827/FFFFFF?text=Maximus",
 };
 
-const categoryPatterns: Record<string, string> = {
-  Residencial: "from-green-100 to-emerald-200",
-  Industrial: "from-gray-100 to-gray-300",
-  Gubernamental: "from-blue-100 to-indigo-200",
-  Agropecuario: "from-amber-50 to-yellow-200",
-  "Zonas Costeras": "from-cyan-100 to-sky-200",
-};
-
 export function ProductCard(p: ProductCardProps) {
+  const addItem = useCartStore((s) => s.addItem);
   const catName = p.collection?.name || p.category?.name || "Intemperie";
-  const bg = categoryPatterns[p.category?.name || "Residencial"] || "from-green-100 to-emerald-200";
   const imgUrl = placeholderImages[p.slug];
   const unitLabel = p.unit === "METRO" ? "/m" : p.unit === "PANEL" ? "/panel" : "";
 
   return (
     <div className="group bg-white rounded-xl border border-gray-100 hover:border-green-200 hover:shadow-xl transition-all duration-300">
       <Link href={`/productos/${p.slug}`} className="block">
-        <div className="relative h-48 md:h-52 rounded-t-xl overflow-hidden">
+        <div className="relative h-48 md:h-52 rounded-t-xl overflow-hidden bg-gray-100">
           {imgUrl ? (
             <img
               src={`https://placehold.co/600x400/${imgUrl}`}
@@ -54,25 +47,15 @@ export function ProductCard(p: ProductCardProps) {
               loading="lazy"
             />
           ) : (
-            <div className={`h-full w-full bg-gradient-to-br ${bg} flex items-center justify-center`}>
-              <div className="text-center">
-                <div className="w-14 h-14 mx-auto rounded-2xl bg-white/60 flex items-center justify-center">
-                  <span className="text-xl font-extrabold text-green-700">
-                    {catName.charAt(0)}
-                  </span>
-                </div>
-              </div>
+            <div className="h-full w-full bg-gradient-to-br from-green-100 to-emerald-200 flex items-center justify-center">
+              <span className="text-4xl font-black text-green-300">{catName.charAt(0)}</span>
             </div>
           )}
           {p.stock > 0 && p.stock <= 3 && (
-            <span className="absolute top-2 right-2 bg-amber-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-md">
-              ¡{p.stock} unid.!
-            </span>
+            <span className="absolute top-2 right-2 bg-amber-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-md">¡Últimas!</span>
           )}
           {p.stock === 0 && (
-            <span className="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-md">
-              Agotado
-            </span>
+            <span className="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-md">Agotado</span>
           )}
         </div>
       </Link>
@@ -84,7 +67,7 @@ export function ProductCard(p: ProductCardProps) {
         </Link>
 
         <div className="mt-2 flex items-baseline gap-1">
-          <span className="text-xl font-extrabold text-gray-900">${Number(p.basePrice).toFixed(2)}</span>
+          <span className="text-lg font-extrabold text-gray-900">${Number(p.basePrice).toFixed(2)}</span>
           <span className="text-xs text-gray-400">{unitLabel}</span>
         </div>
 
@@ -95,13 +78,16 @@ export function ProductCard(p: ProductCardProps) {
         </div>
 
         {p.stock > 0 && (
-          <Link
-            href={`/productos/${p.slug}`}
-            className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg bg-green-700 py-2.5 text-xs font-bold text-white hover:bg-green-800 transition-all hover:shadow-lg hover:shadow-green-200"
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              addItem({ id: p.id, name: p.name, slug: p.slug, basePrice: p.basePrice, unit: p.unit, stock: p.stock, collection: p.collection, category: p.category }, 10);
+            }}
+            className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg bg-green-600 py-2.5 text-xs font-bold text-white hover:bg-green-700 transition-all active:scale-95"
           >
             <ShoppingCart className="h-3.5 w-3.5" />
-            Ver producto
-          </Link>
+            Agregar al carrito
+          </button>
         )}
       </div>
     </div>
