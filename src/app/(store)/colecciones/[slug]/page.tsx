@@ -14,7 +14,7 @@ async function getCollectionBySlug(slug: string): Promise<Collection | null> {
   const res = await fetch(`${API_BASE}/collections/${slug}`, { cache: "no-store" });
   if (!res.ok) return null;
   const data = await res.json();
-  return data.data || null;
+  return data || null;
 }
 
 async function getProductsByCollection(slug: string) {

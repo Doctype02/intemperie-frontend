@@ -58,6 +58,7 @@ export default function AdminProducts() {
     isActive: true,
     categoryId: "",
     collectionId: "",
+    imageUrl: "",
     attributes: "{}",
     specifications: "[]",
   });
@@ -80,7 +81,7 @@ export default function AdminProducts() {
     setForm({
       name: "", slug: "", description: "", basePrice: "", unit: "METRO",
       stock: "0", isActive: true, categoryId: "", collectionId: "",
-      attributes: "{}", specifications: "[]",
+      imageUrl: "", attributes: "{}", specifications: "[]",
     });
     setEditing(null);
   };
@@ -93,6 +94,7 @@ export default function AdminProducts() {
       isActive: p.isActive,
       categoryId: p.category?.id || "",
       collectionId: p.collection?.id || "",
+      imageUrl: "",
       attributes: "{}",
       specifications: "[]",
     });
@@ -211,6 +213,10 @@ export default function AdminProducts() {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="col-span-2">
+                <Label>Imagen URL (opcional)</Label>
+                <Input value={form.imageUrl || ""} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} placeholder="https://ejemplo.com/imagen.jpg" />
               </div>
             </div>
             <div className="flex justify-end gap-3">
