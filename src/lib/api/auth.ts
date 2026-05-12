@@ -5,11 +5,14 @@ export async function login(
   email: string,
   password: string
 ): Promise<AuthResponse> {
-  const res = await request<ApiResponse<AuthResponse>>("/auth/login", {
+  const res = await request<any>("/auth/login", {
     method: "POST",
     body: JSON.stringify({ email, password }),
   });
-  return res.data;
+  return {
+    user: res.user,
+    tokens: { accessToken: res.accessToken, refreshToken: res.refreshToken },
+  };
 }
 
 export async function register(data: {
@@ -17,21 +20,24 @@ export async function register(data: {
   email: string;
   password: string;
 }): Promise<AuthResponse> {
-  const res = await request<ApiResponse<AuthResponse>>("/auth/register", {
+  const res = await request<any>("/auth/register", {
     method: "POST",
     body: JSON.stringify(data),
   });
-  return res.data;
+  return {
+    user: res.user,
+    tokens: { accessToken: res.accessToken, refreshToken: res.refreshToken },
+  };
 }
 
 export async function refreshToken(
   refreshToken: string
 ): Promise<AuthTokens> {
-  const res = await request<ApiResponse<AuthTokens>>("/auth/refresh", {
+  const res = await request<any>("/auth/refresh", {
     method: "POST",
     body: JSON.stringify({ refreshToken }),
   });
-  return res.data;
+  return { accessToken: res.accessToken, refreshToken: res.refreshToken };
 }
 
 export async function logout(): Promise<void> {
@@ -39,6 +45,6 @@ export async function logout(): Promise<void> {
 }
 
 export async function getMe(): Promise<User> {
-  const res = await request<ApiResponse<User>>("/auth/me");
-  return res.data;
+  const res = await request<any>("/auth/me");
+  return res.user || res;
 }
