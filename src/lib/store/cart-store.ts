@@ -36,7 +36,7 @@ export const useCartStore = create<CartState>()(
 
       addItem: (product, quantity) => {
         set((state) => {
-          const existing = state.items.find((item) => item.productId === product.id);
+          const existing = state.items.find((item) => item.productId === product.id && item.product);
           if (existing) {
             return {
               items: state.items.map((item) =>
@@ -48,7 +48,7 @@ export const useCartStore = create<CartState>()(
           }
           return {
             items: [...state.items, {
-              id: crypto.randomUUID(),
+              id: Math.random().toString(36).slice(2),
               productId: product.id,
               product,
               quantity,
@@ -77,10 +77,25 @@ export const useCartStore = create<CartState>()(
 
       clearCart: () => set({ items: [] }),
 
-      itemCount: () => get().items.reduce((sum, item) => sum + item.quantity, 0),
+      itemCount: () => {
+        try {
+          return get().items.filter(i => i && i.product).reduce((sum, item) => sum + item.quantity, 0);
+        } catch { return 0; }
+      },
 
-      subtotal: () => get().items.reduce((sum, item) => sum + item.product.basePrice * item.quantity, 0),
+      subtotal: () => {
+        try {
+          return get().items.filter(i => i && i.product && i.product.basePrice).reduce((sum, item) => sum + item.product.basePrice * item.quantity, 0);
+        } catch { return 0; }
+      },
     }),
-    { name: "intemperie-cart" }
+    {
+      name: "intemperie-cart",
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          state.items = (state.items || []).filter((item: any) => item && item.product && item.productId);
+        }
+      },
+    }
   )
 );

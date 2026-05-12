@@ -1,14 +1,34 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useCartStore } from "@/lib/store/cart-store";
 import { Button } from "@/components/ui/button";
 import { Minus, Plus, Trash2, ArrowLeft, ShoppingCart } from "lucide-react";
 
 export default function CartPage() {
-  const { items, updateQuantity, removeItem, subtotal } = useCartStore();
+  const [hydrated, setHydrated] = useState(false);
+  const store = useCartStore();
 
-  if (items.length === 0) {
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
+
+  if (!hydrated) {
+    return (
+      <main className="flex-1 bg-gray-50 flex items-center justify-center py-20">
+        <div className="text-center">
+          <div className="h-20 w-20 mx-auto rounded-full bg-gray-100 animate-pulse" />
+          <div className="h-6 w-48 mx-auto mt-4 bg-gray-200 rounded animate-pulse" />
+        </div>
+      </main>
+    );
+  }
+
+  const { items, updateQuantity, removeItem, subtotal } = store;
+  const validItems = items.filter(i => i && i.product);
+
+  if (validItems.length === 0) {
     return (
       <main className="flex-1 bg-gray-50 flex items-center justify-center">
           <div className="mx-auto max-w-3xl px-4 py-12 text-center">
@@ -46,7 +66,7 @@ export default function CartPage() {
 
             {/* Items */}
             <div className="divide-y">
-              {items.map((item) => (
+              {validItems.map((item) => (
                 <div key={item.id}>
                   {/* Mobile card layout */}
                   <div className="block sm:hidden p-4">
