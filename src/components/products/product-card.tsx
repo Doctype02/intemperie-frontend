@@ -3,30 +3,14 @@
 import Link from "next/link";
 import { ShoppingCart, Check } from "lucide-react";
 import { useCartStore } from "@/lib/store/cart-store";
+import type { ProductImage } from "@/types";
 
 interface ProductCardProps {
   id: string; name: string; slug: string;
   basePrice: number; unit: string; stock: number;
   category?: { name: string }; collection?: { name: string };
+  images?: ProductImage[];
 }
-
-const productImages: Record<string, string> = {
-  "cerca-pvc-oceanides-101": "/products/pvc-white-fence.jpg",
-  "cerca-pvc-super-oceanides-103": "/products/pvc-reinforced-fence.jpg",
-  "cerca-pvc-atlas": "/products/atlas-fence.jpg",
-  "cerca-pvc-pandora-201": "/products/pandora-modern.jpg",
-  "cerca-pvc-pandora-204": "/products/pandora-premium.jpg",
-  "cerca-pvc-afrodita-401": "/products/afrodita-decorative.jpg",
-  "cerca-pvc-atenea-305": "/products/atenea-commercial.jpg",
-  "cerca-pvc-poseidon-502": "/products/poseidon-coastal.jpg",
-  "cerca-pvc-atenea-303": "/products/atenea-security.jpg",
-  "cerca-pvc-vesta-601": "/products/vesta-industrial.jpg",
-  "cerca-pvc-selene-701": "/products/selene-marine.jpg",
-  "malla-electrosoldada-mini-titan": "/products/mesh-mini.jpg",
-  "malla-electrosoldada-titan": "/products/mesh-titan.jpg",
-  "malla-electrosoldada-super-titan": "/products/mesh-super.jpg",
-  "malla-electrosoldada-maximus": "/products/mesh-maximus.jpg",
-};
 
 const categoryColors: Record<string, { bg: string; accent: string }> = {
   Residencial: { bg: "#dcfce7", accent: "#16a34a" },
@@ -42,14 +26,32 @@ export function ProductCard(p: ProductCardProps) {
   const catType = p.category?.name || "Residencial";
   const colors = categoryColors[catType] || categoryColors["Residencial"];
   const unitLabel = p.unit === "METRO" ? "/m lineal" : p.unit === "PANEL" ? "/panel" : "";
-  const hasImage = productImages[p.slug];
   const match = catName.match(/(\d{3})/);
+  const primaryImage = p.images?.[0]?.url || null;
+  const secondaryImage = p.images?.[1]?.url || null;
 
   return (
     <div className="group flex flex-col rounded-2xl bg-white border border-gray-100 hover:border-gray-200 hover:shadow-xl transition-all duration-300 overflow-hidden">
       <Link href={`/productos/${p.slug}`} className="block relative">
         <div className="relative h-48 md:h-52 bg-gray-100 overflow-hidden">
-          {hasImage ? (
+          {primaryImage ? (
+            <>
+              <img
+                src={primaryImage}
+                alt={p.name}
+                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                loading="lazy"
+              />
+              {secondaryImage && (
+                <img
+                  src={secondaryImage}
+                  alt={p.name}
+                  className="absolute inset-0 h-full w-full object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                  loading="lazy"
+                />
+              )}
+            </>
+          ) : (
             <div className="flex h-full w-full items-center justify-center" style={{ backgroundColor: colors.bg }}>
               <div className="text-center p-4">
                 <div className="mx-auto w-16 h-16 rounded-2xl flex items-center justify-center shadow-sm"
@@ -62,20 +64,9 @@ export function ProductCard(p: ProductCardProps) {
                   style={{ color: `${colors.accent}99` }}>
                   {catName}
                 </p>
-                {match && (
-                  <span className="mt-1 inline-block text-[10px] font-extrabold px-2 py-0.5 rounded-full"
-                    style={{ backgroundColor: colors.accent, color: "#fff" }}>
-                    Serie {match[0]}
-                  </span>
-                )}
               </div>
             </div>
-          ) : (
-            <div className="flex h-full w-full items-center justify-center" style={{ backgroundColor: colors.bg }}>
-              <span className="text-5xl opacity-20" style={{ color: colors.accent }}>⊞</span>
-            </div>
           )}
-          {/* Stock badges */}
           {p.stock > 0 && p.stock <= 3 && (
             <span className="absolute top-2.5 right-2.5 bg-amber-500 text-white text-[10px] font-black px-2.5 py-1 rounded-full shadow-md">
               {p.stock} unid.

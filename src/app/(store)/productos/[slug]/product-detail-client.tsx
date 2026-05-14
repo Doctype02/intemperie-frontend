@@ -11,6 +11,7 @@ export function ProductDetailClient({ product }: { product: any }) {
   const [quantity, setQuantity] = useState(10);
   const [includeInstallation, setIncludeInstallation] = useState(true);
   const [added, setAdded] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(0);
   const addItem = useCartStore((s) => s.addItem);
   const price = Number(product.basePrice);
 
@@ -38,26 +39,46 @@ export function ProductDetailClient({ product }: { product: any }) {
       </div>
 
       <div className="grid gap-6 md:gap-8 lg:grid-cols-3">
-        {/* Image */}
+        {/* Image Gallery */}
         <div className="lg:col-span-2">
-        <div className="flex items-center justify-center rounded-2xl overflow-hidden border border-gray-100 h-56 sm:h-72 lg:h-96">
-          {product.slug ? (
-            <img
-              src={`https://placehold.co/800x600/059669/FFFFFF?text=${encodeURIComponent(product.collection?.name || product.name)}`}
-              alt={product.name}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-green-50 to-emerald-50">
-              <div className="text-center">
-                <div className="w-16 h-16 mx-auto rounded-full bg-white shadow-sm flex items-center justify-center">
-                  <span className="text-2xl font-extrabold text-green-600">IP</span>
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-center rounded-2xl overflow-hidden border border-gray-100 bg-gray-50 h-56 sm:h-72 lg:h-96">
+              {product.images?.length > 0 ? (
+                <img
+                  src={product.images[selectedImage]?.url || product.images[0].url}
+                  alt={product.images[selectedImage]?.alt || product.name}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-green-50 to-emerald-50">
+                  <div className="text-center">
+                    <div className="w-16 h-16 mx-auto rounded-full bg-white shadow-sm flex items-center justify-center">
+                      <span className="text-2xl font-extrabold text-green-600">IP</span>
+                    </div>
+                    <p className="mt-2 text-sm font-semibold text-green-700">{product.collection?.name}</p>
+                  </div>
                 </div>
-                <p className="mt-2 text-sm font-semibold text-green-700">{product.collection?.name}</p>
-              </div>
+              )}
             </div>
-          )}
-        </div>
+            {product.images?.length > 1 && (
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {product.images.map((img: any, i: number) => (
+                  <button
+                    key={img.id || i}
+                    onClick={() => setSelectedImage(i)}
+                    className={`flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden border-2 transition-colors ${i === selectedImage ? "border-green-500 ring-1 ring-green-300" : "border-gray-100 hover:border-green-400"}`}
+                  >
+                    <img
+                      src={img.url}
+                      alt={img.alt || `${product.name} ${i + 1}`}
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
           {/* Specs */}
           {specs.length > 0 && (
