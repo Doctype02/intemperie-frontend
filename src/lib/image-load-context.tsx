@@ -12,15 +12,19 @@ const ImageLoadContext = createContext<ImageLoadContextType>({
   allLoaded: true,
 });
 
+const MAX_WAIT = 8000;
+
 export function ImageLoadProvider({ children }: { children: React.ReactNode }) {
   const totalRef = useRef(0);
   const loadedRef = useRef(0);
   const [allLoaded, setAllLoaded] = useState(false);
-  const timerRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const fallbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const transitionTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const checkAllLoaded = useCallback(() => {
     if (loadedRef.current >= totalRef.current && totalRef.current > 0) {
-      timerRef.current = setTimeout(() => setAllLoaded(true), 100);
+      if (transitionTimer.current) clearTimeout(transitionTimer.current);
+      transitionTimer.current = setTimeout(() => setAllLoaded(true), 150);
     }
   }, []);
 
@@ -36,11 +40,24 @@ export function ImageLoadProvider({ children }: { children: React.ReactNode }) {
   }, [checkAllLoaded]);
 
   useEffect(() => {
-    if (totalRef.current === 0) {
-      timerRef.current = setTimeout(() => setAllLoaded(true), 50);
-    }
-    return () => clearTimeout(timerRef.current);
-  }, []);
+    // Safety: if no images register within 800ms, page has no images → show content
+    const noImagesTimer = setTimeout(() => {
+      if (totalRef.current === 0) {
+        setAllLoaded(true);
+      }
+    }, 800);
+
+    // Absolute fallback: never leave the overlay up longer than MAX_WAIT
+    fallbackTimer.current = setTimeout(() => {
+      setAllLoaded(true);
+    }, MAX_WAIT);
+
+    return () => {
+      clearTimeout(noImagesTimer);
+      if (fallbackTimer.current) clearTimeout(fallbackTimer.current);
+      if (transitionTimer.current) clearTimeout(transitionTimer.current);
+    };
+  }, [checkAllLoaded]);
 
   return (
     <ImageLoadContext.Provider value={{ registerImage, allLoaded }}>
