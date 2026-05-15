@@ -30,7 +30,7 @@ export function ProductDetailClient({ product }: { product: any }) {
   const total = subtotal + installationCost + tax;
 
   const handleAdd = () => {
-    addItem({ id: product.id, name: product.name, slug: product.slug, basePrice: price, unit: product.unit, stock: product.stock, collection: product.collection, category: product.category }, quantity);
+    addItem({ id: product.id, name: product.name, slug: product.slug, basePrice: price, unit: product.unit, stock: product.stock, collection: product.collection, category: product.category, images: product.images }, quantity);
     setAdded(true); setTimeout(() => setAdded(false), 1500);
   };
 

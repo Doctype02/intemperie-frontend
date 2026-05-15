@@ -10,6 +10,7 @@ interface CartProduct {
   stock: number;
   collection?: { name: string };
   category?: { name: string };
+  images?: { url: string; alt?: string | null }[];
 }
 
 interface CartItem {

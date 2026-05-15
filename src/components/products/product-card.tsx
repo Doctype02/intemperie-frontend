@@ -104,7 +104,7 @@ export function ProductCard(p: ProductCardProps) {
           <button
             onClick={(e) => {
               e.preventDefault();
-              addItem({ id: p.id, name: p.name, slug: p.slug, basePrice: p.basePrice, unit: p.unit, stock: p.stock, collection: p.collection, category: p.category }, 10);
+              addItem({ id: p.id, name: p.name, slug: p.slug, basePrice: p.basePrice, unit: p.unit, stock: p.stock, collection: p.collection, category: p.category, images: p.images }, 10);
             }}
             className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl bg-green-600 py-2.5 text-xs font-extrabold text-white hover:bg-green-700 transition-all active:scale-[0.97] shadow-sm shadow-green-200"
           >
