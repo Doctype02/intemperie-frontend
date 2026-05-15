@@ -5,6 +5,7 @@ import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BLUR_PLACEHOLDER } from "@/lib/image-utils";
+import { useImageOnLoad } from "@/lib/image-load-context";
 import type { ProductImage } from "@/types";
 
 interface ProductGalleryProps {
@@ -14,6 +15,7 @@ interface ProductGalleryProps {
 
 export function ProductGallery({ images, productName }: ProductGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const onLoad = useImageOnLoad();
 
   if (images.length === 0) {
     return (
@@ -48,6 +50,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
           className="object-cover"
           placeholder="blur"
           blurDataURL={BLUR_PLACEHOLDER}
+          onLoad={onLoad}
         />
         {images.length > 1 && (
           <>
@@ -89,6 +92,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                 className="object-cover"
                 placeholder="blur"
                 blurDataURL={BLUR_PLACEHOLDER}
+                onLoad={onLoad}
               />
             </button>
           ))}

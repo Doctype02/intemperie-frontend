@@ -5,6 +5,7 @@ import Image from "next/image";
 import { ShoppingCart, Check } from "lucide-react";
 import { useCartStore } from "@/lib/store/cart-store";
 import { BLUR_PLACEHOLDER } from "@/lib/image-utils";
+import { useImageOnLoad } from "@/lib/image-load-context";
 import type { ProductImage } from "@/types";
 
 interface ProductCardProps {
@@ -24,6 +25,7 @@ const categoryColors: Record<string, { bg: string; accent: string }> = {
 
 export function ProductCard(p: ProductCardProps) {
   const addItem = useCartStore((s) => s.addItem);
+  const onLoad = useImageOnLoad();
   const catName = p.collection?.name || p.category?.name || "Intemperie";
   const catType = p.category?.name || "Residencial";
   const colors = categoryColors[catType] || categoryColors["Residencial"];
@@ -44,6 +46,7 @@ export function ProductCard(p: ProductCardProps) {
               className="object-cover transition-all duration-500 group-hover:scale-105"
               placeholder="blur"
               blurDataURL={BLUR_PLACEHOLDER}
+              onLoad={onLoad}
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center" style={{ backgroundColor: colors.bg }}>

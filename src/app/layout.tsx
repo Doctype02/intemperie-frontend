@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { WhatsAppButton } from "@/components/shared/whatsapp-button";
+import { ImageLoadProvider } from "@/lib/image-load-context";
+import { PageLoadingOverlay } from "@/components/shared/page-loading-overlay";
 
 const inter = Inter({
   variable: "--font-sans",
@@ -44,7 +46,10 @@ export default function RootLayout({
         <link rel="preconnect" href={process.env.NEXT_PUBLIC_API_URL} />
       </head>
       <body className="min-h-full flex flex-col font-sans">
-        {children}
+        <ImageLoadProvider>
+          {children}
+          <PageLoadingOverlay />
+        </ImageLoadProvider>
         <WhatsAppButton />
       </body>
     </html>

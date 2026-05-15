@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/lib/store/cart-store";
 import { formatCurrency, calculateItemTotal } from "@/lib/utils";
 import { BLUR_PLACEHOLDER } from "@/lib/image-utils";
+import { useImageOnLoad } from "@/lib/image-load-context";
 
 interface CartItemProps {
   item: {
@@ -27,6 +28,7 @@ interface CartItemProps {
 
 export function CartItem({ item }: CartItemProps) {
   const { removeItem, updateQuantity } = useCartStore();
+  const onLoad = useImageOnLoad();
   const { product, quantity, unit } = item;
 
   const total = calculateItemTotal(
@@ -52,6 +54,7 @@ export function CartItem({ item }: CartItemProps) {
             className="object-cover"
             placeholder="blur"
             blurDataURL={BLUR_PLACEHOLDER}
+            onLoad={onLoad}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-green-100 text-green-700 font-bold">

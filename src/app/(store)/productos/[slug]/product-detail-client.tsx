@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { BLUR_PLACEHOLDER } from "@/lib/image-utils";
+import { useImageOnLoad } from "@/lib/image-load-context";
 import { Card, CardContent } from "@/components/ui/card";
 import { useCartStore } from "@/lib/store/cart-store";
 import { Minus, Plus, ShoppingCart, ChevronRight, Calculator } from "lucide-react";
@@ -15,6 +16,7 @@ export function ProductDetailClient({ product }: { product: any }) {
   const [added, setAdded] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
   const addItem = useCartStore((s) => s.addItem);
+  const onLoad = useImageOnLoad();
   const price = Number(product.basePrice);
 
   const attrs = typeof product.attributes === "object" && product.attributes !== null ? product.attributes : {};
@@ -55,6 +57,7 @@ export function ProductDetailClient({ product }: { product: any }) {
                   className="object-cover"
                   placeholder="blur"
                   blurDataURL={BLUR_PLACEHOLDER}
+                  onLoad={onLoad}
                 />
               ) : (
                 <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-green-50 to-emerald-50">
@@ -83,6 +86,7 @@ export function ProductDetailClient({ product }: { product: any }) {
                       className="object-cover"
                       placeholder="blur"
                       blurDataURL={BLUR_PLACEHOLDER}
+                      onLoad={onLoad}
                     />
                   </button>
                 ))}
