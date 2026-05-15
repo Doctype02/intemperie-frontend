@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import { useAuthStore } from "@/lib/store/auth-store";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const setAuth = useAuthStore((s) => s.setAuth);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -33,7 +34,8 @@ export default function LoginPage() {
     try {
       const result = await loginApi(data.email, data.password);
       setAuth(result.user, result.tokens.accessToken, result.tokens.refreshToken);
-      router.push("/");
+      const redirect = searchParams.get("redirect") || "/";
+      router.push(redirect);
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al iniciar sesión");
