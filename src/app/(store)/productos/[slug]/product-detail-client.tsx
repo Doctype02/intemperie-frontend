@@ -2,21 +2,17 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { BLUR_PLACEHOLDER } from "@/lib/image-utils";
-import { useImageOnLoad } from "@/lib/image-load-context";
 import { Card, CardContent } from "@/components/ui/card";
 import { useCartStore } from "@/lib/store/cart-store";
+import { ProductGallery } from "@/components/products/product-gallery";
 import { Minus, Plus, ShoppingCart, ChevronRight, Calculator } from "lucide-react";
 
 export function ProductDetailClient({ product }: { product: any }) {
   const [quantity, setQuantity] = useState(10);
   const [includeInstallation, setIncludeInstallation] = useState(true);
   const [added, setAdded] = useState(false);
-  const [selectedImage, setSelectedImage] = useState(0);
   const addItem = useCartStore((s) => s.addItem);
-  const onLoad = useImageOnLoad();
   const price = Number(product.basePrice);
 
   const attrs = typeof product.attributes === "object" && product.attributes !== null ? product.attributes : {};
@@ -45,54 +41,10 @@ export function ProductDetailClient({ product }: { product: any }) {
       <div className="grid gap-6 md:gap-8 lg:grid-cols-3">
         {/* Image Gallery */}
         <div className="lg:col-span-2">
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-center rounded-2xl overflow-hidden border border-gray-100 bg-gray-50 relative h-56 sm:h-72 lg:h-96">
-              {product.images?.length > 0 ? (
-                <Image
-                  src={product.images[selectedImage]?.url || product.images[0].url}
-                  alt={product.images[selectedImage]?.alt || product.name}
-                  fill
-                  priority
-                  sizes="(max-width: 1024px) 100vw, 66vw"
-                  className="object-cover"
-                  placeholder="blur"
-                  blurDataURL={BLUR_PLACEHOLDER}
-                  onLoad={onLoad}
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-green-50 to-emerald-50">
-                  <div className="text-center">
-                    <div className="w-16 h-16 mx-auto rounded-full bg-white shadow-sm flex items-center justify-center">
-                      <span className="text-2xl font-extrabold text-green-600">IP</span>
-                    </div>
-                    <p className="mt-2 text-sm font-semibold text-green-700">{product.collection?.name}</p>
-                  </div>
-                </div>
-              )}
-            </div>
-            {product.images?.length > 1 && (
-              <div className="flex gap-2 overflow-x-auto pb-1">
-                {product.images.map((img: any, i: number) => (
-                  <button
-                    key={img.id || i}
-                    onClick={() => setSelectedImage(i)}
-                    className={`flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden border-2 transition-colors relative ${i === selectedImage ? "border-green-500 ring-1 ring-green-300" : "border-gray-100 hover:border-green-400"}`}
-                  >
-                    <Image
-                      src={img.url}
-                      alt={img.alt || `${product.name} ${i + 1}`}
-                      fill
-                      sizes="80px"
-                      className="object-cover"
-                      placeholder="blur"
-                      blurDataURL={BLUR_PLACEHOLDER}
-                      onLoad={onLoad}
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          <ProductGallery
+            images={product.images || []}
+            productName={product.name}
+          />
 
           {/* Specs */}
           {specs.length > 0 && (
