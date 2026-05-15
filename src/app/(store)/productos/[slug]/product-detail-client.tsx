@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useCartStore } from "@/lib/store/cart-store";
@@ -42,12 +43,15 @@ export function ProductDetailClient({ product }: { product: any }) {
         {/* Image Gallery */}
         <div className="lg:col-span-2">
           <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-center rounded-2xl overflow-hidden border border-gray-100 bg-gray-50 h-56 sm:h-72 lg:h-96">
+            <div className="flex items-center justify-center rounded-2xl overflow-hidden border border-gray-100 bg-gray-50 relative h-56 sm:h-72 lg:h-96">
               {product.images?.length > 0 ? (
-                <img
+                <Image
                   src={product.images[selectedImage]?.url || product.images[0].url}
                   alt={product.images[selectedImage]?.alt || product.name}
-                  className="h-full w-full object-cover"
+                  fill
+                  priority
+                  sizes="(max-width: 1024px) 100vw, 66vw"
+                  className="object-cover"
                 />
               ) : (
                 <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-green-50 to-emerald-50">
@@ -66,13 +70,14 @@ export function ProductDetailClient({ product }: { product: any }) {
                   <button
                     key={img.id || i}
                     onClick={() => setSelectedImage(i)}
-                    className={`flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden border-2 transition-colors ${i === selectedImage ? "border-green-500 ring-1 ring-green-300" : "border-gray-100 hover:border-green-400"}`}
+                    className={`flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden border-2 transition-colors relative ${i === selectedImage ? "border-green-500 ring-1 ring-green-300" : "border-gray-100 hover:border-green-400"}`}
                   >
-                    <img
+                    <Image
                       src={img.url}
                       alt={img.alt || `${product.name} ${i + 1}`}
-                      className="h-full w-full object-cover"
-                      loading="lazy"
+                      fill
+                      sizes="80px"
+                      className="object-cover"
                     />
                   </button>
                 ))}

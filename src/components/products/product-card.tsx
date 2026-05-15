@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { ShoppingCart, Check } from "lucide-react";
 import { useCartStore } from "@/lib/store/cart-store";
 import type { ProductImage } from "@/types";
@@ -28,29 +29,19 @@ export function ProductCard(p: ProductCardProps) {
   const unitLabel = p.unit === "METRO" ? "/m lineal" : p.unit === "PANEL" ? "/panel" : "";
   const match = catName.match(/(\d{3})/);
   const primaryImage = p.images?.[0]?.url || null;
-  const secondaryImage = p.images?.[1]?.url || null;
 
   return (
     <div className="group flex flex-col rounded-2xl bg-white border border-gray-100 hover:border-gray-200 hover:shadow-xl transition-all duration-300 overflow-hidden">
       <Link href={`/productos/${p.slug}`} className="block relative">
         <div className="relative h-48 md:h-52 bg-gray-100 overflow-hidden">
           {primaryImage ? (
-            <>
-              <img
-                src={primaryImage}
-                alt={p.name}
-                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                loading="lazy"
-              />
-              {secondaryImage && (
-                <img
-                  src={secondaryImage}
-                  alt={p.name}
-                  className="absolute inset-0 h-full w-full object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                  loading="lazy"
-                />
-              )}
-            </>
+            <Image
+              src={primaryImage}
+              alt={p.name}
+              fill
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
+            />
           ) : (
             <div className="flex h-full w-full items-center justify-center" style={{ backgroundColor: colors.bg }}>
               <div className="text-center p-4">

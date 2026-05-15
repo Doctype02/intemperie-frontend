@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Trash2, Minus, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/lib/store/cart-store";
@@ -39,13 +40,15 @@ export function CartItem({ item }: CartItemProps) {
     <div className="flex gap-4 py-4">
       <Link
         href={`/productos/${product.slug}`}
-        className="w-20 h-20 rounded-md bg-gray-100 overflow-hidden shrink-0"
+        className="w-20 h-20 rounded-md bg-gray-100 overflow-hidden shrink-0 relative"
       >
         {product.images.length > 0 ? (
-          <img
+          <Image
             src={product.images[0].url}
             alt={product.images[0].alt || product.name}
-            className="w-full h-full object-cover"
+            fill
+            sizes="80px"
+            className="object-cover"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-green-100 text-green-700 font-bold">
