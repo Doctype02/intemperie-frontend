@@ -46,6 +46,8 @@ export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [megaOpen, setMegaOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [cartBounce, setCartBounce] = useState(false);
   const router = useRouter();
@@ -110,7 +112,7 @@ export function Header() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="flex h-14 items-center gap-3 sm:gap-4">
           {/* Mobile menu button */}
-          <button className="lg:hidden -ml-1 p-2" onClick={() => setMobileOpen(!mobileOpen)}>
+          <button className="lg:hidden -ml-1 p-2.5" onClick={() => setMobileOpen(!mobileOpen)}>
             {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
 
@@ -194,24 +196,52 @@ export function Header() {
             </div>
           </form>
 
+          {searchOpen && (
+            <form onSubmit={(e) => { handleSearch(e); setSearchOpen(false); }} className="sm:hidden absolute left-0 right-0 top-full bg-white border-b px-4 py-3 z-50 shadow-md">
+              <div className="relative">
+                <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <Input
+                  className="h-10 pl-10 bg-gray-100 border-gray-200 rounded-full text-sm"
+                  placeholder="Buscar..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  autoFocus
+                />
+              </div>
+            </form>
+          )}
+
           {/* Actions */}
           <div className="flex items-center gap-1 sm:gap-2 ml-auto">
+            {/* Mobile search */}
+            <button
+              onClick={() => setSearchOpen(!searchOpen)}
+              className="sm:hidden p-2.5 -mr-1 rounded-md hover:bg-gray-100 transition-colors"
+            >
+              <Search className="h-5 w-5" />
+            </button>
             {isAuthenticated ? (
-              <div className="relative group">
-                <Button variant="ghost" size="icon" className="h-9 w-9" asChild>
-                  <Link href="/cuenta">
-                    <User className="h-5 w-5" />
-                  </Link>
-                </Button>
-                <div className="absolute right-0 top-full mt-1 w-48 rounded-xl border border-gray-100 bg-white p-2 shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
-                  <p className="px-3 py-1.5 text-sm font-semibold truncate text-gray-900">{user?.name}</p>
-                  <p className="px-3 pb-1.5 text-xs text-gray-400 truncate">{user?.email}</p>
-                  <hr className="my-1" />
-                  <Link href="/cuenta" className="block rounded-lg px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50">Mi cuenta</Link>
-                  <Link href="/cuenta/pedidos" className="block rounded-lg px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50">Mis pedidos</Link>
-                  {user?.role === "ADMIN" && <Link href="/admin" className="block rounded-lg px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50">Admin</Link>}
-                  <button onClick={logout} className="block w-full text-left rounded-lg px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 transition-colors">Cerrar sesión</button>
-                </div>
+              <div className="relative">
+                <button
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  className="h-9 w-9 inline-flex items-center justify-center rounded-md hover:bg-gray-100 transition-colors"
+                >
+                  <User className="h-5 w-5" />
+                </button>
+                {userMenuOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
+                    <div className="absolute right-0 top-full mt-1 w-48 rounded-xl border border-gray-100 bg-white p-2 shadow-xl z-50">
+                      <p className="px-3 py-1.5 text-sm font-semibold truncate text-gray-900">{user?.name}</p>
+                      <p className="px-3 pb-1.5 text-xs text-gray-400 truncate">{user?.email}</p>
+                      <hr className="my-1" />
+                      <Link href="/cuenta" onClick={() => setUserMenuOpen(false)} className="block rounded-lg px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50">Mi cuenta</Link>
+                      <Link href="/cuenta/pedidos" onClick={() => setUserMenuOpen(false)} className="block rounded-lg px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50">Mis pedidos</Link>
+                      {user?.role === "ADMIN" && <Link href="/admin" onClick={() => setUserMenuOpen(false)} className="block rounded-lg px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50">Admin</Link>}
+                      <button onClick={() => { setUserMenuOpen(false); logout(); }} className="block w-full text-left rounded-lg px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 transition-colors">Cerrar sesión</button>
+                    </div>
+                  </>
+                )}
               </div>
             ) : (
               <Button variant="ghost" size="icon" className="h-9 w-9" asChild>

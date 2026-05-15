@@ -51,7 +51,7 @@ export default async function ProductosPage({ searchParams }: { searchParams: Pr
       {/* Breadcrumb */}
       <div className="border-b bg-gray-50">
         <div className="mx-auto max-w-7xl px-4 py-2.5">
-          <div className="flex items-center gap-1.5 text-[10px] md:text-xs text-gray-400">
+          <div className="flex items-center gap-1.5 text-xs text-gray-400">
             <Link href="/" className="hover:text-green-600">Inicio</Link>
             <ChevronRight className="h-3 w-3" />
             <span className="text-gray-700 font-medium">
@@ -62,7 +62,7 @@ export default async function ProductosPage({ searchParams }: { searchParams: Pr
       </div>
 
       <div className="mx-auto max-w-7xl px-4 py-6">
-        <div className="flex gap-8">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
           {/* Sidebar */}
           <aside className="hidden w-56 shrink-0 lg:block">
             <div className="sticky top-[77px]">

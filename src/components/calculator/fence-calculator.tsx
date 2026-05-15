@@ -166,7 +166,7 @@ export function FenceCalculator({ products }: FenceCalculatorProps) {
             <span>Presupuesto estimado. Contáctanos para uno exacto con visita técnica gratuita.</span>
           </div>
 
-          <div className="mt-3 flex gap-2">
+          <div className="mt-3 flex flex-col xs:flex-row gap-2">
             <Button asChild variant="outline" className="flex-1 border-green-200 text-green-700 hover:bg-green-50">
               <a href={`https://wa.me/${WHATSAPP_NUMBER}?text=${whatsappMsg}`} target="_blank" rel="noopener noreferrer">
                 <MessageCircle className="mr-2 h-4 w-4" />
