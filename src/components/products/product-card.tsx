@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ShoppingCart, Check } from "lucide-react";
 import { useCartStore } from "@/lib/store/cart-store";
+import { BLUR_PLACEHOLDER } from "@/lib/image-utils";
 import type { ProductImage } from "@/types";
 
 interface ProductCardProps {
@@ -40,7 +41,9 @@ export function ProductCard(p: ProductCardProps) {
               alt={p.name}
               fill
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              className="object-cover transition-all duration-500 group-hover:scale-105"
+              placeholder="blur"
+              blurDataURL={BLUR_PLACEHOLDER}
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center" style={{ backgroundColor: colors.bg }}>

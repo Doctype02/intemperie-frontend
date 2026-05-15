@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { BLUR_PLACEHOLDER } from "@/lib/image-utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { useCartStore } from "@/lib/store/cart-store";
 import { Minus, Plus, ShoppingCart, ChevronRight, Calculator } from "lucide-react";
@@ -52,6 +53,8 @@ export function ProductDetailClient({ product }: { product: any }) {
                   priority
                   sizes="(max-width: 1024px) 100vw, 66vw"
                   className="object-cover"
+                  placeholder="blur"
+                  blurDataURL={BLUR_PLACEHOLDER}
                 />
               ) : (
                 <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-green-50 to-emerald-50">
@@ -78,6 +81,8 @@ export function ProductDetailClient({ product }: { product: any }) {
                       fill
                       sizes="80px"
                       className="object-cover"
+                      placeholder="blur"
+                      blurDataURL={BLUR_PLACEHOLDER}
                     />
                   </button>
                 ))}

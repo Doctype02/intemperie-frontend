@@ -40,6 +40,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" className={`${inter.variable} h-full antialiased`}>
+      <head>
+        <link rel="preconnect" href={process.env.NEXT_PUBLIC_API_URL} />
+      </head>
       <body className="min-h-full flex flex-col font-sans">
         {children}
         <WhatsAppButton />

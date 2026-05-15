@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BLUR_PLACEHOLDER } from "@/lib/image-utils";
 import type { ProductImage } from "@/types";
 
 interface ProductGalleryProps {
@@ -45,6 +46,8 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
           priority
           sizes="(max-width: 1024px) 100vw, 66vw"
           className="object-cover"
+          placeholder="blur"
+          blurDataURL={BLUR_PLACEHOLDER}
         />
         {images.length > 1 && (
           <>
@@ -84,6 +87,8 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                 fill
                 sizes="64px"
                 className="object-cover"
+                placeholder="blur"
+                blurDataURL={BLUR_PLACEHOLDER}
               />
             </button>
           ))}
