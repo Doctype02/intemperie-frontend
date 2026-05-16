@@ -9,9 +9,9 @@ const footerLinks = {
     { label: "Calculadora", href: "/calculadora" },
   ],
   Empresa: [
-    { label: "Sobre nosotros", href: "/productos" },
+    { label: "Nosotros", href: "/nosotros" },
     { label: "Contacto WhatsApp", href: "https://wa.me/50762874042" },
-    { label: "Política de envíos", href: "/productos" },
+    { label: "Tienda online", href: "/productos" },
   ],
   Ayuda: [
     { label: "Mi cuenta", href: "/cuenta" },

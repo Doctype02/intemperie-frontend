@@ -166,22 +166,19 @@ export function Header() {
               <Link href="/">Inicio</Link>
             </Button>
             <Button variant="ghost" size="sm" asChild className="text-sm font-medium text-gray-600 hover:text-gray-900">
-              <Link href="/#nosotros">Nosotros</Link>
+              <Link href="/nosotros">Nosotros</Link>
             </Button>
             <Button variant="ghost" size="sm" asChild className="text-sm font-medium text-gray-600 hover:text-gray-900">
-              <Link href="/#productos">Productos</Link>
+              <Link href="/productos">Productos</Link>
             </Button>
             <Button variant="ghost" size="sm" asChild className="text-sm font-medium text-gray-600 hover:text-gray-900">
-              <Link href="/#soluciones">Soluciones</Link>
-            </Button>
-            <Button variant="ghost" size="sm" asChild className="text-sm font-medium text-gray-600 hover:text-gray-900">
-              <Link href="/#proyectos">Proyectos</Link>
+              <Link href="/calculadora">Calculadora</Link>
             </Button>
             <Button variant="ghost" size="sm" asChild className="text-sm font-medium text-gray-600 hover:text-gray-900">
               <Link href="/productos">Tienda</Link>
             </Button>
             <Button variant="ghost" size="sm" asChild className="text-sm font-medium text-gray-600 hover:text-gray-900">
-              <Link href="/#cotizaciones">Cotizaciones</Link>
+              <Link href="/nosotros#cotizaciones">Cotizar</Link>
             </Button>
           </nav>
 
