@@ -1,35 +1,20 @@
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import Link from "next/link";
-import { ArrowRight, Shield, Truck, Star, Calculator, Wrench } from "lucide-react";
+import Image from "next/image";
+import { ArrowRight, Shield, Star, Phone, Mail, Clock, Check, Globe, Award, Users, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/products/product-card";
 
 async function getProducts() {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-    const res = await fetch(`${baseUrl}/products?limit=50`, { next: { revalidate: 60 } });
+    const res = await fetch(`${baseUrl}/products?limit=12`, { next: { revalidate: 60 } });
     if (!res.ok) return [];
     const data = await res.json();
     return data.data || data || [];
   } catch { return []; }
 }
-
-const banners = [
-  { title: "Cercas PVC", price: "$18.50/m", href: "/productos?category=residencial", gradient: "from-green-600 to-emerald-700", icon: "🏡", large: true },
-  { title: "Mallas Electrosoldadas", price: "$8.50/m", href: "/productos?category=industrial", gradient: "from-slate-700 to-slate-800", icon: "🏭" },
-  { title: "Calcula tu proyecto", price: "Al instante", href: "/calculadora", gradient: "from-amber-500 to-orange-600", icon: "🧮" },
-  { title: "Zonas Costeras", price: "$38.00/m", href: "/productos?category=zonas-costeras", gradient: "from-cyan-600 to-blue-700", icon: "🌊" },
-  { title: "Contáctanos", price: "Cotizar YA", href: "https://wa.me/50762874042", gradient: "from-violet-600 to-purple-700", icon: "💬" },
-];
-
-const categories = [
-  { name: "Residencial", slug: "residencial", icon: "🏠", color: "bg-green-100 text-green-700 border-green-200" },
-  { name: "Industrial", slug: "industrial", icon: "🏭", color: "bg-slate-100 text-slate-700 border-slate-200" },
-  { name: "Gubernamental", slug: "gubernamental", icon: "🏛️", color: "bg-blue-100 text-blue-700 border-blue-200" },
-  { name: "Agropecuario", slug: "agropecuario", icon: "🌾", color: "bg-amber-100 text-amber-700 border-amber-200" },
-  { name: "Z. Costeras", slug: "zonas-costeras", icon: "🌊", color: "bg-cyan-100 text-cyan-700 border-cyan-200" },
-];
 
 export default async function HomePage() {
   const products = await getProducts();
@@ -37,102 +22,330 @@ export default async function HomePage() {
   return (
     <>
       <Header />
+
       <main className="flex-1">
         {/* Hero */}
-        <section className="relative bg-gradient-to-br from-green-700 via-green-800 to-emerald-900 overflow-hidden">
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-white rounded-full blur-[120px] translate-x-1/3 -translate-y-1/3" />
-            <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-white rounded-full blur-[100px] -translate-x-1/4 translate-y-1/3" />
-          </div>
-          <div className="relative mx-auto max-w-7xl px-4 sm:px-6 py-10 sm:py-14 lg:py-16">
-            <div className="max-w-2xl">
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur px-4 py-1.5 text-xs sm:text-sm text-green-200 mb-4">
-                <Star className="h-3.5 w-3.5 fill-green-300 text-green-300" />
-                4.8 estrellas en Google · 15+ años de experiencia
+        <section className="relative bg-white overflow-hidden">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 py-12 md:py-16 lg:py-20">
+            <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+              <div className="order-2 lg:order-1">
+                <p className="text-sm font-semibold text-green-700 mb-3 tracking-wide uppercase">Especialistas en Cercas PVC</p>
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold text-gray-900 tracking-tight leading-[1.05]">
+                  CALIDAD,<br />
+                  ELEGANCIA Y<br />
+                  <span className="text-green-600">PRIVACIDAD.</span>
+                </h1>
+                <p className="mt-5 text-base sm:text-lg text-gray-500 max-w-lg leading-relaxed">
+                  Fácil instalación. PVC reforzado de alta resistencia. Enviamos a Latinoamérica y el Caribe.
+                </p>
+                <div className="mt-8 flex flex-col sm:flex-row gap-3">
+                  <Button asChild size="lg" className="bg-green-600 hover:bg-green-700 font-bold h-12 px-8 text-sm rounded-xl">
+                    <a href="https://wa.me/50762874042" target="_blank" rel="noopener noreferrer">Cotiza YA</a>
+                  </Button>
+                  <Button asChild variant="outline" size="lg" className="border-gray-300 hover:bg-gray-50 font-bold h-12 px-8 text-sm rounded-xl">
+                    <Link href="/productos">Ver productos</Link>
+                  </Button>
+                </div>
               </div>
-              <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-[1.1]">
-                Cercas de PVC y Mallas Electrosoldadas
-              </h1>
-              <p className="mt-3 sm:mt-4 text-sm sm:text-base text-green-100 max-w-lg leading-relaxed">
-                Protección, durabilidad y estilo para tu hogar, negocio o industria. Instalación profesional en todo Panamá.
-              </p>
-              <div className="mt-6 flex flex-col sm:flex-row gap-3">
-                <Button size="lg" className="bg-white text-green-800 hover:bg-green-50 font-bold h-12 sm:h-14 px-8 rounded-full text-sm sm:text-base shadow-xl shadow-black/20" asChild>
-                  <Link href="/productos">Ver productos <ArrowRight className="ml-1.5 h-4 w-4" /></Link>
-                </Button>
-                <Button size="lg" variant="outline" className="border-2 border-green-400 text-green-200 hover:bg-green-500/10 font-semibold h-12 sm:h-14 px-8 rounded-full text-sm sm:text-base" asChild>
-                  <Link href="/calculadora"><Calculator className="mr-1.5 h-4 w-4" />Calcular precio</Link>
-                </Button>
-              </div>
-              <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-xs sm:text-sm text-green-200/80">
-                <span className="flex items-center gap-1.5"><Shield className="h-4 w-4" />Garantía 10-15 años</span>
-                <span className="flex items-center gap-1.5"><Truck className="h-4 w-4" />Envíos nacionales</span>
-                <span className="flex items-center gap-1.5"><Wrench className="h-4 w-4" />Instalación profesional</span>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Banner Grid */}
-        <section className="bg-gray-50 py-3 sm:py-4">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-              {banners.map((b, i) => (
-                <Link key={i} href={b.href} target={b.href.startsWith("http") ? "_blank" : undefined}
-                  className={`group relative overflow-hidden rounded-2xl bg-gradient-to-br ${b.gradient} ${b.large && i === 0 ? "sm:col-span-2 sm:row-span-2" : ""} hover:shadow-xl hover:scale-[1.02] transition-all duration-300`}>
-                  <div className={`absolute -right-3 -bottom-3 text-5xl sm:text-7xl opacity-20 select-none group-hover:scale-125 transition-transform duration-500 ${b.large ? "text-8xl sm:text-9xl" : ""}`}>{b.icon}</div>
-                  <div className={`relative z-10 flex h-full flex-col justify-end p-3 sm:p-4 ${b.large ? "min-h-[120px] sm:min-h-[260px]" : "min-h-[100px] sm:min-h-[120px]"}`}>
-                    <p className="text-white font-extrabold text-sm sm:text-lg leading-tight">{b.title}</p>
-                    <p className="text-white/70 text-[11px] sm:text-sm mt-0.5">{b.price}</p>
+              <div className="order-1 lg:order-2 relative">
+                <div className="relative h-64 sm:h-80 lg:h-[500px] rounded-2xl overflow-hidden bg-gray-100 shadow-2xl">
+                  <Image
+                    src="/products/cerca-pvc-afrodita-401/1-imagen-principal.jpg"
+                    alt="Cerca PVC Intemperie"
+                    fill
+                    priority
+                    sizes="(max-width: 1024px) 100vw, 50vw"
+                    className="object-cover"
+                  />
+                </div>
+                <div className="absolute -bottom-4 -left-4 bg-white rounded-xl shadow-lg px-4 py-3 hidden sm:block">
+                  <div className="flex items-center gap-2">
+                    <Shield className="h-5 w-5 text-green-600" />
+                    <span className="text-sm font-bold text-gray-900">+15 años de experiencia</span>
                   </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Stats */}
+            <div className="mt-16 lg:mt-20 grid grid-cols-1 sm:grid-cols-3 gap-6 border-t pt-10">
+              {[
+                { value: "+15,000", label: "Proyectos Exitosos", icon: Award },
+                { value: "+10", label: "Países enviados", icon: Globe },
+                { value: "100%", label: "Satisfacción Garantizada", icon: Star },
+              ].map((stat, i) => (
+                <div key={i} className="flex items-center gap-4">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-green-50">
+                    <stat.icon className="h-6 w-6 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-2xl sm:text-3xl font-extrabold text-gray-900">{stat.value}</p>
+                    <p className="text-sm text-gray-500">{stat.label}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Welcome / About */}
+        <section id="nosotros" className="bg-gray-50 py-16 lg:py-20">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6">
+            <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+              <div className="relative h-72 sm:h-96 rounded-2xl overflow-hidden bg-gray-200 shadow-lg">
+                <Image
+                  src="/products/cerca-pvc-vesta-601/vesta-1.jpg"
+                  alt="Calidad Intemperie"
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  className="object-cover"
+                />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-green-700 mb-3 tracking-wide uppercase">Bienvenido a Intemperie</p>
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-gray-900 tracking-tight leading-tight">
+                  SEGURIDAD Y ELEGANCIA<br />
+                  PARA TODOS LOS ESPACIOS
+                </h2>
+                <p className="mt-5 text-base text-gray-500 leading-relaxed">
+                  Somos especialistas en Cercas PVC y Mallas Electrosoldadas para todo tipo de cerramientos.
+                  Cada producto está diseñado para resistir la intemperie por décadas.
+                </p>
+                <div className="mt-6 space-y-3">
+                  {[
+                    "Garantía oficial en todos nuestros productos",
+                    "Envíos a Latinoamérica y el Caribe",
+                    "Asesoría técnica e instalación profesional",
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-start gap-2.5">
+                      <Check className="h-5 w-5 text-green-600 shrink-0 mt-0.5" />
+                      <span className="text-sm text-gray-600">{item}</span>
+                    </div>
+                  ))}
+                </div>
+                <Button asChild className="mt-7 bg-green-600 hover:bg-green-700 font-bold rounded-xl">
+                  <Link href="/productos">Explorar nuestros productos <ArrowRight className="ml-1.5 h-4 w-4" /></Link>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Category Cards */}
+        <section id="soluciones" className="bg-white py-16 lg:py-20">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6">
+            <div className="text-center mb-10">
+              <p className="text-sm font-semibold text-green-700 mb-2 tracking-wide uppercase">Soluciones</p>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900">PARA CADA NECESIDAD</h2>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+              {[
+                { name: "Gubernamental", icon: "🏛️", slug: "gubernamental", desc: "Seguridad duradera", color: "bg-blue-50 border-blue-100 hover:border-blue-300" },
+                { name: "Agropecuario", icon: "🌾", slug: "agropecuario", desc: "Fincas y granjas", color: "bg-amber-50 border-amber-100 hover:border-amber-300" },
+                { name: "Residencial", icon: "🏠", slug: "residencial", desc: "Privacidad y elegancia", color: "bg-green-50 border-green-100 hover:border-green-300" },
+                { name: "Industrial", icon: "🏭", slug: "industrial", desc: "Naves y plantas", color: "bg-slate-50 border-slate-100 hover:border-slate-300" },
+                { name: "Costeras", icon: "🌊", slug: "zonas-costeras", desc: "Resistencia salina", color: "bg-cyan-50 border-cyan-100 hover:border-cyan-300" },
+              ].map((cat) => (
+                <Link key={cat.slug} href={`/productos?category=${cat.slug}`}
+                  className={`flex flex-col items-center text-center p-5 sm:p-6 rounded-2xl border-2 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 ${cat.color}`}
+                >
+                  <span className="text-3xl mb-3">{cat.icon}</span>
+                  <h3 className="text-sm font-extrabold text-gray-900">{cat.name}</h3>
+                  <p className="text-xs text-gray-500 mt-1">{cat.desc}</p>
                 </Link>
               ))}
             </div>
           </div>
         </section>
 
-        {/* Categories */}
-        <section className="bg-white py-4 sm:py-5 border-b border-gray-50">
+        {/* Why choose us */}
+        <section className="bg-gray-50 py-16 lg:py-20">
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <div className="flex items-center justify-center gap-2 sm:gap-3 flex-wrap">
-              {categories.map((cat) => (
-                <Link key={cat.slug} href={`/productos?category=${cat.slug}`}
-                  className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-xs sm:text-sm font-bold transition-all hover:scale-105 ${cat.color}`}>
-                  <span>{cat.icon}</span> {cat.name}
-                </Link>
+            <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+              <div className="order-2 lg:order-1">
+                <p className="text-sm font-semibold text-green-700 mb-3 tracking-wide uppercase">Por qué elegirnos</p>
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-gray-900 tracking-tight leading-tight">
+                  CALIDAD QUE SE VE<br />
+                  Y SE SIENTE.
+                </h2>
+                <p className="mt-5 text-base text-gray-500 leading-relaxed">
+                  Trabajamos con PVC reforzado de la más alta calidad y mallas electrosoldadas de fábricas certificadas.
+                  Cada producto está diseñado para resistir la intemperie por décadas.
+                </p>
+                <div className="mt-6 grid sm:grid-cols-2 gap-3">
+                  {[
+                    { icon: Shield, title: "Garantía Oficial", desc: "En todos nuestros productos" },
+                    { icon: Globe, title: "Envíos Internacionales", desc: "A Latinoamérica y el Caribe" },
+                    { icon: Users, title: "Asesoría Técnica", desc: "Instalación profesional" },
+                    { icon: Truck, title: "Despacho Rápido", desc: "A todo Panamá" },
+                  ].map((item, i) => (
+                    <div key={i} className="bg-white rounded-xl p-4 border border-gray-100 hover:shadow-md transition-shadow">
+                      <item.icon className="h-6 w-6 text-green-600 mb-2" />
+                      <h3 className="text-sm font-extrabold text-gray-900">{item.title}</h3>
+                      <p className="text-xs text-gray-500 mt-0.5">{item.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="order-1 lg:order-2 relative h-72 sm:h-96 rounded-2xl overflow-hidden bg-gray-200 shadow-lg">
+                <Image
+                  src="/products/cerca-pvc-atenea-305/porton.jpg"
+                  alt="Calidad Intemperie"
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  className="object-cover"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Vision / Mission / Purpose */}
+        <section className="bg-white py-16 lg:py-20">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6">
+            <div className="text-center mb-12">
+              <p className="text-sm font-semibold text-green-700 mb-2 tracking-wide uppercase">Nuestra esencia</p>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900">VISIÓN, MISIÓN Y PROPÓSITO</h2>
+            </div>
+            <div className="grid sm:grid-cols-3 gap-6">
+              {[
+                { title: "Visión", subtitle: "Ser líderes en cerramientos", body: "Convertirnos en la empresa referente de Latinoamérica y el Caribe en soluciones de cercas PVC y mallas electrosoldadas, reconocida por su innovación, calidad y compromiso." },
+                { title: "Misión", subtitle: "Proteger lo que más importa", body: "Diseñar, comercializar e instalar sistemas de cerramiento que combinan seguridad, estética y durabilidad, brindando asesoría profesional y un servicio cercano en cada proyecto." },
+                { title: "Propósito", subtitle: "Transformar espacios al aire libre", body: "Crear entornos seguros, elegantes y duraderos para hogares, empresas y comunidades, aportando tranquilidad y valor a las personas que confían en nosotros." },
+              ].map((item, i) => (
+                <div key={i} className="bg-gray-50 rounded-2xl p-6 sm:p-8 border border-gray-100 hover:shadow-lg transition-all duration-300">
+                  <span className="inline-block text-xs font-extrabold text-green-700 bg-green-50 px-3 py-1 rounded-full mb-4">{item.title}</span>
+                  <h3 className="text-lg font-extrabold text-gray-900 mb-3">{item.subtitle}</h3>
+                  <p className="text-sm text-gray-500 leading-relaxed">{item.body}</p>
+                </div>
               ))}
-              <Link href="/calculadora" className="inline-flex items-center gap-1.5 rounded-full bg-green-600 text-white px-4 py-2 text-xs sm:text-sm font-bold hover:bg-green-700 transition-all">
-                <Calculator className="h-3.5 w-3.5" /> Calculadora
-              </Link>
             </div>
           </div>
         </section>
 
         {/* Products */}
-        <section className="bg-white py-8 sm:py-10">
+        <section id="productos" className="bg-gray-50 py-16 lg:py-20">
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <div className="mb-6 flex items-end justify-between">
-              <div>
-                <h2 className="text-xl sm:text-2xl font-extrabold text-gray-900">Nuestros productos</h2>
-                <p className="text-xs sm:text-sm text-gray-500 mt-1">{products.length} productos disponibles para entrega inmediata</p>
-              </div>
-              <Link href="/productos" className="hidden sm:flex items-center gap-1 text-sm font-bold text-green-600 hover:text-green-700">
-                Ver catálogo completo <ArrowRight className="h-4 w-4" />
-              </Link>
+            <div className="text-center mb-10">
+              <p className="text-sm font-semibold text-green-700 mb-2 tracking-wide uppercase">Catálogo</p>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900">NUESTROS PRODUCTOS</h2>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-              {products.slice(0, 12).map((p: any) => (
-                <ProductCard key={p.id} {...p} />
+            {products.length === 0 ? (
+              <div className="text-center py-12 text-gray-400">
+                <p>Cargando productos...</p>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+                  {products.slice(0, 12).map((p: any) => (
+                    <ProductCard key={p.id} {...p} />
+                  ))}
+                </div>
+                <div className="mt-10 text-center">
+                  <Button asChild size="lg" className="bg-green-600 hover:bg-green-700 font-bold h-12 px-8 rounded-xl">
+                    <Link href="/productos">Ver catálogo completo <ArrowRight className="ml-1.5 h-4 w-4" /></Link>
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        </section>
+
+        {/* Testimonials */}
+        <section className="bg-white py-16 lg:py-20">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6">
+            <div className="text-center mb-12">
+              <p className="text-sm font-semibold text-green-700 mb-2 tracking-wide uppercase">Lo que dicen nuestros clientes</p>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900">TESTIMONIOS</h2>
+            </div>
+            <div className="grid sm:grid-cols-3 gap-6">
+              {[
+                { name: "Karen Zambrano", text: "Excelente servicio y la cerca se ve hermosa. Muy fácil de instalar." },
+                { name: "Keila Arenas", text: "Calidad superior, justo lo que buscaba para mi propiedad." },
+                { name: "Verónica Álvarez", text: "Asesoría profesional de principio a fin. ¡100% recomendados!" },
+              ].map((t, i) => (
+                <div key={i} className="bg-gray-50 rounded-2xl p-6 sm:p-8 border border-gray-100">
+                  <div className="flex items-center gap-1 mb-3 text-amber-400">
+                    {[...Array(5)].map((_, j) => (<Star key={j} className="h-4 w-4 fill-current" />))}
+                  </div>
+                  <p className="text-sm text-gray-600 leading-relaxed italic">&ldquo;{t.text}&rdquo;</p>
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <p className="text-sm font-extrabold text-gray-900">{t.name}</p>
+                  </div>
+                </div>
               ))}
             </div>
-            <div className="mt-6 text-center sm:hidden">
-              <Link href="/productos" className="inline-flex items-center gap-1.5 rounded-full border-2 border-green-300 px-6 py-3 text-sm font-bold text-green-700 hover:bg-green-50 transition-colors">
-                Ver todo el catálogo <ArrowRight className="h-4 w-4" />
-              </Link>
+          </div>
+        </section>
+
+        {/* Projects Gallery */}
+        <section id="proyectos" className="bg-gray-50 py-16 lg:py-20">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6">
+            <div className="text-center mb-10">
+              <p className="text-sm font-semibold text-green-700 mb-2 tracking-wide uppercase">Proyectos realizados</p>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900">NUESTRAS INSTALACIONES</h2>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              {[
+                "/products/cerca-pvc-afrodita-401/porton.jpg",
+                "/products/cerca-pvc-afrodita-401/porton-2.jpg",
+                "/products/cerca-pvc-atenea-305/porton.jpg",
+                "/products/cerca-pvc-atenea-305/porton-2.jpg",
+                "/products/cerca-pvc-poseidon-502/1-pagina-principal.jpg",
+                "/products/cerca-pvc-poseidon-502/10.jpg",
+                "/products/cerca-pvc-vesta-601/1-foto-de-portada.jpg",
+                "/products/cerca-pvc-vesta-601/vesta-1.jpg",
+              ].map((src, i) => (
+                <div key={i} className="relative aspect-[4/3] rounded-xl overflow-hidden bg-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                  <Image src={src} alt={`Proyecto ${i + 1}`} fill sizes="(max-width: 640px) 50vw, 25vw" className="object-cover" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* CTA */}
+        <section id="cotizaciones" className="bg-green-700 py-16 lg:py-20">
+          <div className="mx-auto max-w-4xl px-4 sm:px-6 text-center">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white tracking-tight">
+              ¿LISTO PARA CERCAR TU ESPACIO?
+            </h2>
+            <p className="mt-4 text-base sm:text-lg text-green-100 max-w-2xl mx-auto">
+              Cotiza tu proyecto en minutos. Te asesoramos con el modelo, dimensiones e instalación.
+            </p>
+            <Button asChild size="lg" className="mt-8 bg-white text-green-700 hover:bg-green-50 font-bold h-14 px-10 text-base rounded-xl shadow-lg">
+              <a href="https://wa.me/50762874042" target="_blank" rel="noopener noreferrer">
+                Escríbenos por WhatsApp <ArrowRight className="ml-2 h-5 w-5" />
+              </a>
+            </Button>
+          </div>
+        </section>
+
+        {/* Contact Info */}
+        <section className="bg-gray-900 text-white py-12">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 text-center sm:text-left">
+              {[
+                { icon: Phone, label: "Teléfono", value: "+507 6287-4042", href: "tel:+50762874042" },
+                { icon: Mail, label: "Email", value: "ventas@intemperie.com", href: "mailto:ventas@intemperie.com" },
+                { icon: Globe, label: "Ubicación", value: "Latinoamérica y Caribe", href: null },
+                { icon: Clock, label: "Horario", value: "Lun–Sáb 8AM–6PM", href: null },
+              ].map((item, i) => (
+                <div key={i} className="flex flex-col items-center sm:items-start gap-1.5">
+                  <item.icon className="h-5 w-5 text-green-400 mb-1" />
+                  <p className="text-xs text-gray-400">{item.label}</p>
+                  {item.href ? (
+                    <a href={item.href} className="text-sm font-semibold text-white hover:text-green-300 transition-colors">{item.value}</a>
+                  ) : (
+                    <p className="text-sm font-semibold text-white">{item.value}</p>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         </section>
       </main>
+
       <Footer />
     </>
   );

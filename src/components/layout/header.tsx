@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Search, ShoppingCart, User, Menu, X, ChevronDown, Truck, Wrench, Phone } from "lucide-react";
+import { Search, ShoppingCart, User, Menu, X, ChevronDown, Phone, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/lib/store/auth-store";
@@ -84,27 +84,14 @@ export function Header() {
           : "bg-white border-b border-gray-100"
       }`}
     >
-      {/* Top Promo Bar */}
-      <div className="bg-gray-50 border-b border-gray-100">
-        <div className="mx-auto flex max-w-7xl items-center justify-center gap-6 px-4 py-1.5 text-[11px] sm:text-xs text-gray-500 sm:justify-between">
-          <div className="hidden sm:flex items-center gap-6 overflow-x-auto">
-            <span className="flex items-center gap-1.5 whitespace-nowrap hover:text-green-700 cursor-pointer transition-colors">
-              <Truck className="h-3.5 w-3.5 text-green-600" />
-              Envíos a todo Panamá
-            </span>
-            <span className="flex items-center gap-1.5 whitespace-nowrap hover:text-green-700 cursor-pointer transition-colors">
-              <Wrench className="h-3.5 w-3.5 text-green-600" />
-              Instalación profesional
-            </span>
+      {/* Top Bar */}
+      <div className="bg-green-700 text-white/90 text-xs hidden md:block">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 flex items-center justify-between h-9">
+          <div className="flex items-center gap-6">
+            <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> Lun–Sáb 8:00AM – 6:00PM</span>
+            <a href="tel:+50762874042" className="flex items-center gap-1.5 hover:text-white transition-colors"><Phone className="h-3.5 w-3.5" /> +507 6287-4042</a>
           </div>
-          <Link
-            href="https://wa.me/50762874042"
-            target="_blank"
-            className="flex items-center gap-1.5 font-medium text-green-700 hover:text-green-800 transition-colors"
-          >
-            <Phone className="h-3.5 w-3.5" />
-            Cotizar +507 6287-4042
-          </Link>
+          <a href="mailto:ventas@intemperie.com" className="hover:text-white transition-colors">ventas@intemperie.com</a>
         </div>
       </div>
 
@@ -176,10 +163,25 @@ export function Header() {
           {/* Nav links */}
           <nav className="hidden lg:flex items-center gap-1">
             <Button variant="ghost" size="sm" asChild className="text-sm font-medium text-gray-600 hover:text-gray-900">
-              <Link href="/productos">Catálogo</Link>
+              <Link href="/">Inicio</Link>
             </Button>
             <Button variant="ghost" size="sm" asChild className="text-sm font-medium text-gray-600 hover:text-gray-900">
-              <Link href="/calculadora">Calculadora</Link>
+              <Link href="/#nosotros">Nosotros</Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild className="text-sm font-medium text-gray-600 hover:text-gray-900">
+              <Link href="/#productos">Productos</Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild className="text-sm font-medium text-gray-600 hover:text-gray-900">
+              <Link href="/#soluciones">Soluciones</Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild className="text-sm font-medium text-gray-600 hover:text-gray-900">
+              <Link href="/#proyectos">Proyectos</Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild className="text-sm font-medium text-gray-600 hover:text-gray-900">
+              <Link href="/productos">Tienda</Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild className="text-sm font-medium text-gray-600 hover:text-gray-900">
+              <Link href="/#cotizaciones">Cotizaciones</Link>
             </Button>
           </nav>
 
