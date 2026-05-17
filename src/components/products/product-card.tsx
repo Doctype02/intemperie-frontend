@@ -79,7 +79,7 @@ export function ProductCard(p: ProductCardProps) {
     <div className="group relative flex flex-col bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-300 hover:shadow-lg transition-all duration-200">
       {/* Image */}
       <Link href={`/productos/${p.slug}`} className="block relative overflow-hidden bg-gray-50">
-        <div className="relative h-44 sm:h-48" style={{ backgroundColor: catBg }}>
+        <div className="relative aspect-[4/3]" style={{ backgroundColor: catBg }}>
           {primaryImage ? (
             <Image
               src={primaryImage}
@@ -185,7 +185,7 @@ export function ProductCard(p: ProductCardProps) {
                 10
               );
             }}
-            className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-green-600 py-2 text-xs font-bold text-green-700 hover:bg-green-600 hover:text-white transition-all duration-150 active:scale-95"
+            className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg bg-green-600 py-2.5 text-xs font-bold text-white hover:bg-green-700 active:scale-95 transition-all duration-150 shadow-sm"
           >
             <ShoppingCart className="h-3.5 w-3.5" />
             Agregar al carrito

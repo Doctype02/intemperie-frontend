@@ -123,16 +123,16 @@ export default async function ProductosPage({ searchParams }: { searchParams: Pr
 
               {/* Mobile filter buttons */}
               <div className="mt-3 flex flex-wrap gap-2 lg:hidden">
-                <Link href="/productos" className={`rounded-full px-3 py-1 text-xs font-medium ${!activeCategory && !activeCollection ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"}`}>
+                <Link href="/productos" className={`rounded-full px-4 py-2 text-sm font-medium ${!activeCategory && !activeCollection ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"}`}>
                   Todos
                 </Link>
                 {categories.slice(0, 4).map((cat: any) => (
-                  <Link key={cat.slug} href={`/productos?category=${cat.slug}`} className={`rounded-full px-3 py-1 text-xs font-medium ${activeCategory === cat.slug ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"}`}>
+                  <Link key={cat.slug} href={`/productos?category=${cat.slug}`} className={`rounded-full px-4 py-2 text-sm font-medium ${activeCategory === cat.slug ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"}`}>
                     {cat.name}
                   </Link>
                 ))}
                 {categories.length > 4 && (
-                  <Link href="/productos" className="rounded-full px-3 py-1 text-xs font-medium bg-gray-100 text-gray-500 hover:bg-gray-200">
+                  <Link href="/productos" className="rounded-full px-4 py-2 text-sm font-medium bg-gray-100 text-gray-500 hover:bg-gray-200">
                     Más
                   </Link>
                 )}
@@ -148,10 +148,26 @@ export default async function ProductosPage({ searchParams }: { searchParams: Pr
             {products.length > 0 ? (
               <ProductGrid products={products} />
             ) : (
-              <div className="flex flex-col items-center justify-center py-16 text-center">
-                <p className="text-4xl mb-3">📦</p>
-                <h3 className="text-lg font-semibold text-gray-900">No se encontraron productos</h3>
-                <p className="mt-1 text-sm text-gray-500">Intenta con otros filtros</p>
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <div className="h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+                  <Grid3X3 className="h-8 w-8 text-gray-300" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  {params.search
+                    ? `Sin resultados para "${params.search}"`
+                    : "No hay productos en esta categoría aún"}
+                </h3>
+                <p className="mt-1.5 text-sm text-gray-500 max-w-xs">
+                  {params.search
+                    ? "Prueba otro término o explora el catálogo completo"
+                    : "Estamos ampliando nuestro catálogo constantemente"}
+                </p>
+                <Link
+                  href="/productos"
+                  className="mt-6 inline-flex items-center gap-2 rounded-xl bg-green-700 px-6 py-3 text-sm font-bold text-white hover:bg-green-800 transition-colors"
+                >
+                  Ver todos los productos
+                </Link>
               </div>
             )}
           </div>

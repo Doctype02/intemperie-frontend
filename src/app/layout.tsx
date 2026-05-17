@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { WhatsAppButton } from "@/components/shared/whatsapp-button";
 import { ImageLoadProvider } from "@/lib/image-load-context";
 import { PageLoadingOverlay } from "@/components/shared/page-loading-overlay";
 
-const inter = Inter({
+const plusJakarta = Plus_Jakarta_Sans({
   variable: "--font-sans",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
@@ -41,7 +42,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={`${inter.variable} h-full antialiased`}>
+    <html lang="es" className={`${plusJakarta.variable} h-full antialiased`}>
       <head>
         <link rel="preconnect" href={process.env.NEXT_PUBLIC_API_URL} />
       </head>

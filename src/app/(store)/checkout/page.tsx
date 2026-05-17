@@ -12,6 +12,7 @@ type Step = "address" | "review" | "payment";
 
 export default function CheckoutPage() {
   const [ready, setReady] = useState(false);
+  const [guestMode, setGuestMode] = useState(false);
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
   const items = useCartStore((s) => s.items);
@@ -23,19 +24,49 @@ export default function CheckoutPage() {
   useEffect(() => { setReady(true); }, []);
 
   if (!ready) {
-    return <main className="flex-1 bg-gray-50" />;
+    return (
+      <main className="flex-1 bg-gray-50">
+        <div className="mx-auto max-w-4xl px-4 py-8 animate-pulse space-y-4">
+          <div className="h-8 w-48 rounded bg-gray-200 mx-auto" />
+          <div className="grid gap-8 lg:grid-cols-3">
+            <div className="lg:col-span-2 rounded-xl bg-white border border-gray-200 p-6 space-y-4">
+              <div className="h-6 w-40 rounded bg-gray-200" />
+              {[1,2,3,4].map(i => <div key={i} className="h-10 rounded bg-gray-200" />)}
+            </div>
+            <div className="rounded-xl bg-white border border-gray-200 p-6 h-48" />
+          </div>
+        </div>
+      </main>
+    );
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated && !guestMode) {
     return (
       <main className="flex-1 bg-gray-50 flex items-center justify-center py-20">
-        <div className="text-center bg-white rounded-xl border border-gray-200 p-8 max-w-md">
-          <ShoppingCart className="mx-auto mb-4 h-12 w-12 text-gray-300" />
-          <h1 className="text-xl font-bold text-gray-900">Inicia sesión para comprar</h1>
-          <p className="mt-2 text-sm text-gray-500">Necesitas una cuenta para completar tu pedido</p>
-          <Button className="mt-6 bg-green-700 hover:bg-green-800" asChild>
-            <Link href="/login?redirect=/checkout">Iniciar sesión</Link>
-          </Button>
+        <div className="bg-white rounded-2xl border border-gray-200 p-8 max-w-sm w-full mx-4 shadow-sm">
+          <ShoppingCart className="mx-auto mb-4 h-10 w-10 text-green-600" />
+          <h1 className="text-xl font-bold text-gray-900 text-center">Completa tu pedido</h1>
+          <p className="mt-2 text-sm text-gray-500 text-center">Elige cómo quieres continuar</p>
+          <div className="mt-6 space-y-3">
+            <Button className="w-full h-12 bg-green-700 hover:bg-green-800 text-sm font-bold" asChild>
+              <Link href="/login?redirect=/checkout">Iniciar sesión con mi cuenta</Link>
+            </Button>
+            <div className="relative flex items-center gap-3">
+              <div className="flex-1 border-t border-gray-200" />
+              <span className="text-xs text-gray-400">o</span>
+              <div className="flex-1 border-t border-gray-200" />
+            </div>
+            <Button
+              variant="outline"
+              className="w-full h-12 border-gray-300 text-gray-700 text-sm font-bold hover:bg-gray-50"
+              onClick={() => setGuestMode(true)}
+            >
+              Continuar como invitado
+            </Button>
+          </div>
+          <p className="mt-4 text-center text-xs text-gray-400">
+            Con cuenta puedes rastrear tu pedido y guardar tus direcciones
+          </p>
         </div>
       </main>
     );
@@ -131,17 +162,33 @@ export default function CheckoutPage() {
               )}
 
               {step === "payment" && (
-                <div className="text-center py-8">
-                  <div className="flex h-20 w-20 items-center justify-center rounded-full bg-green-100 mx-auto mb-4">
-                    <Check className="h-10 w-10 text-green-600" />
+                <div className="text-center py-6">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 mx-auto mb-4">
+                    <Check className="h-8 w-8 text-green-600" />
                   </div>
-                  <h2 className="text-xl font-bold text-gray-900">Pedido simulado</h2>
-                  <p className="mt-2 text-gray-500">En esta versión, el pago con Stripe estará disponible con tus llaves reales.</p>
+                  <h2 className="text-xl font-bold text-gray-900">Tu pedido está listo</h2>
+                  <p className="mt-2 text-sm text-gray-500 max-w-xs mx-auto">
+                    Envía el resumen a nuestro equipo por WhatsApp y un asesor confirmará
+                    disponibilidad y coordina el pago en minutos.
+                  </p>
                   <div className="mt-6 flex flex-col gap-3 max-w-sm mx-auto">
-                    <Button className="bg-green-700 hover:bg-green-800 h-12" onClick={() => { clearCart(); router.push("/checkout/success"); }}>Simular pedido completado</Button>
-                    <Button variant="outline" asChild>
-                      <Link href="https://wa.me/50762874042" target="_blank">Finalizar por WhatsApp</Link>
+                    <Button
+                      className="bg-green-600 hover:bg-green-700 h-12 text-sm font-bold shadow-sm"
+                      onClick={() => {
+                        const orderLines = items
+                          .map((i) => `• ${i.product?.name} — ${i.quantity}${i.product?.unit === "METRO" ? "m" : " unid."}`)
+                          .join("%0A");
+                        const msg = `Hola%2C quiero confirmar mi pedido:%0A%0A${orderLines}%0A%0ATotal: $${total.toFixed(2)}%0AEnvío a: ${address.street}, ${address.city}, ${address.province}%0AContacto: ${address.phone}`;
+                        window.open(`https://wa.me/50762874042?text=${msg}`, "_blank");
+                        clearCart();
+                        router.push("/checkout/success");
+                      }}
+                    >
+                      Confirmar pedido por WhatsApp
                     </Button>
+                    <p className="text-xs text-gray-400">
+                      También aceptamos transferencia bancaria y efectivo
+                    </p>
                   </div>
                 </div>
               )}

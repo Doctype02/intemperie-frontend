@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ChevronRight } from "lucide-react";
+import { ArrowRight, ChevronRight, Shield, Award, Truck, Globe, Wrench, CheckCircle2 } from "lucide-react";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { HeroCarousel } from "@/components/home/hero-carousel";
@@ -142,12 +142,12 @@ function CategoryCards() {
 /* ── Section 5: Trust Logos Strip ────────────────────────────────────────── */
 function TrustLogosStrip() {
   const items = [
-    { icon: "🛡️", label: "Garantía 15 años" },
-    { icon: "🏆", label: "+15,000 proyectos" },
-    { icon: "🚚", label: "Envío a todo Panamá" },
-    { icon: "🌎", label: "10+ países" },
-    { icon: "🔧", label: "Instalación incluida" },
-    { icon: "✅", label: "100% Satisfacción" },
+    { Icon: Shield,        label: "Garantía 15 años" },
+    { Icon: Award,         label: "+15,000 proyectos" },
+    { Icon: Truck,         label: "Envío a todo Panamá" },
+    { Icon: Globe,         label: "10+ países" },
+    { Icon: Wrench,        label: "Instalación incluida" },
+    { Icon: CheckCircle2,  label: "100% Satisfacción" },
   ];
 
   return (
@@ -157,9 +157,9 @@ function TrustLogosStrip() {
           {items.map((item, i) => (
             <div key={item.label} className="flex items-center gap-2 shrink-0">
               {i > 0 && (
-                <span className="hidden sm:block text-gray-300 text-lg select-none" aria-hidden="true">|</span>
+                <span className="hidden sm:block text-gray-300 text-sm select-none" aria-hidden="true">|</span>
               )}
-              <span className="text-lg sm:text-xl" aria-hidden="true">{item.icon}</span>
+              <item.Icon className="h-4 w-4 text-green-600 shrink-0" aria-hidden="true" />
               <span className="text-xs sm:text-sm font-semibold text-gray-600 whitespace-nowrap">
                 {item.label}
               </span>
@@ -651,13 +651,7 @@ export default async function HomePage() {
         {/* 10 — Featured Collections Grid */}
         <FeaturedCollectionsGrid />
 
-        {/* 11 — Collections Band */}
-        <CollectionsBand />
-
-        {/* 12 — Blog Section */}
-        <BlogSection />
-
-        {/* 13 — WhatsApp Promo Banner */}
+        {/* 12 — WhatsApp Promo Banner */}
         <WhatsAppBanner />
 
         {/* 14 — Newsletter */}

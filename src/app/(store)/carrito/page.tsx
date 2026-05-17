@@ -20,7 +20,29 @@ export default function CartPage() {
   useEffect(() => { setReady(true); }, []);
 
   if (!ready) {
-    return <main className="flex-1 bg-gray-50" />;
+    return (
+      <main className="flex-1 bg-gray-50">
+        <div className="mx-auto max-w-4xl px-4 py-8 space-y-4 animate-pulse">
+          <div className="h-8 w-52 rounded-lg bg-gray-200" />
+          <div className="rounded-xl bg-white border border-gray-200 overflow-hidden divide-y">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="p-4 flex gap-4 items-center">
+                <div className="h-16 w-16 rounded-lg bg-gray-200 shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 w-2/3 rounded bg-gray-200" />
+                  <div className="h-3 w-1/3 rounded bg-gray-200" />
+                  <div className="h-7 w-24 rounded bg-gray-200" />
+                </div>
+                <div className="h-5 w-16 rounded bg-gray-200" />
+              </div>
+            ))}
+            <div className="p-4 bg-gray-50 flex justify-end">
+              <div className="h-12 w-52 rounded-xl bg-gray-200" />
+            </div>
+          </div>
+        </div>
+      </main>
+    );
   }
 
   if (!items || items.length === 0) {

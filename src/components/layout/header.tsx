@@ -267,7 +267,7 @@ export function Header() {
     <header className={`sticky top-0 z-50 transition-shadow duration-200 ${scrolled ? "shadow-md" : ""}`}>
 
       {/* ── Tier 1: Announcement bar ──────────────────────────────────────── */}
-      <div className="bg-green-800 text-white text-xs">
+      <div className={`bg-green-800 text-white text-xs overflow-hidden transition-all duration-300 ${scrolled ? "max-h-0" : "max-h-8"}`}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 flex items-center justify-between h-8">
           <p className="font-semibold truncate text-[11px]">
             🚚&nbsp;Envío gratis en pedidos mayores a $50 — Panamá y provincias

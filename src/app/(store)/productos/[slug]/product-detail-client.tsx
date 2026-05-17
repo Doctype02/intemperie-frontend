@@ -13,6 +13,7 @@ export function ProductDetailClient({ product }: { product: any }) {
   const [includeInstallation, setIncludeInstallation] = useState(true);
   const [added, setAdded] = useState(false);
   const addItem = useCartStore((s) => s.addItem);
+  const [descExpanded, setDescExpanded] = useState(false);
   const price = Number(product.basePrice);
   const unitLabel = product.unit === "PANEL" ? "/panel" : product.unit === "M2" ? "/m²" : "/m lineal";
 
@@ -85,7 +86,19 @@ export function ProductDetailClient({ product }: { product: any }) {
             </span>
           </div>
 
-          <p className="mt-3 text-sm text-gray-600 leading-relaxed line-clamp-4">{product.description}</p>
+          <div className="mt-3">
+            <p className={`text-sm text-gray-600 leading-relaxed ${!descExpanded ? "line-clamp-4" : ""}`}>
+              {product.description}
+            </p>
+            {!descExpanded && product.description?.length > 200 && (
+              <button
+                onClick={() => setDescExpanded(true)}
+                className="mt-1 text-xs font-semibold text-green-700 hover:text-green-800 transition-colors"
+              >
+                Leer descripción completa ↓
+              </button>
+            )}
+          </div>
 
           {/* Calculator */}
           <div className="mt-6 rounded-xl border-2 border-green-100 bg-green-50/30 p-4">
