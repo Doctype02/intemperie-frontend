@@ -1,11 +1,11 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { API_BASE } from "@/lib/api";
 import { ProductDetailClient } from "./product-detail-client";
 
 async function getProduct(slug: string) {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-    const res = await fetch(`${baseUrl}/products/${slug}`, { next: { revalidate: 60 } });
+    const res = await fetch(`${API_BASE}/products/${slug}`, { next: { revalidate: 60 } });
     if (!res.ok) return null;
     const data = await res.json();
     return data.data || data;

@@ -1,8 +1,5 @@
 export const BLUR_PLACEHOLDER =
-  "data:image/svg+xml;base64," +
-  Buffer.from(
-    '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"><rect width="400" height="300" fill="#e8f5e9"/><rect width="400" height="300" fill="#c8e6c9" opacity="0.5"/></svg>'
-  ).toString("base64");
+  "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiB2aWV3Qm94PSIwIDAgNDAwIDMwMCI+PHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSIzMDAiIGZpbGw9IiNlOGY1ZTkiLz48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2M4ZTZjOSIgb3BhY2l0eT0iMC41Ii8+PC9zdmc+";
 
 export function getProductImageUrl(images: { url: string }[] | undefined, index = 0): string {
   if (!images || images.length === 0) return "";

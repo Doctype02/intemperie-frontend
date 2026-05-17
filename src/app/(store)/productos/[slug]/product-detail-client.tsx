@@ -14,6 +14,7 @@ export function ProductDetailClient({ product }: { product: any }) {
   const [added, setAdded] = useState(false);
   const addItem = useCartStore((s) => s.addItem);
   const price = Number(product.basePrice);
+  const unitLabel = product.unit === "PANEL" ? "/panel" : product.unit === "M2" ? "/m²" : "/m lineal";
 
   const attrs = typeof product.attributes === "object" && product.attributes !== null ? product.attributes : {};
   const specs = Array.isArray(product.specifications) ? product.specifications
@@ -75,7 +76,7 @@ export function ProductDetailClient({ product }: { product: any }) {
 
           <div className="mt-4 flex items-baseline gap-1.5">
             <span className="text-2xl md:text-3xl font-extrabold text-gray-900">${price.toFixed(2)}</span>
-            <span className="text-sm text-gray-400">/m lineal</span>
+            <span className="text-sm text-gray-400">{unitLabel}</span>
           </div>
 
           <div className="mt-2">
@@ -95,7 +96,7 @@ export function ProductDetailClient({ product }: { product: any }) {
 
             <div className="space-y-3">
               <div>
-                <label className="text-[11px] font-semibold text-gray-500 uppercase">Metros lineales</label>
+                <label className="text-[11px] font-semibold text-gray-500 uppercase">{product.unit === "PANEL" ? "Paneles" : "Metros lineales"}</label>
                 <div className="mt-1 flex items-center rounded-lg border bg-white">
                   <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-3 py-2 text-gray-400 hover:bg-gray-50"><Minus className="h-4 w-4" /></button>
                   <input
@@ -120,7 +121,7 @@ export function ProductDetailClient({ product }: { product: any }) {
 
               <div className="border-t pt-3 space-y-1.5 text-sm">
                 <div className="flex justify-between text-gray-500">
-                  <span>{quantity}m × ${price.toFixed(2)}</span>
+                  <span>{quantity}{product.unit === "PANEL" ? " panel" : "m"} × ${price.toFixed(2)}</span>
                   <span className="font-medium text-gray-900">${subtotal.toFixed(2)}</span>
                 </div>
                 {includeInstallation && (

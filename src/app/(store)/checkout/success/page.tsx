@@ -23,7 +23,7 @@ export default function CheckoutSuccessPage() {
             </ul>
             <p className="mt-4 text-sm text-gray-400">
               ¿Preguntas? Llámanos al <strong className="text-gray-600">+507 6287-4042</strong> o
-              escribe a <strong className="text-gray-600">ventas@tiendasintemperie.com</strong>
+              escribe a <strong className="text-gray-600">ventas@intemperie.com</strong>
             </p>
           </div>
 
