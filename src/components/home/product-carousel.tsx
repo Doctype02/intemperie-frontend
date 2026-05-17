@@ -32,7 +32,7 @@ export function ProductCarousel({
   subtitle,
   products,
   viewAllHref = "/productos",
-  accentColor = "text-green-600",
+  accentColor = "text-green-600 hover:text-green-700",
 }: ProductCarouselProps) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -46,7 +46,7 @@ export function ProductCarousel({
 
   return (
     <section className="bg-white py-10 sm:py-12">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-10 sm:py-12">
         <div className="mb-5 flex items-end justify-between">
           <div>
             <h2 className="text-xl sm:text-2xl font-extrabold text-gray-900">{title}</h2>
