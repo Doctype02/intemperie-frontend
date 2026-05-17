@@ -84,6 +84,14 @@ export function Header() {
           : "bg-white border-b border-gray-100"
       }`}
     >
+      {/* Free Shipping Banner */}
+      <div className="bg-green-600 text-white text-xs text-center py-2 px-4 font-semibold tracking-wide">
+        🚚&nbsp; Envío gratis en pedidos mayores a $50 &mdash; Panamá y provincias &nbsp;|&nbsp; 📞&nbsp;
+        <a href="tel:+50762874042" className="underline underline-offset-2 hover:text-green-100 transition-colors">
+          +507 6287-4042
+        </a>
+      </div>
+
       {/* Top Bar */}
       <div className="bg-green-700 text-white/90 text-xs hidden md:block">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 flex items-center justify-between h-9">

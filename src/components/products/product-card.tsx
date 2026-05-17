@@ -2,16 +2,22 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { ShoppingCart, Check } from "lucide-react";
+import { ShoppingCart, Check, Star } from "lucide-react";
 import { useCartStore } from "@/lib/store/cart-store";
 import { BLUR_PLACEHOLDER } from "@/lib/image-utils";
 import { useImageOnLoad } from "@/lib/image-load-context";
 import type { ProductImage } from "@/types";
 
 interface ProductCardProps {
-  id: string; name: string; slug: string;
-  basePrice: number; unit: string; stock: number;
-  category?: { name: string }; collection?: { name: string };
+  id: string;
+  name: string;
+  slug: string;
+  basePrice: number;
+  unit: string;
+  stock: number;
+  isNew?: boolean;
+  category?: { name: string };
+  collection?: { name: string };
   images?: ProductImage[];
 }
 
@@ -23,6 +29,19 @@ const categoryColors: Record<string, { bg: string; accent: string }> = {
   "Zonas Costeras": { bg: "#cffafe", accent: "#0891b2" },
 };
 
+function StarRating({ rating = 5 }: { rating?: number }) {
+  return (
+    <div className="flex items-center gap-0.5">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <Star
+          key={i}
+          className={`h-3 w-3 ${i < Math.floor(rating) ? "fill-amber-400 text-amber-400" : "fill-gray-200 text-gray-200"}`}
+        />
+      ))}
+    </div>
+  );
+}
+
 export function ProductCard(p: ProductCardProps) {
   const addItem = useCartStore((s) => s.addItem);
   const onLoad = useImageOnLoad();
@@ -30,7 +49,6 @@ export function ProductCard(p: ProductCardProps) {
   const catType = p.category?.name || "Residencial";
   const colors = categoryColors[catType] || categoryColors["Residencial"];
   const unitLabel = p.unit === "METRO" ? "/m lineal" : p.unit === "PANEL" ? "/panel" : "";
-  const match = catName.match(/(\d{3})/);
   const primaryImage = p.images?.[0]?.url || null;
 
   return (
@@ -49,21 +67,38 @@ export function ProductCard(p: ProductCardProps) {
               onLoad={onLoad}
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center" style={{ backgroundColor: colors.bg }}>
+            <div
+              className="flex h-full w-full items-center justify-center"
+              style={{ backgroundColor: colors.bg }}
+            >
               <div className="text-center p-4">
-                <div className="mx-auto w-16 h-16 rounded-2xl flex items-center justify-center shadow-sm"
-                  style={{ backgroundColor: `${colors.accent}18` }}>
+                <div
+                  className="mx-auto w-16 h-16 rounded-2xl flex items-center justify-center shadow-sm"
+                  style={{ backgroundColor: `${colors.accent}18` }}
+                >
                   <span className="text-2xl font-black" style={{ color: colors.accent }}>
                     {catName.charAt(0)}
                   </span>
                 </div>
-                <p className="mt-2 text-[11px] font-bold uppercase tracking-widest"
-                  style={{ color: `${colors.accent}99` }}>
+                <p
+                  className="mt-2 text-[11px] font-bold uppercase tracking-widest"
+                  style={{ color: `${colors.accent}99` }}
+                >
                   {catName}
                 </p>
               </div>
             </div>
           )}
+
+          {/* Badges */}
+          <div className="absolute top-2.5 left-2.5 flex flex-col gap-1.5">
+            {p.isNew && (
+              <span className="bg-green-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm">
+                NUEVO
+              </span>
+            )}
+          </div>
+
           {p.stock > 0 && p.stock <= 3 && (
             <span className="absolute top-2.5 right-2.5 bg-amber-500 text-white text-[11px] font-black px-2.5 py-1 rounded-full shadow-md">
               {p.stock} unid.
@@ -79,18 +114,25 @@ export function ProductCard(p: ProductCardProps) {
 
       <div className="flex flex-col flex-1 p-3.5 md:p-4">
         <Link href={`/productos/${p.slug}`} className="flex-1">
-          <p className="text-[11px] font-extrabold text-gray-400 uppercase tracking-widest mb-1">{catName}</p>
+          <p className="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest mb-1">
+            {catName}
+          </p>
           <h3 className="text-sm font-bold text-gray-900 leading-snug line-clamp-2 group-hover:text-green-700 transition-colors">
             {p.name}
           </h3>
         </Link>
 
-        <div className="mt-2.5 flex items-baseline gap-1">
+        <div className="mt-2 flex items-center gap-1.5">
+          <StarRating rating={5} />
+          <span className="text-[10px] text-gray-400 font-medium">15 años garantía</span>
+        </div>
+
+        <div className="mt-2 flex items-baseline gap-1">
           <span className="text-xl font-black text-gray-900">${Number(p.basePrice).toFixed(2)}</span>
           <span className="text-[11px] text-gray-400 font-medium">{unitLabel}</span>
         </div>
 
-        <div className="mt-2 flex items-center gap-2">
+        <div className="mt-1.5 flex items-center gap-2">
           {p.stock > 0 ? (
             <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-green-600">
               <Check className="h-3 w-3" /> Disponible
@@ -104,7 +146,20 @@ export function ProductCard(p: ProductCardProps) {
           <button
             onClick={(e) => {
               e.preventDefault();
-              addItem({ id: p.id, name: p.name, slug: p.slug, basePrice: p.basePrice, unit: p.unit, stock: p.stock, collection: p.collection, category: p.category, images: p.images }, 10);
+              addItem(
+                {
+                  id: p.id,
+                  name: p.name,
+                  slug: p.slug,
+                  basePrice: p.basePrice,
+                  unit: p.unit,
+                  stock: p.stock,
+                  collection: p.collection,
+                  category: p.category,
+                  images: p.images,
+                },
+                10
+              );
             }}
             className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl bg-green-600 py-3 text-sm font-extrabold text-white hover:bg-green-700 transition-all active:scale-[0.97] shadow-sm shadow-green-200"
           >
