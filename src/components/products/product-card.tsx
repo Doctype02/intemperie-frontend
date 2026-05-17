@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { ShoppingCart, Check, Star } from "lucide-react";
+import { ShoppingCart, Star } from "lucide-react";
 import { useCartStore } from "@/lib/store/cart-store";
 import { BLUR_PLACEHOLDER } from "@/lib/image-utils";
 import { useImageOnLoad } from "@/lib/image-load-context";
@@ -13,31 +13,44 @@ interface ProductCardProps {
   name: string;
   slug: string;
   basePrice: number;
+  comparePrice?: number;
   unit: string;
   stock: number;
   isNew?: boolean;
+  reviewCount?: number;
+  rating?: number;
+  sku?: string;
   category?: { name: string };
   collection?: { name: string };
   images?: ProductImage[];
 }
 
-const categoryColors: Record<string, { bg: string; accent: string }> = {
-  Residencial: { bg: "#dcfce7", accent: "#16a34a" },
-  Industrial: { bg: "#f1f5f9", accent: "#475569" },
-  Gubernamental: { bg: "#dbeafe", accent: "#2563eb" },
-  Agropecuario: { bg: "#fef3c7", accent: "#d97706" },
-  "Zonas Costeras": { bg: "#cffafe", accent: "#0891b2" },
+const catColors: Record<string, string> = {
+  Residencial: "#dcfce7",
+  Industrial: "#f1f5f9",
+  Gubernamental: "#dbeafe",
+  Agropecuario: "#fef3c7",
+  "Zonas Costeras": "#cffafe",
 };
 
-function StarRating({ rating = 5 }: { rating?: number }) {
+function Stars({ rating = 5, count = 0 }: { rating?: number; count?: number }) {
   return (
-    <div className="flex items-center gap-0.5">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <Star
-          key={i}
-          className={`h-3 w-3 ${i < Math.floor(rating) ? "fill-amber-400 text-amber-400" : "fill-gray-200 text-gray-200"}`}
-        />
-      ))}
+    <div className="flex items-center gap-1">
+      <div className="flex items-center gap-0.5">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <Star
+            key={i}
+            className={`h-2.5 w-2.5 ${
+              i <= Math.round(rating)
+                ? "fill-amber-400 text-amber-400"
+                : "fill-gray-200 text-gray-200"
+            }`}
+          />
+        ))}
+      </div>
+      <span className="text-[10px] text-gray-400">
+        {count > 0 ? `(${count})` : "Sin reseñas"}
+      </span>
     </div>
   );
 }
@@ -45,103 +58,114 @@ function StarRating({ rating = 5 }: { rating?: number }) {
 export function ProductCard(p: ProductCardProps) {
   const addItem = useCartStore((s) => s.addItem);
   const onLoad = useImageOnLoad();
-  const catName = p.collection?.name || p.category?.name || "Intemperie";
-  const catType = p.category?.name || "Residencial";
-  const colors = categoryColors[catType] || categoryColors["Residencial"];
+
+  const collectionName = p.collection?.name || p.category?.name || "Intemperie";
+  const catBg = catColors[p.category?.name || ""] || "#f0fdf4";
   const unitLabel = p.unit === "METRO" ? "/m lineal" : p.unit === "PANEL" ? "/panel" : "";
   const primaryImage = p.images?.[0]?.url || null;
+  const discount =
+    p.comparePrice && p.comparePrice > p.basePrice
+      ? Math.round(((p.comparePrice - p.basePrice) / p.comparePrice) * 100)
+      : 0;
+
+  const stockBadge =
+    p.stock === 0
+      ? { label: "Agotado", color: "text-red-600 bg-red-50" }
+      : p.stock <= 3
+      ? { label: `Solo quedan ${p.stock} unidades`, color: "text-amber-700 bg-amber-50" }
+      : { label: "En inventario, listo para despachar", color: "text-green-700 bg-green-50" };
 
   return (
-    <div className="group flex flex-col rounded-2xl bg-white border border-gray-100 hover:border-gray-200 hover:shadow-xl transition-all duration-300 overflow-hidden">
-      <Link href={`/productos/${p.slug}`} className="block relative">
-        <div className="relative h-48 md:h-52 bg-gray-100 overflow-hidden">
+    <div className="group relative flex flex-col bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-300 hover:shadow-lg transition-all duration-200">
+      {/* Image */}
+      <Link href={`/productos/${p.slug}`} className="block relative overflow-hidden bg-gray-50">
+        <div className="relative h-44 sm:h-48" style={{ backgroundColor: catBg }}>
           {primaryImage ? (
             <Image
               src={primaryImage}
               alt={p.name}
               fill
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              className="object-cover transition-all duration-500 group-hover:scale-105"
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
               placeholder="blur"
               blurDataURL={BLUR_PLACEHOLDER}
               onLoad={onLoad}
             />
           ) : (
-            <div
-              className="flex h-full w-full items-center justify-center"
-              style={{ backgroundColor: colors.bg }}
-            >
-              <div className="text-center p-4">
-                <div
-                  className="mx-auto w-16 h-16 rounded-2xl flex items-center justify-center shadow-sm"
-                  style={{ backgroundColor: `${colors.accent}18` }}
-                >
-                  <span className="text-2xl font-black" style={{ color: colors.accent }}>
-                    {catName.charAt(0)}
-                  </span>
-                </div>
-                <p
-                  className="mt-2 text-[11px] font-bold uppercase tracking-widest"
-                  style={{ color: `${colors.accent}99` }}
-                >
-                  {catName}
-                </p>
-              </div>
+            <div className="flex h-full items-center justify-center">
+              <span className="text-3xl font-black text-gray-300">
+                {collectionName.charAt(0)}
+              </span>
             </div>
           )}
 
           {/* Badges */}
-          <div className="absolute top-2.5 left-2.5 flex flex-col gap-1.5">
+          <div className="absolute top-2 left-2 flex flex-col gap-1">
             {p.isNew && (
-              <span className="bg-green-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm">
-                NUEVO
+              <span className="rounded-sm bg-green-600 px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-white shadow-sm">
+                Nuevo
+              </span>
+            )}
+            {discount > 0 && (
+              <span className="rounded-sm bg-red-600 px-1.5 py-0.5 text-[10px] font-black text-white shadow-sm">
+                -{discount}%
               </span>
             )}
           </div>
 
-          {p.stock > 0 && p.stock <= 3 && (
-            <span className="absolute top-2.5 right-2.5 bg-amber-500 text-white text-[11px] font-black px-2.5 py-1 rounded-full shadow-md">
-              {p.stock} unid.
-            </span>
-          )}
           {p.stock === 0 && (
-            <span className="absolute top-2.5 right-2.5 bg-red-500 text-white text-[11px] font-black px-2.5 py-1 rounded-full shadow-md">
-              Agotado
-            </span>
+            <div className="absolute inset-0 flex items-center justify-center bg-white/60 backdrop-blur-[1px]">
+              <span className="rounded-full bg-gray-900/80 px-3 py-1 text-xs font-bold text-white">
+                Agotado
+              </span>
+            </div>
           )}
         </div>
       </Link>
 
-      <div className="flex flex-col flex-1 p-3.5 md:p-4">
+      {/* Info */}
+      <div className="flex flex-col flex-1 p-3">
+        {/* Vendor / collection */}
+        <p className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 mb-0.5 truncate">
+          {collectionName}
+        </p>
+
+        {/* Name */}
         <Link href={`/productos/${p.slug}`} className="flex-1">
-          <p className="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest mb-1">
-            {catName}
-          </p>
-          <h3 className="text-sm font-bold text-gray-900 leading-snug line-clamp-2 group-hover:text-green-700 transition-colors">
+          <h3 className="text-sm font-semibold text-gray-800 leading-snug line-clamp-2 hover:text-green-700 transition-colors">
             {p.name}
           </h3>
         </Link>
 
-        <div className="mt-2 flex items-center gap-1.5">
-          <StarRating rating={5} />
-          <span className="text-[10px] text-gray-400 font-medium">15 años garantía</span>
-        </div>
+        {/* SKU */}
+        {p.sku && (
+          <p className="mt-0.5 text-[10px] text-gray-400">SKU: {p.sku}</p>
+        )}
 
-        <div className="mt-2 flex items-baseline gap-1">
-          <span className="text-xl font-black text-gray-900">${Number(p.basePrice).toFixed(2)}</span>
-          <span className="text-[11px] text-gray-400 font-medium">{unitLabel}</span>
-        </div>
-
-        <div className="mt-1.5 flex items-center gap-2">
-          {p.stock > 0 ? (
-            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-green-600">
-              <Check className="h-3 w-3" /> Disponible
+        {/* Price */}
+        <div className="mt-2 flex items-baseline gap-1.5 flex-wrap">
+          <span className="text-base font-extrabold text-gray-900">
+            ${Number(p.basePrice).toFixed(2)}
+          </span>
+          <span className="text-[10px] text-gray-400">{unitLabel}</span>
+          {p.comparePrice && p.comparePrice > p.basePrice && (
+            <span className="text-xs text-gray-400 line-through">
+              ${Number(p.comparePrice).toFixed(2)}
             </span>
-          ) : (
-            <span className="text-[11px] font-semibold text-red-600">Agotado</span>
           )}
         </div>
 
+        {/* Stars */}
+        <div className="mt-1.5">
+          <Stars rating={p.rating} count={p.reviewCount} />
+        </div>
+
+        {/* Stock status */}
+        <p className={`mt-1.5 text-[10px] font-semibold rounded px-1.5 py-0.5 w-fit ${stockBadge.color}`}>
+          {stockBadge.label}
+        </p>
+
+        {/* Add to cart */}
         {p.stock > 0 && (
           <button
             onClick={(e) => {
@@ -161,7 +185,7 @@ export function ProductCard(p: ProductCardProps) {
                 10
               );
             }}
-            className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl bg-green-600 py-3 text-sm font-extrabold text-white hover:bg-green-700 transition-all active:scale-[0.97] shadow-sm shadow-green-200"
+            className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-green-600 py-2 text-xs font-bold text-green-700 hover:bg-green-600 hover:text-white transition-all duration-150 active:scale-95"
           >
             <ShoppingCart className="h-3.5 w-3.5" />
             Agregar al carrito
