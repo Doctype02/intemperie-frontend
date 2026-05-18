@@ -216,23 +216,21 @@ export function Footer() {
                 </li>
               </ul>
 
-              {/* Social icons */}
+              {/* Social icons — links disabled until real URLs are confirmed */}
               <div className="mt-6 flex gap-2.5">
                 {[
-                  { href: "https://facebook.com/intemperie",  Icon: IconFacebook,  label: "Facebook" },
-                  { href: "https://instagram.com/intemperie", Icon: IconInstagram, label: "Instagram" },
-                  { href: "https://youtube.com/@intemperie",  Icon: IconYoutube,   label: "YouTube" },
-                ].map(({ href, Icon, label }) => (
-                  <a
+                  { Icon: IconFacebook,  label: "Facebook" },
+                  { Icon: IconInstagram, label: "Instagram" },
+                  { Icon: IconYoutube,   label: "YouTube" },
+                ].map(({ Icon, label }) => (
+                  <span
                     key={label}
-                    href={href}
-                    target="_blank"
-                    rel="noopener noreferrer"
                     aria-label={label}
-                    className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-800 text-gray-500 hover:bg-green-700 hover:text-white transition-all duration-200"
+                    title={`${label} (próximamente)`}
+                    className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-800 text-gray-600 cursor-default"
                   >
                     <Icon />
-                  </a>
+                  </span>
                 ))}
               </div>
             </div>
