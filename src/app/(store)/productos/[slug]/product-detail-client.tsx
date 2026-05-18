@@ -282,7 +282,7 @@ export function ProductDetailClient({ product }: { product: ProductData }) {
 
       {/* Mobile sticky CTA bar — fixed to bottom on mobile only */}
       {product.stock > 0 && (
-        <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white border-t border-gray-200 px-4 py-3 flex gap-3 shadow-2xl">
+        <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white border-t border-gray-200 px-4 pt-3 flex gap-3 shadow-2xl" style={{ paddingBottom: "max(12px, env(safe-area-inset-bottom))" }}>
           <Button
             className="flex-1 bg-green-700 hover:bg-green-800 font-bold h-12 text-sm"
             onClick={handleAdd}

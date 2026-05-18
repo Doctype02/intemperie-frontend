@@ -25,7 +25,7 @@ export default function CartPage() {
         <div className="mx-auto max-w-4xl px-4 py-8 space-y-4 animate-pulse">
           <div className="h-8 w-52 rounded-lg bg-gray-200" />
           <div className="rounded-xl bg-white border border-gray-200 overflow-hidden divide-y">
-            {[1, 2, 3].map((i) => (
+            {[1].map((i) => (
               <div key={i} className="p-4 flex gap-4 items-center">
                 <div className="h-16 w-16 rounded-lg bg-gray-200 shrink-0" />
                 <div className="flex-1 space-y-2">

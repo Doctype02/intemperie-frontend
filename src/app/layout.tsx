@@ -14,6 +14,7 @@ const plusJakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://intemperie.com.pa"),
   title: {
     default: "Intemperie — Cercas de PVC y Malla Electrosoldada en Panamá",
     template: "%s | Intemperie",
@@ -36,6 +37,9 @@ export const metadata: Metadata = {
     description:
       "Seguridad y elegancia al aire libre. Cercas de PVC y malla electrosoldada con cobertura en todo Panamá.",
   },
+  alternates: {
+    canonical: "/",
+  },
 };
 
 export default function RootLayout({
@@ -47,6 +51,31 @@ export default function RootLayout({
     <html lang="es" className={`${plusJakarta.variable} h-full antialiased`}>
       <head>
         <link rel="preconnect" href={process.env.NEXT_PUBLIC_API_URL} />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": ["Organization", "LocalBusiness"],
+              "name": "Intemperie Panamá",
+              "url": "https://intemperie.com.pa",
+              "logo": "https://intemperie.com.pa/logo.png",
+              "description": "Líderes en Panamá en cercas de PVC y malla electrosoldada. Seguridad, durabilidad y elegancia para hogares, industrias y agro.",
+              "telephone": "+50762874042",
+              "email": "ventas@intemperie.com",
+              "address": {
+                "@type": "PostalAddress",
+                "addressLocality": "La Chorrera",
+                "addressRegion": "Panamá Oeste",
+                "addressCountry": "PA"
+              },
+              "areaServed": { "@type": "Country", "name": "PA" },
+              "priceRange": "$$",
+              "openingHours": "Mo-Fr 08:00-17:00",
+              "sameAs": []
+            })
+          }}
+        />
       </head>
       <body className="min-h-full flex flex-col font-sans">
         <ImageLoadProvider>

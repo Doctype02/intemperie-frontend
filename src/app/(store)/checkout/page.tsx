@@ -21,7 +21,20 @@ export default function CheckoutPage() {
   const [step, setStep] = useState<Step>("address");
   const [address, setAddress] = useState({ name: "", phone: "", street: "", city: "", province: "" });
 
-  useEffect(() => { setReady(true); }, []);
+  useEffect(() => {
+    setReady(true);
+    try {
+      const saved = sessionStorage.getItem("intemperie-checkout-address");
+      if (saved) setAddress(JSON.parse(saved));
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    if (!ready) return;
+    try {
+      sessionStorage.setItem("intemperie-checkout-address", JSON.stringify(address));
+    } catch {}
+  }, [address, ready]);
 
   if (!ready) {
     return (
@@ -122,7 +135,7 @@ export default function CheckoutPage() {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
-                        <input required className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" value={address.phone} onChange={(e) => setAddress({ ...address, phone: e.target.value })} />
+                        <input required type="tel" inputMode="tel" placeholder="+507 6000-0000" className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" value={address.phone} onChange={(e) => setAddress({ ...address, phone: e.target.value })} />
                       </div>
                       <div className="sm:col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mb-1">Dirección</label>
@@ -188,13 +201,15 @@ export default function CheckoutPage() {
                     <Button
                       className="bg-green-600 hover:bg-green-700 h-12 text-sm font-bold shadow-sm"
                       onClick={() => {
+                        const orderRef = `IMP-${Date.now().toString(36).toUpperCase().slice(-6)}`;
                         const orderLines = items
                           .map((i) => `• ${i.product?.name} — ${i.quantity}${i.product?.unit === "METRO" ? "m" : " unid."}`)
                           .join("%0A");
-                        const msg = `Hola%2C quiero confirmar mi pedido:%0A%0A${orderLines}%0A%0ATotal: $${total.toFixed(2)}%0AEnvío a: ${address.street}, ${address.city}, ${address.province}%0AContacto: ${address.phone}`;
+                        const msg = `Hola%2C quiero confirmar mi pedido:%0A%0A${orderLines}%0A%0ARef: ${orderRef}%0ATotal: $${total.toFixed(2)}%0AEnvío a: ${address.street}, ${address.city}, ${address.province}%0AContacto: ${address.phone}`;
                         window.open(`https://wa.me/50762874042?text=${msg}`, "_blank");
+                        try { sessionStorage.removeItem("intemperie-checkout-address"); } catch {}
                         clearCart();
-                        router.push("/checkout/success");
+                        router.push(`/checkout/success?ref=${orderRef}`);
                       }}
                     >
                       Confirmar pedido por WhatsApp

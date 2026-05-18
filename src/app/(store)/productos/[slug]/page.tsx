@@ -66,9 +66,41 @@ export default async function ProductDetailPage({
     notFound();
   }
 
+  const price = Number(product.pricePerMeter ?? product.basePrice ?? 0);
+  const rawImg: string | undefined = product.images?.[0]?.url;
+  const imageUrl = rawImg
+    ? rawImg.startsWith("http") ? rawImg : `${BASE_URL}${rawImg}`
+    : undefined;
+
+  const productJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": product.name,
+    ...(product.description && { "description": product.description }),
+    ...(imageUrl && { "image": imageUrl }),
+    ...(product.sku && { "sku": product.sku }),
+    "brand": { "@type": "Brand", "name": "Intemperie" },
+    "offers": {
+      "@type": "Offer",
+      "priceCurrency": "USD",
+      "price": price.toFixed(2),
+      "availability": product.stock > 0
+        ? "https://schema.org/InStock"
+        : "https://schema.org/OutOfStock",
+      "url": `${BASE_URL}/productos/${slug}`,
+      "seller": { "@type": "Organization", "name": "Intemperie Panamá" },
+    },
+  };
+
   return (
-    <main id="main-content" className="flex-1 bg-white">
-      <ProductDetailClient product={product} />
-    </main>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+      />
+      <main id="main-content" className="flex-1 bg-white">
+        <ProductDetailClient product={product} />
+      </main>
+    </>
   );
 }

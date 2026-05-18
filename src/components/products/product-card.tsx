@@ -199,6 +199,7 @@ export function ProductCard(p: ProductCardProps) {
         {p.stock > 0 && (
           <button
             onClick={handleAddToCart}
+            aria-label={`Agregar ${p.name} al carrito`}
             className="mt-auto pt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-green-700 py-2.5 text-[13px] font-bold tracking-wide text-white hover:bg-green-800 active:scale-[0.98] transition-all duration-150 shadow-sm hover:shadow-md"
           >
             <ShoppingCart className="h-3.5 w-3.5" />

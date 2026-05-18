@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { CheckCircle, ArrowRight, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -13,79 +14,96 @@ function IconWhatsApp({ className }: { className?: string }) {
   );
 }
 
-export default function CheckoutSuccessPage() {
+function SuccessContent() {
+  const searchParams = useSearchParams();
+  const orderRef = searchParams.get("ref");
+
   useEffect(() => {
     window.scrollTo({ top: 0 });
   }, []);
 
   return (
-    <main id="main-content" className="flex-1 bg-gray-50">
-      <div className="mx-auto max-w-xl px-4 py-16 sm:py-20">
+    <div className="mx-auto max-w-xl px-4 py-16 sm:py-20">
 
-        {/* Success indicator */}
-        <div className="text-center mb-8">
-          <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-green-100 ring-8 ring-green-50">
-            <CheckCircle className="h-10 w-10 text-green-600" />
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-gray-900">¡Pedido enviado!</h1>
-          <p className="mt-2 text-gray-500 text-sm max-w-xs mx-auto">
-            Tu pedido fue enviado a nuestro equipo por WhatsApp. Te contactaremos en breve para confirmar.
-          </p>
+      {/* Success indicator */}
+      <div className="text-center mb-8">
+        <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-green-100 ring-8 ring-green-50">
+          <CheckCircle className="h-10 w-10 text-green-600" />
         </div>
-
-        {/* Next steps */}
-        <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden mb-4">
-          <div className="px-5 py-4 border-b border-gray-100 bg-gray-50">
-            <p className="text-xs font-black uppercase tracking-wider text-gray-500">¿Qué sigue?</p>
+        <h1 className="text-2xl sm:text-3xl font-black text-gray-900">¡Pedido enviado!</h1>
+        <p className="mt-2 text-gray-500 text-sm max-w-xs mx-auto">
+          Tu pedido fue enviado a nuestro equipo por WhatsApp. Te contactaremos en breve para confirmar.
+        </p>
+        {orderRef && (
+          <div className="mt-4 inline-flex items-center gap-2 rounded-xl bg-green-50 border border-green-200 px-4 py-2.5">
+            <span className="text-xs text-green-700 font-semibold">Número de pedido:</span>
+            <span className="text-sm font-black text-green-800 tracking-widest">{orderRef}</span>
           </div>
-          <div className="divide-y divide-gray-100">
-            {[
-              { num: "1", title: "Confirmación del equipo", desc: "Un asesor revisará tu pedido y te contactará para confirmar disponibilidad." },
-              { num: "2", title: "Coordinación del pago", desc: "Aceptamos transferencia bancaria, Yappy, Clave, Visa y Mastercard." },
-              { num: "3", title: "Fecha de entrega", desc: "Coordinamos la entrega e instalación según tu ubicación en Panamá." },
-            ].map((step) => (
-              <div key={step.num} className="flex gap-4 px-5 py-4">
-                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-green-100 text-xs font-black text-green-700">
-                  {step.num}
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-gray-900">{step.title}</p>
-                  <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{step.desc}</p>
-                </div>
+        )}
+      </div>
+
+      {/* Next steps */}
+      <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden mb-4">
+        <div className="px-5 py-4 border-b border-gray-100 bg-gray-50">
+          <p className="text-xs font-black uppercase tracking-wider text-gray-500">¿Qué sigue?</p>
+        </div>
+        <div className="divide-y divide-gray-100">
+          {[
+            { num: "1", title: "Confirmación del equipo", desc: "Un asesor revisará tu pedido y te contactará para confirmar disponibilidad." },
+            { num: "2", title: "Coordinación del pago", desc: "Aceptamos transferencia bancaria, Yappy, Clave, Visa y Mastercard." },
+            { num: "3", title: "Fecha de entrega", desc: "Coordinamos la entrega e instalación según tu ubicación en Panamá." },
+          ].map((step) => (
+            <div key={step.num} className="flex gap-4 px-5 py-4">
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-green-100 text-xs font-black text-green-700">
+                {step.num}
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Contact card */}
-        <div className="bg-white rounded-2xl border border-gray-200 px-5 py-4 mb-6 flex items-center gap-4">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-100">
-            <Phone className="h-5 w-5 text-green-700" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs text-gray-500">¿Tienes dudas? Llámanos o escríbenos:</p>
-            <p className="text-sm font-bold text-gray-900">+507 6287-4042 · ventas@intemperie.com</p>
-          </div>
-        </div>
-
-        {/* CTAs */}
-        <div className="flex flex-col sm:flex-row gap-3">
-          <a
-            href="https://wa.me/50762874042?text=Hola%2C%20acabo%20de%20enviar%20mi%20pedido%20y%20quiero%20confirmar%20los%20detalles"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-1 flex items-center justify-center gap-2 h-12 rounded-xl bg-green-700 hover:bg-green-800 text-white text-sm font-bold transition-colors"
-          >
-            <IconWhatsApp className="h-4 w-4" />
-            Hablar con un asesor
-          </a>
-          <Button variant="outline" className="flex-1 h-12 rounded-xl border-gray-200 font-bold" asChild>
-            <Link href="/productos">
-              Seguir comprando <ArrowRight className="ml-1.5 h-4 w-4" />
-            </Link>
-          </Button>
+              <div>
+                <p className="text-sm font-bold text-gray-900">{step.title}</p>
+                <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{step.desc}</p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
+
+      {/* Contact card */}
+      <div className="bg-white rounded-2xl border border-gray-200 px-5 py-4 mb-6 flex items-center gap-4">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-100">
+          <Phone className="h-5 w-5 text-green-700" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-xs text-gray-500">¿Tienes dudas? Llámanos o escríbenos:</p>
+          <p className="text-sm font-bold text-gray-900">+507 6287-4042 · ventas@intemperie.com</p>
+        </div>
+      </div>
+
+      {/* CTAs */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <a
+          href={`https://wa.me/50762874042?text=Hola%2C%20acabo%20de%20enviar%20mi%20pedido${orderRef ? `%20(Ref%3A%20${orderRef})` : ""}%20y%20quiero%20confirmar%20los%20detalles`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex-1 flex items-center justify-center gap-2 h-12 rounded-xl bg-green-700 hover:bg-green-800 text-white text-sm font-bold transition-colors"
+        >
+          <IconWhatsApp className="h-4 w-4" />
+          Hablar con un asesor
+        </a>
+        <Button variant="outline" className="flex-1 h-12 rounded-xl border-gray-200 font-bold" asChild>
+          <Link href="/productos">
+            Seguir comprando <ArrowRight className="ml-1.5 h-4 w-4" />
+          </Link>
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+export default function CheckoutSuccessPage() {
+  return (
+    <main id="main-content" className="flex-1 bg-gray-50">
+      <Suspense fallback={<div className="h-96 animate-pulse bg-gray-100 m-4 rounded-2xl" />}>
+        <SuccessContent />
+      </Suspense>
     </main>
   );
 }
