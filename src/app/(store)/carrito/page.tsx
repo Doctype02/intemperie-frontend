@@ -62,6 +62,9 @@ export default function CartPage() {
 
   const total = subtotal();
   const tax = total * 0.07;
+  const FREE_SHIPPING_THRESHOLD = 50;
+  const shippingProgress = Math.min((total / FREE_SHIPPING_THRESHOLD) * 100, 100);
+  const remaining = Math.max(FREE_SHIPPING_THRESHOLD - total, 0);
 
   return (
     <main className="flex-1 bg-gray-50">
@@ -73,6 +76,20 @@ export default function CartPage() {
           <Link href="/productos" className="flex items-center gap-1 text-sm text-green-700 hover:text-green-800">
             <ArrowLeft className="h-4 w-4" /> Seguir comprando
           </Link>
+        </div>
+
+        {/* Free shipping progress */}
+        <div className="mb-4 rounded-xl bg-white border border-gray-200 px-4 py-3.5">
+          {remaining > 0 ? (
+            <p className="text-sm text-gray-600 mb-2">
+              Agrega <span className="font-bold text-gray-900">${remaining.toFixed(2)}</span> más para <span className="font-bold text-green-700">envío gratis</span>
+            </p>
+          ) : (
+            <p className="text-sm font-bold text-green-700 mb-2">✓ ¡Envío gratuito incluido en tu pedido!</p>
+          )}
+          <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-full bg-green-500 rounded-full transition-all duration-500" style={{ width: `${shippingProgress}%` }} />
+          </div>
         </div>
 
         <div className="rounded-xl bg-white border border-gray-200 overflow-hidden">

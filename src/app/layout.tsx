@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
+import { Toaster } from "sonner";
 import { WhatsAppButton } from "@/components/shared/whatsapp-button";
+import { ScrollToTop } from "@/components/shared/scroll-to-top";
 import { ImageLoadProvider } from "@/lib/image-load-context";
 import { PageLoadingOverlay } from "@/components/shared/page-loading-overlay";
 
@@ -52,6 +54,8 @@ export default function RootLayout({
           <PageLoadingOverlay />
         </ImageLoadProvider>
         <WhatsAppButton />
+        <ScrollToTop />
+        <Toaster position="bottom-center" richColors closeButton />
       </body>
     </html>
   );

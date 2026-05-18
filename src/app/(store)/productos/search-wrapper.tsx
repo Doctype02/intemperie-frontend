@@ -24,14 +24,13 @@ export default function SearchWrapper() {
         sp.delete("page");
         router.push(`/productos?${sp.toString()}`);
       }}
-      className="mt-4"
     >
-      <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+      <div className="relative">
+        <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 pointer-events-none" />
         <Input
           name="search"
-          className="pl-9 bg-gray-100 border-gray-200 focus-visible:ring-green-500"
-          placeholder="Buscar productos..."
+          className="pl-10 h-10 bg-white border-gray-200 rounded-lg focus-visible:ring-green-500 text-sm placeholder:text-gray-400"
+          placeholder="Buscar cercas PVC, mallas electrosoldadas…"
           defaultValue={currentSearch}
         />
       </div>

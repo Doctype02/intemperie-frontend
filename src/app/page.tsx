@@ -1,6 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, ChevronRight, Shield, Award, Truck, Globe, Wrench, CheckCircle2 } from "lucide-react";
+
+function IconWhatsApp({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+    </svg>
+  );
+}
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { HeroCarousel } from "@/components/home/hero-carousel";
@@ -55,19 +63,22 @@ function SectionHead({
   href?: string;
 }) {
   return (
-    <div className="flex items-end justify-between mb-5">
+    <div className="flex items-end justify-between mb-8">
       <div>
-        <h2 className="text-xl sm:text-2xl font-extrabold text-gray-900 leading-tight">
+        {sub && (
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-green-700 mb-2">
+            {sub}
+          </p>
+        )}
+        <h2 className="text-3xl sm:text-4xl font-black text-gray-900 leading-[1.05] tracking-tight">
           {title}
         </h2>
-        {sub && (
-          <p className="text-xs sm:text-sm text-gray-500 mt-0.5">{sub}</p>
-        )}
+        <div className="mt-3 h-[3px] w-10 bg-green-600 rounded-full" aria-hidden="true" />
       </div>
       {href && (
         <Link
           href={href}
-          className="hidden sm:flex items-center gap-1 text-sm font-bold text-green-600 hover:text-green-700 transition-colors shrink-0"
+          className="hidden sm:flex items-center gap-1.5 text-sm font-bold text-gray-500 hover:text-green-700 transition-colors shrink-0 pb-1 border-b border-transparent hover:border-green-700"
         >
           Ver todo <ChevronRight className="h-4 w-4" />
         </Link>
@@ -116,18 +127,18 @@ function CategoryCards() {
             <Link
               key={c.slug}
               href={`/productos?category=${c.slug}`}
-              className="group relative flex-none w-[140px] sm:w-auto overflow-hidden rounded-2xl aspect-[2/3] shadow-sm hover:shadow-lg transition-all duration-300 snap-start"
+              className="group relative flex-none w-[140px] sm:w-auto overflow-hidden rounded-xl aspect-[2/3] shadow-sm hover:shadow-xl transition-all duration-300 snap-start"
             >
               <Image
                 src={c.img}
                 alt={c.name}
                 fill
                 sizes="(max-width: 640px) 140px, 20vw"
-                className="object-cover object-center transition-transform duration-500 group-hover:scale-110"
+                className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
               <div className="absolute bottom-0 inset-x-0 p-2 sm:p-3 text-center">
-                <p className="text-white font-extrabold text-[10px] sm:text-xs leading-tight">
+                <p className="text-white font-extrabold text-xs sm:text-[13px] leading-tight drop-shadow-sm">
                   {c.name}
                 </p>
               </div>
@@ -151,18 +162,53 @@ function TrustLogosStrip() {
   ];
 
   return (
-    <section className="bg-gray-50 border-y border-gray-200 py-4 sm:py-5">
+    <section className="bg-gray-950 border-y border-gray-900 py-5 sm:py-6">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 overflow-x-auto scrollbar-hide">
         <div className="flex items-center gap-5 sm:gap-8 min-w-max mx-auto sm:justify-center">
           {items.map((item, i) => (
             <div key={item.label} className="flex items-center gap-2 shrink-0">
               {i > 0 && (
-                <span className="hidden sm:block text-gray-300 text-sm select-none" aria-hidden="true">|</span>
+                <span className="hidden sm:block text-gray-700 text-sm select-none" aria-hidden="true">|</span>
               )}
-              <item.Icon className="h-4 w-4 text-green-600 shrink-0" aria-hidden="true" />
-              <span className="text-xs sm:text-sm font-semibold text-gray-600 whitespace-nowrap">
+              <item.Icon className="h-4 w-4 text-green-400 shrink-0" aria-hidden="true" />
+              <span className="text-xs sm:text-sm font-semibold text-gray-300 whitespace-nowrap">
                 {item.label}
               </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── Section 6b: Stats Section ───────────────────────────────────────────── */
+function StatsSection() {
+  const stats = [
+    { value: "15+",   label: "Años de experiencia",        sub: "en el mercado panameño" },
+    { value: "15K+",  label: "Proyectos completados",       sub: "residenciales e industriales" },
+    { value: "6",     label: "Provincias con cobertura",    sub: "entrega y servicio en todo Panamá" },
+    { value: "100%",  label: "Satisfacción garantizada",    sub: "respaldo total al cliente" },
+  ];
+  return (
+    <section className="relative bg-gray-950 py-14 sm:py-20 overflow-hidden">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 flex items-center justify-center select-none overflow-hidden">
+        <span className="text-[160px] sm:text-[240px] font-black text-white/[0.02] tracking-tighter leading-none uppercase whitespace-nowrap">
+          INTEMPERIE
+        </span>
+      </div>
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-10 sm:gap-14">
+          {stats.map((s) => (
+            <div key={s.value} className="group text-left">
+              <p className="text-5xl sm:text-6xl lg:text-7xl font-black text-white leading-none tracking-tight">
+                {s.value}
+              </p>
+              <div className="mt-2 h-[2px] w-7 bg-green-500 rounded-full" />
+              <p className="mt-2.5 text-sm sm:text-base font-bold text-gray-200 leading-snug">
+                {s.label}
+              </p>
+              <p className="mt-0.5 text-xs text-gray-500 leading-snug">{s.sub}</p>
             </div>
           ))}
         </div>
@@ -174,8 +220,9 @@ function TrustLogosStrip() {
 /* ── Section 7: Promo Banner — Calculadora ───────────────────────────────── */
 function CalculadoraBanner() {
   return (
-    <div className="bg-gradient-to-r from-green-800 via-green-700 to-emerald-600 overflow-hidden">
-      <div className="mx-auto max-w-7xl px-6 sm:px-10 py-10 sm:py-12 flex flex-col sm:flex-row items-center gap-8 sm:gap-12">
+    <div className="bg-green-900 overflow-hidden relative">
+      <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: "repeating-linear-gradient(45deg,#fff 0,#fff 1px,transparent 0,transparent 50%)", backgroundSize: "12px 12px" }} aria-hidden="true" />
+      <div className="relative mx-auto max-w-7xl px-6 sm:px-10 py-10 sm:py-12 flex flex-col sm:flex-row items-center gap-8 sm:gap-12">
         <div className="flex-1 text-white min-w-0">
           <p className="text-[10px] font-bold uppercase tracking-widest text-green-200 mb-2">
             Herramienta exclusiva
@@ -249,21 +296,12 @@ function FeaturedCollectionsGrid() {
           sub="Diseños que combinan resistencia y elegancia"
           href="/productos"
         />
-        {/*
-          On desktop: 4-col grid with row-span-2 for big items → masonry effect.
-          On mobile: simple 2-col grid.
-        */}
-        <div
-          className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4"
-          style={{ gridTemplateRows: "200px 200px" }}
-        >
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {items.map((c) => (
             <Link
               key={c.name}
               href={c.href}
-              className={`group relative overflow-hidden rounded-2xl shadow hover:shadow-xl transition-all duration-300 ${
-                c.big ? "sm:row-span-2" : ""
-              }`}
+              className="group relative overflow-hidden rounded-xl aspect-[3/4] shadow-sm hover:shadow-xl transition-all duration-300"
             >
               <Image
                 src={c.img}
@@ -272,13 +310,13 @@ function FeaturedCollectionsGrid() {
                 sizes="(max-width: 640px) 50vw, 25vw"
                 className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-              <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4 text-white">
-                <p className="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-widest text-green-400">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent" />
+              <div className="absolute bottom-3 sm:bottom-5 left-3 sm:left-4 right-3 sm:right-4 text-white">
+                <p className="text-[11px] font-extrabold uppercase tracking-widest text-green-400 mb-1">
                   {c.label}
                 </p>
-                <p className="text-sm sm:text-base font-extrabold mt-0.5 leading-tight">{c.name}</p>
-                <span className="mt-1.5 inline-flex items-center gap-1 text-[10px] sm:text-xs font-bold text-white/80 group-hover:gap-2 transition-all">
+                <p className="text-sm sm:text-base font-extrabold leading-tight">{c.name}</p>
+                <span className="mt-2 inline-flex items-center gap-1 text-[10px] sm:text-xs font-bold text-white/75 group-hover:gap-2 transition-all">
                   Ver producto <ArrowRight className="h-3 w-3" />
                 </span>
               </div>
@@ -443,6 +481,63 @@ function BlogSection() {
   );
 }
 
+/* ── Section 12b: Testimonials ───────────────────────────────────────────── */
+const testimonials = [
+  {
+    quote:    "Instalamos la cerca Atenea 303 en todo el perímetro de nuestra empresa. Llevamos 3 años sin un solo problema de mantenimiento.",
+    name:     "Carlos Ruiz",
+    role:     "Gerente de Instalaciones",
+    location: "Zona Industrial, Colón",
+  },
+  {
+    quote:    "Vivimos a 200 metros del mar y la Poseidón 502 sigue igual que el primer día. Sin óxido, sin decoloración. Totalmente lo vale.",
+    name:     "Ana Torres",
+    role:     "Propietaria residencial",
+    location: "Playa Coronado",
+  },
+  {
+    quote:    "El equipo llegó a medir, asesoró el modelo correcto para nuestro terreno y la instalación fue rápida y prolija. 10/10.",
+    name:     "José Martínez",
+    role:     "Administrador de finca",
+    location: "Chiriquí",
+  },
+];
+
+function TestimonialsSection() {
+  return (
+    <section className="bg-gray-50 py-10 sm:py-14 border-b border-gray-100">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+        <SectionHead title="Lo que dicen nuestros clientes" sub="Reseñas verificadas" />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 sm:gap-6">
+          {testimonials.map((t) => (
+            <div key={t.name} className="bg-white rounded-2xl p-6 sm:p-7 shadow-sm border border-gray-100 flex flex-col gap-4 hover:shadow-md transition-shadow duration-200">
+              <div className="flex gap-0.5">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <svg key={i} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4 text-amber-400" aria-hidden="true">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                ))}
+              </div>
+              <blockquote className="text-sm text-gray-700 leading-relaxed flex-1">
+                &ldquo;{t.quote}&rdquo;
+              </blockquote>
+              <div className="flex items-center gap-3 pt-3 border-t border-gray-100">
+                <div className="h-9 w-9 rounded-full bg-green-600 flex items-center justify-center text-white font-black text-sm select-none shrink-0">
+                  {t.name.charAt(0)}
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-gray-900 leading-snug">{t.name}</p>
+                  <p className="text-[11px] text-gray-500 mt-0.5">{t.role} · {t.location}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 /* ── Section 13: WhatsApp Promo Banner ───────────────────────────────────── */
 function WhatsAppBanner() {
   return (
@@ -474,7 +569,8 @@ function WhatsAppBanner() {
             rel="noopener noreferrer"
             className="mt-6 inline-flex items-center gap-2 rounded-xl bg-green-500 text-white px-6 py-3 text-sm font-extrabold hover:bg-green-400 transition-colors shadow-lg"
           >
-            Chatear ahora <ArrowRight className="h-4 w-4" />
+            <IconWhatsApp className="h-5 w-5" />
+            Chatear ahora
           </a>
         </div>
       </div>
@@ -553,13 +649,11 @@ export default async function HomePage() {
     );
   });
 
-  const newestProds = [...products].reverse().slice(0, 12);
-
   return (
     <>
       <Header />
 
-      <main>
+      <main id="main-content">
         {/* 2 — Hero Carousel */}
         <HeroCarousel />
 
@@ -569,7 +663,7 @@ export default async function HomePage() {
         {/* 4 — "Intemperie Picks" — all products */}
         {allProds.length > 0 && (
           <section className="bg-white border-b border-gray-100">
-            <div className="mx-auto max-w-7xl px-4 sm:px-6 pt-8 sm:pt-10">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 pt-10 sm:pt-14">
               <SectionHead
                 title="Intemperie Picks"
                 sub="Cercas PVC y mallas con entrega inmediata en Panamá"
@@ -588,10 +682,13 @@ export default async function HomePage() {
         {/* 5 — Trust Logos Strip */}
         <TrustLogosStrip />
 
-        {/* 6 — Cercas PVC section */}
+        {/* 6 — Stats Section */}
+        <StatsSection />
+
+        {/* 7 — Cercas PVC section */}
         {pvcProds.length > 0 && (
           <section className="bg-white border-b border-gray-100">
-            <div className="mx-auto max-w-7xl px-4 sm:px-6 pt-8 sm:pt-10">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 pt-10 sm:pt-14">
               <SectionHead
                 title="Cercas PVC"
                 sub="Garantía 15 años — seguridad y elegancia sin mantenimiento"
@@ -607,13 +704,13 @@ export default async function HomePage() {
           </section>
         )}
 
-        {/* 7 — Promo Banner: Calculadora */}
+        {/* 8 — Promo Banner: Calculadora */}
         <CalculadoraBanner />
 
-        {/* 8 — Mallas Electrosoldadas */}
+        {/* 9 — Mallas Electrosoldadas */}
         {mallasProds.length > 0 && (
-          <section className="bg-gray-50 border-b border-gray-100">
-            <div className="mx-auto max-w-7xl px-4 sm:px-6 pt-8 sm:pt-10">
+          <section className="bg-white border-b border-gray-100">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 pt-10 sm:pt-14">
               <SectionHead
                 title="Mallas Electrosoldadas"
                 sub="Alta resistencia para usos industriales y agropecuarios"
@@ -624,25 +721,6 @@ export default async function HomePage() {
               title=""
               products={mallasProds}
               viewAllHref="/productos?category=industrial"
-              bg="bg-gray-50"
-            />
-          </section>
-        )}
-
-        {/* 9 — Novedades */}
-        {newestProds.length > 0 && (
-          <section className="bg-white border-b border-gray-100">
-            <div className="mx-auto max-w-7xl px-4 sm:px-6 pt-8 sm:pt-10">
-              <SectionHead
-                title="Novedades"
-                sub="Los últimos modelos incorporados al catálogo"
-                href="/productos"
-              />
-            </div>
-            <ProductCarousel
-              title=""
-              products={newestProds}
-              viewAllHref="/productos"
               bg="bg-white"
             />
           </section>
@@ -651,11 +729,11 @@ export default async function HomePage() {
         {/* 10 — Featured Collections Grid */}
         <FeaturedCollectionsGrid />
 
+        {/* 11 — Testimonials */}
+        <TestimonialsSection />
+
         {/* 12 — WhatsApp Promo Banner */}
         <WhatsAppBanner />
-
-        {/* 14 — Newsletter */}
-        <NewsletterSection />
       </main>
 
       <Footer />

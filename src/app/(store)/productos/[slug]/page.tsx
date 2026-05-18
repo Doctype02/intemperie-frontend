@@ -41,7 +41,7 @@ export default async function ProductDetailPage({
   }
 
   return (
-    <main className="flex-1 bg-white">
+    <main id="main-content" className="flex-1 bg-white">
       <ProductDetailClient product={product} />
     </main>
   );

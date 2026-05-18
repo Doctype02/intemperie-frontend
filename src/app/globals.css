@@ -119,9 +119,15 @@
 
 @layer base {
   * { @apply border-border outline-ring/50; }
-  body { @apply bg-background text-foreground; }
+  body {
+    @apply bg-background text-foreground;
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
   html { @apply font-sans; scroll-behavior: smooth; }
-  ::selection { background: oklch(0.57 0.18 152 / 0.15); color: oklch(0.3 0.1 152); }
+::selection { background: oklch(0.57 0.18 152 / 0.15); color: oklch(0.3 0.1 152); }
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: oklch(0.85 0 0); border-radius: 3px; }

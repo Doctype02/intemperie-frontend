@@ -148,21 +148,93 @@ export default function NosotrosPage() {
             </div>
             <div className="grid sm:grid-cols-3 gap-6">
               {[
-                { name: "Karen Zambrano", text: "Excelente servicio y la cerca se ve hermosa. Muy fácil de instalar." },
-                { name: "Keila Arenas", text: "Calidad superior, justo lo que buscaba para mi propiedad." },
-                { name: "Verónica Álvarez", text: "Asesoría profesional de principio a fin. ¡100% recomendados!" },
+                { name: "Karen Zambrano",  initials: "KZ", color: "bg-green-100 text-green-700",  text: "Excelente servicio y la cerca se ve hermosa. Muy fácil de instalar.", location: "Ciudad de Panamá" },
+                { name: "Keila Arenas",    initials: "KA", color: "bg-blue-100 text-blue-700",    text: "Calidad superior, justo lo que buscaba para mi propiedad.", location: "Chiriquí" },
+                { name: "Verónica Álvarez",initials: "VA", color: "bg-purple-100 text-purple-700",text: "Asesoría profesional de principio a fin. ¡100% recomendados!", location: "Colón" },
               ].map((t, i) => (
-                <div key={i} className="bg-gray-50 rounded-2xl p-6 sm:p-8 border border-gray-100">
-                  <Quote className="h-8 w-8 text-green-200 mb-3" />
-                  <p className="text-sm text-gray-600 leading-relaxed italic">&ldquo;{t.text}&rdquo;</p>
-                  <div className="flex items-center gap-1 mt-3 text-amber-400">
+                <div key={i} className="bg-gray-50 rounded-2xl p-6 sm:p-8 border border-gray-100 flex flex-col">
+                  <Quote className="h-7 w-7 text-green-200 mb-3" />
+                  <p className="text-sm text-gray-600 leading-relaxed italic flex-1">&ldquo;{t.text}&rdquo;</p>
+                  <div className="flex items-center gap-0.5 mt-3 text-amber-400">
                     {[...Array(5)].map((_, j) => (<Star key={j} className="h-3.5 w-3.5 fill-current" />))}
                   </div>
-                  <div className="mt-4 pt-4 border-t border-gray-200">
-                    <p className="text-sm font-extrabold text-gray-900">{t.name}</p>
+                  <div className="mt-4 pt-4 border-t border-gray-200 flex items-center gap-3">
+                    <div className={`h-9 w-9 rounded-full flex items-center justify-center text-sm font-black shrink-0 ${t.color}`}>
+                      {t.initials}
+                    </div>
+                    <div>
+                      <p className="text-sm font-extrabold text-gray-900 leading-tight">{t.name}</p>
+                      <p className="text-xs text-gray-400">{t.location}</p>
+                    </div>
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Instaladores */}
+        <section id="instaladores" className="bg-gray-50 border-y border-gray-100 py-14 sm:py-20">
+          <div className="mx-auto max-w-4xl px-4 sm:px-6">
+            <div className="grid gap-10 lg:grid-cols-2 items-center">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-widest text-green-600 mb-2">Programa de instaladores</p>
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 leading-tight">
+                  ¿Eres instalador de cercas?
+                </h2>
+                <p className="mt-3 text-sm text-gray-500 leading-relaxed">
+                  Únete a la red oficial de instaladores certificados de Intemperie. Accede a precios exclusivos,
+                  capacitación técnica, leads de clientes en tu zona y el respaldo de la marca líder en cercas PVC en Panamá.
+                </p>
+                <ul className="mt-5 space-y-2.5">
+                  {[
+                    "Descuento de instalador en todos los productos",
+                    "Clientes referidos en tu zona de cobertura",
+                    "Certificado digital y badge verificado Intemperie",
+                    "Soporte técnico directo con nuestro equipo",
+                  ].map((item) => (
+                    <li key={item} className="flex items-start gap-2.5 text-sm text-gray-600">
+                      <Check className="h-4 w-4 text-green-600 shrink-0 mt-0.5" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-8 flex flex-col sm:flex-row gap-3">
+                  <Link
+                    href="/instaladores/registro"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-green-700 px-6 py-3 text-sm font-extrabold text-white hover:bg-green-800 transition-colors shadow-sm"
+                  >
+                    Registrar mi empresa <ArrowRight className="h-4 w-4" />
+                  </Link>
+                  <Link
+                    href="/instaladores"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 px-6 py-3 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    Ver directorio de instaladores
+                  </Link>
+                </div>
+              </div>
+              <div className="hidden lg:block rounded-2xl bg-green-700 p-8 text-white">
+                <p className="text-xs font-bold uppercase tracking-widest text-green-300 mb-4">Beneficios del programa</p>
+                <div className="space-y-4">
+                  {[
+                    { icon: Award, label: "Certificación oficial", desc: "Badge verificado en tu perfil" },
+                    { icon: Users, label: "Red de clientes", desc: "Leads en tu zona geográfica" },
+                    { icon: Truck, label: "Envío prioritario", desc: "Despacho express en tus pedidos" },
+                    { icon: Shield, label: "Soporte técnico", desc: "Asesoría directa del equipo" },
+                  ].map(({ icon: Icon, label, desc }) => (
+                    <div key={label} className="flex items-start gap-3">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/10">
+                        <Icon className="h-4.5 w-4.5 text-green-200" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-extrabold text-white">{label}</p>
+                        <p className="text-xs text-green-200/80 mt-0.5">{desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </section>

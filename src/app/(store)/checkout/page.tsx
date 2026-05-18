@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/lib/store/cart-store";
 import { useAuthStore } from "@/lib/store/auth-store";
-import { Check, ArrowLeft, ShoppingCart } from "lucide-react";
+import { Check, ArrowLeft, ShoppingCart, Lock } from "lucide-react";
 
 type Step = "address" | "review" | "payment";
 
@@ -84,15 +84,28 @@ export default function CheckoutPage() {
     <main className="flex-1 bg-gray-50">
       <div className="mx-auto max-w-4xl px-4 py-8">
         <div className="mb-8 flex items-center justify-center gap-1 md:gap-2">
-          {["address", "review", "payment"].map((s, i) => (
-            <div key={s} className="flex items-center gap-1 md:gap-2">
-              <div className={`flex h-6 w-6 md:h-8 md:w-8 items-center justify-center rounded-full text-xs md:text-sm font-bold ${step === s ? "bg-green-700 text-white" : "bg-gray-200 text-gray-500"}`}>{i + 1}</div>
-              <span className={`text-xs md:text-sm font-medium hidden sm:inline ${step === s ? "text-green-700" : "text-gray-400"}`}>
-                {i === 0 ? "Dirección" : i === 1 ? "Revisar" : "Pago"}
-              </span>
-              {i < 2 && <div className="mx-1 h-px w-6 md:w-8 bg-gray-200" />}
-            </div>
-          ))}
+          {(["address", "review", "payment"] as const).map((s, i) => {
+            const stepOrder = { address: 0, review: 1, payment: 2 };
+            const isActive    = step === s;
+            const isCompleted = stepOrder[step] > stepOrder[s];
+            return (
+              <div key={s} className="flex items-center gap-1 md:gap-2">
+                <div className={`flex h-7 w-7 md:h-8 md:w-8 items-center justify-center rounded-full text-xs md:text-sm font-bold transition-colors ${
+                  isCompleted ? "bg-green-100 text-green-700 border-2 border-green-400" :
+                  isActive    ? "bg-green-700 text-white" :
+                  "bg-gray-100 text-gray-400"
+                }`}>
+                  {isCompleted ? <Check className="h-3.5 w-3.5" /> : i + 1}
+                </div>
+                <span className={`text-xs md:text-sm font-semibold hidden sm:inline transition-colors ${
+                  isCompleted ? "text-green-600" : isActive ? "text-green-700" : "text-gray-400"
+                }`}>
+                  {i === 0 ? "Dirección" : i === 1 ? "Revisar" : "Pago"}
+                </span>
+                {i < 2 && <div className={`mx-1 h-px w-8 md:w-10 transition-colors ${isCompleted ? "bg-green-300" : "bg-gray-200"}`} />}
+              </div>
+            );
+          })}
         </div>
 
         <div className="grid gap-8 lg:grid-cols-3">
@@ -211,9 +224,24 @@ export default function CheckoutPage() {
               <div className="flex justify-between"><span className="text-gray-500">ITBMS (7%)</span><span>${tax.toFixed(2)}</span></div>
               <div className="border-t pt-2 flex justify-between font-bold text-base"><span>Total</span><span>${total.toFixed(2)}</span></div>
             </div>
-            <div className="mt-4 rounded-lg bg-gray-50 p-3">
-              <p className="text-xs text-gray-400 uppercase mb-1">Pago seguro</p>
-              <div className="flex gap-1.5">{["Visa","Mastercard","Yappy","Clave"].map(m => <div key={m} className="rounded border border-gray-200 bg-white px-2 py-1 text-xs font-medium text-gray-500">{m}</div>)}</div>
+            <div className="mt-4 rounded-xl border border-gray-100 bg-gray-50 p-3">
+              <div className="flex items-center gap-1.5 mb-2.5">
+                <Lock className="h-3 w-3 text-green-600" />
+                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Pago 100% seguro</p>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {[
+                  { label: "VISA", bg: "bg-blue-600", text: "text-white" },
+                  { label: "MC", bg: "bg-red-500", text: "text-white" },
+                  { label: "Yappy", bg: "bg-yellow-400", text: "text-gray-900" },
+                  { label: "Clave", bg: "bg-green-600", text: "text-white" },
+                ].map(m => (
+                  <div key={m.label} className={`rounded-md px-2.5 py-1 text-[10px] font-black ${m.bg} ${m.text}`}>
+                    {m.label}
+                  </div>
+                ))}
+              </div>
+              <p className="text-[10px] text-gray-400 mt-2">Transferencia bancaria y efectivo también aceptados</p>
             </div>
           </div>
         </div>

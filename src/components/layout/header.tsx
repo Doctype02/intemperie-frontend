@@ -207,8 +207,9 @@ export function Header() {
   const [search,       setSearch]       = useState("");
   const [cartBounce,   setCartBounce]   = useState(false);
 
-  const cercasRef = useRef<HTMLDivElement>(null);
-  const router    = useRouter();
+  const cercasRef   = useRef<HTMLDivElement>(null);
+  const hoverTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const router      = useRouter();
 
   const { user, isAuthenticated, logout } = useAuthStore();
   const cartItems = useCartStore((s) => s.items);
@@ -263,8 +264,23 @@ export function Header() {
     setUserMenuOpen(false);
   };
 
+  const handleCercasEnter = () => {
+    if (hoverTimer.current) clearTimeout(hoverTimer.current);
+    setCercasOpen(true);
+  };
+  const handleCercasLeave = () => {
+    hoverTimer.current = setTimeout(() => setCercasOpen(false), 150);
+  };
+
   return (
     <header className={`sticky top-0 z-50 transition-shadow duration-200 ${scrolled ? "shadow-md" : ""}`}>
+      {/* Skip to main content — visible on focus for keyboard/screen reader users */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:rounded-lg focus:bg-green-700 focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-white"
+      >
+        Saltar al contenido principal
+      </a>
 
       {/* ── Tier 1: Announcement bar ──────────────────────────────────────── */}
       <div className={`bg-green-800 text-white text-xs overflow-hidden transition-all duration-300 ${scrolled ? "max-h-0" : "max-h-8"}`}>
@@ -328,18 +344,10 @@ export function Header() {
             </button>
 
             {/* Logo */}
-            <Link href="/" className="flex shrink-0 items-center gap-2.5" onClick={closeAll}>
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-600 text-white font-black text-xl shadow-sm select-none">
-                I
-              </div>
-              <div className="hidden sm:block leading-tight">
-                <p className="text-[15px] font-black tracking-tight text-gray-900 leading-none">
-                  INTEMPERIE
-                </p>
-                <p className="text-[9px] font-bold text-gray-400 tracking-[0.15em] uppercase leading-none mt-0.5">
-                  Cercas PVC &amp; Mallas
-                </p>
-              </div>
+            <Link href="/" className="flex shrink-0 items-center" onClick={closeAll}>
+              <span className="text-[22px] font-black tracking-[-0.04em] text-gray-900 leading-none select-none">
+                INTEM<span className="text-green-700">PERIE</span>
+              </span>
             </Link>
 
             {/* Search — desktop */}
@@ -471,14 +479,21 @@ export function Header() {
       </div>
 
       {/* ── Tier 3: Navigation bar (desktop) ──────────────────────────────── */}
-      <div className="hidden lg:block bg-gray-50 border-b border-gray-200">
+      <div className="hidden lg:block bg-white border-b border-gray-200">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <div className="flex items-center h-10">
+          <div className="flex items-center h-11">
 
-            {/* Cercas PVC mega dropdown */}
-            <div ref={cercasRef} className="relative h-full flex items-center">
+            {/* Cercas PVC mega dropdown — opens on hover OR click */}
+            <div
+              ref={cercasRef}
+              className="relative h-full flex items-center"
+              onMouseEnter={handleCercasEnter}
+              onMouseLeave={handleCercasLeave}
+            >
               <button
                 onClick={() => setCercasOpen((v) => !v)}
+                aria-expanded={cercasOpen}
+                aria-haspopup="true"
                 className={`flex items-center gap-1 h-full px-3 text-[13px] font-bold transition-colors ${
                   cercasOpen
                     ? "text-green-700 bg-green-50"
@@ -531,21 +546,21 @@ export function Header() {
 
             {/* Direct links */}
             <Link href="/calculadora"
-              className="flex items-center h-full px-3 text-[13px] font-semibold text-gray-700 hover:text-green-700 hover:bg-gray-100 transition-colors whitespace-nowrap">
+              className="flex items-center h-full px-3.5 text-[13px] font-semibold text-gray-600 hover:text-green-700 transition-colors whitespace-nowrap relative after:absolute after:bottom-0 after:left-3.5 after:right-3.5 after:h-[2px] after:bg-green-600 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-200 after:origin-left">
               Calculadora
             </Link>
-            <Link href="/nosotros#instaladores"
-              className="flex items-center h-full px-3 text-[13px] font-semibold text-gray-700 hover:text-green-700 hover:bg-gray-100 transition-colors whitespace-nowrap">
+            <Link href="/instaladores"
+              className="flex items-center h-full px-3.5 text-[13px] font-semibold text-gray-600 hover:text-green-700 transition-colors whitespace-nowrap relative after:absolute after:bottom-0 after:left-3.5 after:right-3.5 after:h-[2px] after:bg-green-600 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-200 after:origin-left">
               Instaladores
             </Link>
             <Link href="/nosotros"
-              className="flex items-center h-full px-3 text-[13px] font-semibold text-gray-700 hover:text-green-700 hover:bg-gray-100 transition-colors whitespace-nowrap">
+              className="flex items-center h-full px-3.5 text-[13px] font-semibold text-gray-600 hover:text-green-700 transition-colors whitespace-nowrap relative after:absolute after:bottom-0 after:left-3.5 after:right-3.5 after:h-[2px] after:bg-green-600 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-200 after:origin-left">
               Nosotros
             </Link>
             <a href="https://wa.me/50762874042"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center h-full px-3 text-[13px] font-semibold text-gray-700 hover:text-green-700 hover:bg-gray-100 transition-colors whitespace-nowrap">
+              className="flex items-center h-full px-3.5 text-[13px] font-semibold text-gray-600 hover:text-green-700 transition-colors whitespace-nowrap relative after:absolute after:bottom-0 after:left-3.5 after:right-3.5 after:h-[2px] after:bg-green-600 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-200 after:origin-left">
               Contacto
             </a>
 
@@ -570,7 +585,7 @@ export function Header() {
 
       {/* ── Mobile full-panel menu ─────────────────────────────────────────── */}
       {mobileOpen && (
-        <div className="lg:hidden fixed inset-0 top-[calc(2rem+4rem)] z-40 flex flex-col bg-white overflow-y-auto border-t border-gray-200 shadow-2xl">
+        <div className={`lg:hidden fixed inset-0 z-40 flex flex-col bg-white overflow-y-auto border-t border-gray-200 shadow-2xl ${scrolled ? "top-16" : "top-[calc(2rem+4rem)]"}`}>
           {/* Mobile search */}
           <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
             <form onSubmit={handleSearch}>

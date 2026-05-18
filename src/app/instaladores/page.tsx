@@ -179,10 +179,10 @@ export default function InstaladoresPage() {
                   Ver directorio <ChevronRight className="h-4 w-4" />
                 </a>
                 <a
-                  href="#aplicar"
+                  href="/instaladores/registro"
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-transparent border-2 border-white/40 text-white px-6 py-3 text-sm font-extrabold hover:bg-white/10 transition-colors"
                 >
-                  Quiero certificarme <ArrowRight className="h-4 w-4" />
+                  Registrar mi empresa <ArrowRight className="h-4 w-4" />
                 </a>
               </div>
 
@@ -368,6 +368,14 @@ export default function InstaladoresPage() {
                     </li>
                   ))}
                 </ul>
+                <div className="mt-8">
+                  <a
+                    href="/instaladores/registro"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-green-700 px-6 py-3 text-sm font-extrabold text-white hover:bg-green-800 transition-colors shadow-sm"
+                  >
+                    Completar formulario de registro <ArrowRight className="h-4 w-4" />
+                  </a>
+                </div>
               </div>
 
               <div className="relative h-64 sm:h-80 lg:h-full min-h-[280px] rounded-2xl overflow-hidden shadow-xl">
@@ -402,12 +410,10 @@ export default function InstaladoresPage() {
 
             <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
               <a
-                href="https://wa.me/50762874042?text=Hola%2C%20quiero%20información%20para%20ser%20instalador%20certificado%20de%20Intemperie"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="/instaladores/registro"
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-white text-gray-900 px-7 py-3.5 text-sm font-extrabold hover:bg-gray-50 transition-colors shadow-lg"
               >
-                Aplicar por WhatsApp <ArrowRight className="h-4 w-4" />
+                Registrar mi empresa <ArrowRight className="h-4 w-4" />
               </a>
               <a
                 href="mailto:ventas@intemperie.com?subject=Solicitud%20de%20instalador%20certificado"

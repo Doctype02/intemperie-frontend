@@ -1,5 +1,8 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
-import { Phone, Mail, MapPin, Package, Truck, CreditCard, MessageCircle } from "lucide-react";
+import { Phone, Mail, MapPin, Package, Truck, CreditCard, MessageCircle, CheckCircle2 } from "lucide-react";
 
 /* ── Inline SVG social icons ─────────────────────────────────────────────── */
 function IconFacebook() {
@@ -77,22 +80,18 @@ function BenefitsBar() {
 const colIntemperie = [
   { label: "Contacto",                href: "https://wa.me/50762874042" },
   { label: "Quiénes somos",           href: "/nosotros" },
-  { label: "Blog",                    href: "/nosotros" },
-  { label: "Política de envíos",      href: "#" },
-  { label: "Política de devoluciones",href: "#" },
-  { label: "Política de privacidad",  href: "#" },
-  { label: "Términos y condiciones",  href: "#" },
-  { label: "Trabaja con nosotros",    href: "#" },
+  { label: "Política de envíos",      href: "/envios" },
+  { label: "Política de devoluciones",href: "/devoluciones" },
+  { label: "Política de privacidad",  href: "/privacidad" },
+  { label: "Términos y condiciones",  href: "/terminos" },
+  { label: "Trabaja con nosotros",    href: "mailto:ventas@intemperie.com?subject=Quiero%20trabajar%20con%20Intemperie" },
 ];
 const colClientes = [
-  { label: "Mi cuenta",                   href: "/cuenta" },
-  { label: "Mis pedidos",                 href: "/cuenta/pedidos" },
-  { label: "Mis direcciones",             href: "/cuenta/direcciones" },
-  { label: "Ventas mayoristas",           href: "#" },
-  { label: "Instaladores recomendados",   href: "#" },
-  { label: "Sugerir productos",           href: "#" },
-  { label: "Quejas y cumplidos",          href: "#" },
-  { label: "Servicio técnico",            href: "#" },
+  { label: "Mi cuenta",                 href: "/cuenta" },
+  { label: "Mis pedidos",               href: "/cuenta/pedidos" },
+  { label: "Instaladores recomendados", href: "/instaladores" },
+  { label: "Ventas mayoristas",         href: "https://wa.me/50762874042?text=Hola%2C%20me%20interesan%20precios%20mayoristas" },
+  { label: "Atención al cliente",       href: "https://wa.me/50762874042" },
 ];
 const colProductos = [
   { label: "Cercas PVC",             href: "/productos" },
@@ -104,11 +103,11 @@ const colProductos = [
   { label: "Calculadora",            href: "/calculadora" },
 ];
 const colAyuda = [
-  { label: "WhatsApp +507 6287-4042",    href: "https://wa.me/50762874042" },
-  { label: "ventas@intemperie.com",      href: "mailto:ventas@intemperie.com" },
-  { label: "Política de garantías",      href: "#" },
-  { label: "Instalación profesional",    href: "#" },
-  { label: "Cotizar proyecto",           href: "/calculadora" },
+  { label: "WhatsApp +507 6287-4042",  href: "https://wa.me/50762874042" },
+  { label: "ventas@intemperie.com",    href: "mailto:ventas@intemperie.com" },
+  { label: "Instalación profesional",  href: "/instaladores" },
+  { label: "Garantía de productos",    href: "/terminos" },
+  { label: "Cotizar proyecto",         href: "/calculadora" },
 ];
 
 const footerColumns = [
@@ -120,6 +119,17 @@ const footerColumns = [
 
 /* ── Newsletter inside footer ─────────────────────────────────────────────── */
 function FooterNewsletter() {
+  const [email,     setEmail]     = useState("");
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) return;
+    // Opens mailto as fallback until backend email service is connected
+    window.location.href = `mailto:ventas@intemperie.com?subject=Suscripción%20al%20boletín&body=Por%20favor%20suscribir%20el%20correo%3A%20${encodeURIComponent(email)}`;
+    setSubmitted(true);
+  };
+
   return (
     <div className="border-t border-gray-800 pt-8 mt-10">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
@@ -131,20 +141,30 @@ function FooterNewsletter() {
             Suscríbete para recibir precios especiales y nuevos modelos
           </p>
         </div>
-        <div className="flex gap-2 w-full sm:w-auto shrink-0">
-          <input
-            type="email"
-            placeholder="tu@email.com"
-            aria-label="Tu correo electrónico"
-            className="flex-1 sm:w-64 h-10 rounded-lg border border-gray-700 bg-gray-800 px-3 text-sm text-white placeholder-gray-500 focus:border-green-500 focus:outline-none transition-colors"
-          />
-          <button
-            type="button"
-            className="h-10 px-4 rounded-lg bg-green-600 text-xs font-bold text-white hover:bg-green-500 transition-colors whitespace-nowrap"
-          >
-            Suscribirse
-          </button>
-        </div>
+        {submitted ? (
+          <div className="flex items-center gap-2 text-green-400 text-sm font-semibold shrink-0">
+            <CheckCircle2 className="h-5 w-5" />
+            ¡Gracias! Revisa tu correo.
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="flex gap-2 w-full sm:w-auto shrink-0">
+            <input
+              type="email"
+              required
+              placeholder="tu@email.com"
+              aria-label="Tu correo electrónico"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="flex-1 sm:w-64 h-10 rounded-lg border border-gray-700 bg-gray-800 px-3 text-sm text-white placeholder-gray-500 focus:border-green-500 focus:outline-none transition-colors"
+            />
+            <button
+              type="submit"
+              className="h-10 px-4 rounded-lg bg-green-600 text-xs font-bold text-white hover:bg-green-500 transition-colors whitespace-nowrap"
+            >
+              Suscribirse
+            </button>
+          </form>
+        )}
       </div>
     </div>
   );
@@ -166,16 +186,10 @@ export function Footer() {
 
             {/* Brand column */}
             <div className="lg:col-span-2">
-              <Link href="/" className="inline-flex items-center gap-2.5 mb-5">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-green-600 text-white font-black text-xl shadow-sm select-none">
-                  I
-                </div>
-                <div className="leading-tight">
-                  <p className="text-base font-black text-white leading-none">INTEMPERIE</p>
-                  <p className="text-[10px] font-bold text-gray-500 tracking-widest uppercase leading-none mt-0.5">
-                    Cercas PVC &amp; Mallas
-                  </p>
-                </div>
+              <Link href="/" className="inline-flex items-center mb-5">
+                <span className="text-[20px] font-black tracking-[-0.04em] text-white leading-none select-none">
+                  INTEM<span className="text-green-500">PERIE</span>
+                </span>
               </Link>
 
               <p className="text-sm text-gray-500 leading-relaxed mb-6 max-w-xs">

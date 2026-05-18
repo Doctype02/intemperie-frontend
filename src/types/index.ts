@@ -40,10 +40,10 @@ export interface Collection {
 }
 
 export interface ProductImage {
-  id: string;
+  id?: string;
   url: string;
-  alt: string | null;
-  order: number;
+  alt?: string | null;
+  order?: number;
 }
 
 export interface Product {

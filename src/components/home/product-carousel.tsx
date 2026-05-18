@@ -24,11 +24,11 @@ export interface CarouselProduct {
 }
 
 interface Props {
-  title:       string;
-  subtitle?:   string;
-  products:    CarouselProduct[];
+  title?:       string;
+  subtitle?:    string;
+  products:     CarouselProduct[];
   viewAllHref?: string;
-  bg?:         string;
+  bg?:          string;
 }
 
 export function ProductCarousel({ title, subtitle, products, viewAllHref = "/productos", bg = "bg-white" }: Props) {
@@ -42,27 +42,30 @@ export function ProductCarousel({ title, subtitle, products, viewAllHref = "/pro
 
   if (!products || products.length === 0) return null;
 
+  const hasHeader = Boolean(title);
+
   return (
-    <section className={`${bg} py-8 sm:py-10`}>
+    <section className={`${bg} ${hasHeader ? "py-8 sm:py-10" : "pb-8 sm:pb-10"}`}>
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
 
-        {/* Header */}
-        <div className="mb-5 flex items-end justify-between">
-          <div>
-            <h2 className="text-lg sm:text-xl font-extrabold text-gray-900">{title}</h2>
-            {subtitle && <p className="text-xs sm:text-sm text-gray-500 mt-0.5">{subtitle}</p>}
+        {/* Header — only rendered when a title is provided */}
+        {hasHeader && (
+          <div className="mb-5 flex items-end justify-between">
+            <div>
+              <h2 className="text-lg sm:text-xl font-extrabold text-gray-900">{title}</h2>
+              {subtitle && <p className="text-xs sm:text-sm text-gray-500 mt-0.5">{subtitle}</p>}
+            </div>
+            <Link
+              href={viewAllHref}
+              className="hidden sm:flex items-center gap-1 text-sm font-bold text-green-600 hover:text-green-700 transition-colors shrink-0"
+            >
+              Ver todos <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
-          <Link
-            href={viewAllHref}
-            className="hidden sm:flex items-center gap-1 text-sm font-bold text-green-600 hover:text-green-700 transition-colors shrink-0"
-          >
-            Ver todos <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
+        )}
 
         {/* Track */}
         <div className="relative">
-          {/* Left arrow */}
           <button
             onClick={() => scroll("left")}
             aria-label="Anterior"
@@ -76,13 +79,12 @@ export function ProductCarousel({ title, subtitle, products, viewAllHref = "/pro
             className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory"
           >
             {products.map((p) => (
-              <div key={p.id} className="snap-start flex-none w-[170px] sm:w-[200px] md:w-[220px] lg:w-[235px]">
+              <div key={p.id} className="snap-start flex-none w-[calc(50%-6px)] sm:w-[calc(33.333%-8px)] lg:w-[calc(25%-9px)] flex flex-col">
                 <ProductCard {...p} />
               </div>
             ))}
           </div>
 
-          {/* Right arrow */}
           <button
             onClick={() => scroll("right")}
             aria-label="Siguiente"
@@ -92,15 +94,17 @@ export function ProductCarousel({ title, subtitle, products, viewAllHref = "/pro
           </button>
         </div>
 
-        {/* Mobile "Ver todos" */}
-        <div className="mt-4 text-center sm:hidden">
-          <Link
-            href={viewAllHref}
-            className="inline-flex items-center gap-1.5 rounded-full border border-green-300 px-5 py-2 text-sm font-bold text-green-700 hover:bg-green-50 transition-colors"
-          >
-            Ver todos <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
-        </div>
+        {/* Mobile "Ver todos" — only when title is present */}
+        {hasHeader && (
+          <div className="mt-4 text-center sm:hidden">
+            <Link
+              href={viewAllHref}
+              className="inline-flex items-center gap-1.5 rounded-full border border-green-300 px-5 py-2 text-sm font-bold text-green-700 hover:bg-green-50 transition-colors"
+            >
+              Ver todos <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+        )}
       </div>
     </section>
   );
