@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { useRecentlyViewed } from "@/lib/hooks/use-recently-viewed";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useCartStore } from "@/lib/store/cart-store";
@@ -43,6 +44,20 @@ export function ProductDetailClient({ product }: { product: ProductData }) {
   const [added,               setAdded]               = useState(false);
   const [descExpanded,        setDescExpanded]        = useState(false);
   const addItem = useCartStore((s) => s.addItem);
+  const { addItem: trackView } = useRecentlyViewed();
+
+  useEffect(() => {
+    const price = Number(product.pricePerMeter ?? product.basePrice ?? 0);
+    trackView({
+      id: product.id,
+      name: product.name,
+      slug: product.slug,
+      basePrice: price,
+      unit: product.unit ?? "METRO",
+      imageUrl: product.images?.[0]?.url,
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product.id]);
 
   // Normalize price — API may return either field
   const price     = Number(product.pricePerMeter ?? product.basePrice ?? 0);

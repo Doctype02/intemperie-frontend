@@ -14,6 +14,8 @@ async function getProduct(slug: string) {
   }
 }
 
+const BASE_URL = "https://intemperie.com.pa";
+
 export async function generateMetadata({
   params,
 }: {
@@ -22,9 +24,33 @@ export async function generateMetadata({
   const { slug } = await params;
   const product = await getProduct(slug);
   if (!product) return { title: "Producto no encontrado" };
+
+  const description = product.description?.slice(0, 160) ??
+    `Cerca PVC ${product.name} — resistente, sin mantenimiento, garantía 15 años. Disponible en Panamá.`;
+
+  const rawImageUrl: string | undefined = product.images?.[0]?.url;
+  const imageUrl = rawImageUrl
+    ? rawImageUrl.startsWith("http") ? rawImageUrl : `${BASE_URL}${rawImageUrl}`
+    : `${BASE_URL}/og-default.jpg`;
+
   return {
-    title: product.name,
-    description: product.description?.slice(0, 160),
+    title: `${product.name} | Intemperie Panamá`,
+    description,
+    openGraph: {
+      title: `${product.name} | Intemperie Panamá`,
+      description,
+      url: `${BASE_URL}/productos/${slug}`,
+      siteName: "Intemperie Panamá",
+      images: [{ url: imageUrl, width: 1200, height: 630, alt: product.name }],
+      type: "website",
+      locale: "es_PA",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${product.name} | Intemperie Panamá`,
+      description,
+      images: [imageUrl],
+    },
   };
 }
 

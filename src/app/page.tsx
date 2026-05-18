@@ -14,6 +14,7 @@ import { Footer } from "@/components/layout/footer";
 import { HeroCarousel } from "@/components/home/hero-carousel";
 import { ProductCarousel } from "@/components/home/product-carousel";
 import type { CarouselProduct } from "@/components/home/product-carousel";
+import { RecentlyViewedSection } from "@/components/shared/recently-viewed-section";
 
 /* ── Types ───────────────────────────────────────────────────────────────── */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -728,6 +729,9 @@ export default async function HomePage() {
 
         {/* 10 — Featured Collections Grid */}
         <FeaturedCollectionsGrid />
+
+        {/* 10b — Recently Viewed (client, localStorage-driven) */}
+        <RecentlyViewedSection />
 
         {/* 11 — Testimonials */}
         <TestimonialsSection />

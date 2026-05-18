@@ -246,12 +246,23 @@ export function Footer() {
                 <ul className="space-y-2.5">
                   {col.links.map((link) => (
                     <li key={link.label}>
-                      <Link
-                        href={link.href}
-                        className="text-sm text-gray-500 hover:text-green-400 transition-colors leading-relaxed"
-                      >
-                        {link.label}
-                      </Link>
+                      {link.href.startsWith("http") || link.href.startsWith("mailto") ? (
+                        <a
+                          href={link.href}
+                          target={link.href.startsWith("http") ? "_blank" : undefined}
+                          rel={link.href.startsWith("http") ? "noopener noreferrer" : undefined}
+                          className="text-sm text-gray-500 hover:text-green-400 transition-colors leading-relaxed"
+                        >
+                          {link.label}
+                        </a>
+                      ) : (
+                        <Link
+                          href={link.href}
+                          className="text-sm text-gray-500 hover:text-green-400 transition-colors leading-relaxed"
+                        >
+                          {link.label}
+                        </Link>
+                      )}
                     </li>
                   ))}
                 </ul>

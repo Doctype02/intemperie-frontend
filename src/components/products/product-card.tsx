@@ -74,6 +74,8 @@ export function ProductCard(p: ProductCardProps) {
       ? { dot: "bg-amber-400", text: "text-amber-700", label: `¡Solo ${p.stock} disponibles!` }
       : { dot: "bg-green-500", text: "text-green-700", label: "En stock" };
 
+  const minQty = p.unit === "METRO" ? 10 : 1;
+
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     addItem(
@@ -82,9 +84,12 @@ export function ProductCard(p: ProductCardProps) {
         basePrice: p.basePrice, unit: p.unit, stock: p.stock,
         collection: p.collection, category: p.category, images: p.images,
       },
-      1,
+      minQty,
     );
-    toast.success(`${p.name} agregado`, { duration: 2500 });
+    toast.success(`${p.name} agregado`, {
+      description: `${minQty}${p.unit === "METRO" ? "m" : " unid."} · $${(p.basePrice * minQty).toFixed(2)}`,
+      duration: 2500,
+    });
   };
 
   return (

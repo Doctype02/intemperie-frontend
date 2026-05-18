@@ -4,11 +4,12 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  Search, ShoppingCart, User, Menu, X, ChevronDown, ChevronRight,
+  Search, User, Menu, X, ChevronDown, ChevronRight,
   Phone, Clock, Mail,
 } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { useCartStore } from "@/lib/store/cart-store";
+import { CartSheet } from "@/components/cart/cart-sheet";
 
 /* ── Inline SVG social icons (lucide-react v1.14 doesn't ship these) ─────── */
 function IconFacebook() {
@@ -436,24 +437,10 @@ export function Header() {
                 </Link>
               )}
 
-              {/* Cart */}
-              <Link
-                href="/carrito"
-                className="relative flex items-center gap-1.5 p-2 rounded-md text-gray-600 hover:bg-gray-100 transition-colors"
-                aria-label="Carrito"
-              >
-                <ShoppingCart className="h-5 w-5" />
-                {cartCount > 0 && (
-                  <span
-                    className={`absolute -top-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-green-600 text-[10px] font-black text-white transition-transform ${
-                      cartBounce ? "scale-125" : "scale-100"
-                    }`}
-                  >
-                    {cartCount > 9 ? "9+" : cartCount}
-                  </span>
-                )}
-                <span className="hidden lg:block text-xs font-semibold">Carrito</span>
-              </Link>
+              {/* Cart — mini-drawer */}
+              <div className={`transition-transform ${cartBounce ? "scale-110" : "scale-100"}`}>
+                <CartSheet />
+              </div>
             </div>
           </div>
         </div>
@@ -669,7 +656,7 @@ export function Header() {
             </Link>
           </div>
           <div className="border-b border-gray-100">
-            <Link href="/nosotros#instaladores" onClick={closeAll}
+            <Link href="/instaladores" onClick={closeAll}
               className="block px-4 py-3.5 text-sm font-semibold text-gray-800 hover:bg-gray-50 transition-colors">
               Instaladores
             </Link>
