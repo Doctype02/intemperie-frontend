@@ -19,7 +19,9 @@ export default function CheckoutPage() {
   const subtotal = useCartStore((s) => s.subtotal());
   const clearCart = useCartStore((s) => s.clearCart);
   const [step, setStep] = useState<Step>("address");
-  const [address, setAddress] = useState({ name: "", phone: "", street: "", city: "", province: "" });
+  const [address, setAddress] = useState({ name: "", phone: "", email: "", street: "", city: "", province: "" });
+  const [tilopayLoading, setTilopayLoading] = useState(false);
+  const [tilopayError,   setTilopayError]   = useState("");
 
   useEffect(() => {
     setReady(true);
@@ -138,6 +140,10 @@ export default function CheckoutPage() {
                         <input required type="tel" inputMode="tel" placeholder="+507 6000-0000" className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" value={address.phone} onChange={(e) => setAddress({ ...address, phone: e.target.value })} />
                       </div>
                       <div className="sm:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Correo electrónico</label>
+                        <input required type="email" inputMode="email" placeholder="tu@correo.com" className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" value={address.email} onChange={(e) => setAddress({ ...address, email: e.target.value })} />
+                      </div>
+                      <div className="sm:col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mb-1">Dirección</label>
                         <input required placeholder="Calle, casa, edificio, referencia" className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" value={address.street} onChange={(e) => setAddress({ ...address, street: e.target.value })} />
                       </div>
@@ -188,35 +194,103 @@ export default function CheckoutPage() {
               )}
 
               {step === "payment" && (
-                <div className="text-center py-6">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 mx-auto mb-4">
-                    <Check className="h-8 w-8 text-green-600" />
-                  </div>
-                  <h2 className="text-xl font-bold text-gray-900">Tu pedido está listo</h2>
-                  <p className="mt-2 text-sm text-gray-500 max-w-xs mx-auto">
-                    Envía el resumen a nuestro equipo por WhatsApp y un asesor confirmará
-                    disponibilidad y coordina el pago en minutos.
-                  </p>
-                  <div className="mt-6 flex flex-col gap-3 max-w-sm mx-auto">
-                    <Button
-                      className="bg-green-600 hover:bg-green-700 h-12 text-sm font-bold shadow-sm"
-                      onClick={() => {
-                        const orderRef = `IMP-${Date.now().toString(36).toUpperCase().slice(-6)}`;
-                        const orderLines = items
-                          .map((i) => `• ${i.product?.name} — ${i.quantity}${i.product?.unit === "METRO" ? "m" : " unid."}`)
-                          .join("%0A");
-                        const msg = `Hola%2C quiero confirmar mi pedido:%0A%0A${orderLines}%0A%0ARef: ${orderRef}%0ATotal: $${total.toFixed(2)}%0AEnvío a: ${address.street}, ${address.city}, ${address.province}%0AContacto: ${address.phone}`;
-                        window.open(`https://wa.me/50762874042?text=${msg}`, "_blank");
-                        try { sessionStorage.removeItem("intemperie-checkout-address"); } catch {}
-                        clearCart();
-                        router.push(`/checkout/success?ref=${orderRef}`);
-                      }}
-                    >
-                      Confirmar pedido por WhatsApp
-                    </Button>
-                    <p className="text-xs text-gray-400">
-                      También aceptamos transferencia bancaria y efectivo
-                    </p>
+                <div>
+                  <h2 className="text-lg font-bold text-gray-900 mb-1">Elige tu método de pago</h2>
+                  <p className="text-sm text-gray-500 mb-6">Selecciona cómo quieres completar tu pedido</p>
+
+                  {tilopayError && (
+                    <div className="mb-4 rounded-xl bg-red-50 border border-red-100 text-red-700 text-sm px-4 py-3">
+                      {tilopayError}
+                    </div>
+                  )}
+
+                  <div className="space-y-3">
+                    {/* Tilopay — card payment */}
+                    <div className="rounded-xl border-2 border-green-200 bg-green-50/40 p-5">
+                      <div className="flex items-start justify-between gap-4 mb-3">
+                        <div>
+                          <p className="text-sm font-bold text-gray-900">Pagar con tarjeta</p>
+                          <p className="text-xs text-gray-500 mt-0.5">Visa, Mastercard, Amex · Yappy · Apple Pay</p>
+                        </div>
+                        <div className="flex gap-1 shrink-0">
+                          {[
+                            { label: "VISA", bg: "bg-blue-600", text: "text-white" },
+                            { label: "MC",   bg: "bg-red-500",  text: "text-white" },
+                            { label: "Yappy",bg: "bg-yellow-400",text: "text-gray-900" },
+                          ].map((m) => (
+                            <span key={m.label} className={`rounded px-1.5 py-0.5 text-[9px] font-black ${m.bg} ${m.text}`}>
+                              {m.label}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <p className="text-[11px] text-gray-400 mb-3">
+                        Serás redirigido a la plataforma segura de Tilopay. Tu pago está protegido con 3DS y PCI DSS.
+                      </p>
+                      <Button
+                        className="w-full bg-green-700 hover:bg-green-800 h-12 text-sm font-bold"
+                        disabled={tilopayLoading}
+                        onClick={async () => {
+                          setTilopayLoading(true);
+                          setTilopayError("");
+                          try {
+                            const orderRef = `IMP-${Date.now().toString(36).toUpperCase().slice(-6)}`;
+                            const res = await fetch("/api/payments/tilopay", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({
+                                orderNumber: orderRef,
+                                amount: total,
+                                billingInfo: address,
+                              }),
+                            });
+                            const data = await res.json();
+                            if (!res.ok || !data.url) {
+                              throw new Error(data.error ?? "No se pudo iniciar el pago. Intenta de nuevo.");
+                            }
+                            try { sessionStorage.removeItem("intemperie-checkout-address"); } catch {}
+                            window.location.href = data.url;
+                          } catch (err) {
+                            setTilopayError(err instanceof Error ? err.message : "Error al procesar el pago.");
+                            setTilopayLoading(false);
+                          }
+                        }}
+                      >
+                        {tilopayLoading ? "Redirigiendo a Tilopay…" : "Pagar con tarjeta →"}
+                      </Button>
+                    </div>
+
+                    {/* Divider */}
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 border-t border-gray-200" />
+                      <span className="text-xs text-gray-400 font-medium">o</span>
+                      <div className="flex-1 border-t border-gray-200" />
+                    </div>
+
+                    {/* WhatsApp fallback */}
+                    <div className="rounded-xl border border-gray-200 bg-white p-5">
+                      <p className="text-sm font-bold text-gray-900 mb-0.5">Confirmar por WhatsApp</p>
+                      <p className="text-xs text-gray-500 mb-3">
+                        Envía tu pedido a nuestro equipo. Coordinaremos el pago por transferencia, Yappy o efectivo.
+                      </p>
+                      <Button
+                        variant="outline"
+                        className="w-full h-11 border-gray-300 text-gray-700 text-sm font-bold hover:bg-gray-50"
+                        onClick={() => {
+                          const orderRef = `IMP-${Date.now().toString(36).toUpperCase().slice(-6)}`;
+                          const orderLines = items
+                            .map((i) => `• ${i.product?.name} — ${i.quantity}${i.product?.unit === "METRO" ? "m" : " unid."}`)
+                            .join("%0A");
+                          const msg = `Hola%2C quiero confirmar mi pedido:%0A%0A${orderLines}%0A%0ARef: ${orderRef}%0ATotal: $${total.toFixed(2)}%0AEnvío a: ${address.street}, ${address.city}, ${address.province}%0AContacto: ${address.phone}`;
+                          window.open(`https://wa.me/50762874042?text=${msg}`, "_blank");
+                          try { sessionStorage.removeItem("intemperie-checkout-address"); } catch {}
+                          clearCart();
+                          router.push(`/checkout/success?ref=${orderRef}`);
+                        }}
+                      >
+                        Confirmar por WhatsApp
+                      </Button>
+                    </div>
                   </div>
                 </div>
               )}
