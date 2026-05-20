@@ -7,3 +7,9 @@ npm-debug.log*
 yarn-debug.log*
 .DS_Store
 *.tsbuildinfo
+
+# Large media files - served from backend/CDN
+*.mov
+*.mp4
+*.avi
+*.mkv
