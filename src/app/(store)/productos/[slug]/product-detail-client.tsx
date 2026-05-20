@@ -4,11 +4,12 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { useRecentlyViewed } from "@/lib/hooks/use-recently-viewed";
+import { useWishlist } from "@/lib/hooks/use-wishlist";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useCartStore } from "@/lib/store/cart-store";
 import { ProductGallery } from "@/components/products/product-gallery";
-import { Minus, Plus, ShoppingCart, ChevronRight, Calculator } from "lucide-react";
+import { Minus, Plus, ShoppingCart, ChevronRight, Calculator, Heart, ChevronDown } from "lucide-react";
 
 interface ProductData {
   id: string;
@@ -38,6 +39,63 @@ function IconWhatsApp({ className }: { className?: string }) {
   );
 }
 
+const FAQ_ITEMS = [
+  {
+    q: "¿Las cercas PVC requieren mantenimiento?",
+    a: "No. A diferencia de la madera o el metal, el PVC no se oxida, pudre ni necesita pintura. Un lavado ocasional con agua y jabón neutro es suficiente para mantenerlas como nuevas por décadas.",
+  },
+  {
+    q: "¿Cuánto tiempo dura una cerca PVC?",
+    a: "Nuestras cercas están fabricadas con PVC virgen de alta densidad, lo que garantiza una vida útil superior a 25 años incluso en zonas costeras y de alta humedad como Panamá.",
+  },
+  {
+    q: "¿Incluyen la instalación?",
+    a: "La instalación se cotiza por separado según la longitud, el terreno y la ubicación. Contamos con instaladores certificados en todo Panamá. Puedes solicitarla al momento de la compra o por WhatsApp.",
+  },
+  {
+    q: "¿Hacen envíos a todo Panamá?",
+    a: "Sí. Despachamos a Ciudad de Panamá, Panamá Oeste, Colón, Chiriquí y otras provincias. Los pedidos mayores a $50 tienen envío gratuito. Los tiempos de entrega varían entre 2 y 5 días hábiles.",
+  },
+  {
+    q: "¿Puedo ver una muestra antes de comprar?",
+    a: "Claro. Puedes visitarnos en nuestra sala de ventas en La Chorrera, Panamá Oeste (Lun–Sáb 8:00–18:00) o solicitar muestras físicas por WhatsApp.",
+  },
+];
+
+function FaqItem({ q, a }: { q: string; a: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="border-b border-gray-100 last:border-0">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center justify-between gap-4 py-4 text-left text-sm font-semibold text-gray-900 hover:text-green-700 transition-colors"
+      >
+        {q}
+        <ChevronDown className={`h-4 w-4 shrink-0 text-gray-400 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <p className="pb-4 text-sm text-gray-500 leading-relaxed pr-8">{a}</p>
+      )}
+    </div>
+  );
+}
+
+function FaqSection() {
+  return (
+    <div className="mx-auto max-w-7xl px-4 pb-8">
+      <div className="rounded-2xl border border-gray-200 bg-white p-6 sm:p-8">
+        <h2 className="text-lg font-extrabold text-gray-900 mb-1">Preguntas frecuentes</h2>
+        <p className="text-sm text-gray-400 mb-5">Todo lo que necesitas saber sobre las cercas PVC</p>
+        <div>
+          {FAQ_ITEMS.map((item) => (
+            <FaqItem key={item.q} q={item.q} a={item.a} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function ProductDetailClient({ product }: { product: ProductData }) {
   const [quantity,            setQuantity]            = useState(10);
   const [includeInstallation, setIncludeInstallation] = useState(false);
@@ -45,6 +103,8 @@ export function ProductDetailClient({ product }: { product: ProductData }) {
   const [descExpanded,        setDescExpanded]        = useState(false);
   const addItem = useCartStore((s) => s.addItem);
   const { addItem: trackView } = useRecentlyViewed();
+  const { toggle: toggleWishlist, isWishlisted } = useWishlist();
+  const wishlisted = isWishlisted(product.id);
 
   useEffect(() => {
     const price = Number(product.pricePerMeter ?? product.basePrice ?? 0);
@@ -160,7 +220,7 @@ export function ProductDetailClient({ product }: { product: ProductData }) {
               )}
             </div>
 
-            <div className="mt-2">
+            <div className="mt-2 flex items-center gap-2">
               <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium ${
                 product.stock === 0
                   ? "bg-red-50 text-red-700"
@@ -170,6 +230,29 @@ export function ProductDetailClient({ product }: { product: ProductData }) {
               }`}>
                 {product.stock === 0 ? "Agotado" : product.stock <= 5 ? `Solo ${product.stock} disponibles` : "En stock · listo para despachar"}
               </span>
+              <button
+                onClick={() => {
+                  const price = Number(product.pricePerMeter ?? product.basePrice ?? 0);
+                  toggleWishlist({
+                    id: product.id,
+                    name: product.name,
+                    slug: product.slug,
+                    basePrice: price,
+                    unit: product.unit ?? "METRO",
+                    imageUrl: product.images?.[0]?.url,
+                    categoryName: product.category?.name ?? product.collection?.name,
+                  });
+                  toast(wishlisted ? "Eliminado de favoritos" : "Guardado en favoritos", {
+                    icon: wishlisted ? "🗑️" : "❤️",
+                    duration: 1800,
+                  });
+                }}
+                aria-label={wishlisted ? "Quitar de favoritos" : "Guardar en favoritos"}
+                className="ml-auto flex items-center gap-1.5 rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-500 hover:border-red-300 hover:text-red-500 transition-all duration-200"
+              >
+                <Heart className={`h-3.5 w-3.5 transition-all duration-200 ${wishlisted ? "fill-red-500 text-red-500" : ""}`} />
+                {wishlisted ? "Guardado" : "Guardar"}
+              </button>
             </div>
 
             {product.description && (
@@ -279,6 +362,9 @@ export function ProductDetailClient({ product }: { product: ProductData }) {
           </div>
         </div>
       </div>
+
+      {/* FAQ section */}
+      <FaqSection />
 
       {/* Mobile sticky CTA bar — fixed to bottom on mobile only */}
       {product.stock > 0 && (

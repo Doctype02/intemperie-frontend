@@ -7,7 +7,7 @@ async function getAccessToken(): Promise<string> {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      email: process.env.TILOPAY_API_USER,
+      email:    process.env.TILOPAY_API_USER,
       password: process.env.TILOPAY_API_PASSWORD,
     }),
     cache: "no-store",

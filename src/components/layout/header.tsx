@@ -5,10 +5,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Search, User, Menu, X, ChevronDown, ChevronRight,
-  Phone, Clock, Mail,
+  Phone, Clock, Mail, Heart,
 } from "lucide-react";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { useCartStore } from "@/lib/store/cart-store";
+import { useWishlist } from "@/lib/hooks/use-wishlist";
 import { CartSheet } from "@/components/cart/cart-sheet";
 
 /* ── Inline SVG social icons (lucide-react v1.14 doesn't ship these) ─────── */
@@ -215,6 +216,7 @@ export function Header() {
   const { user, isAuthenticated, logout } = useAuthStore();
   const cartItems = useCartStore((s) => s.items);
   const cartCount = cartItems.reduce((s, i) => s + i.quantity, 0);
+  const { count: wishlistCount } = useWishlist();
 
   /* Scroll shadow */
   useEffect(() => {
@@ -298,33 +300,15 @@ export function Header() {
               +507 6287-4042
             </a>
             <div className="flex items-center gap-2.5">
-              <a
-                href="https://facebook.com/intemperie"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Facebook"
-                className="hover:text-green-200 transition-colors"
-              >
+              <span title="Próximamente" aria-label="Facebook (próximamente)" className="cursor-default text-white/40">
                 <IconFacebook />
-              </a>
-              <a
-                href="https://instagram.com/intemperie"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Instagram"
-                className="hover:text-green-200 transition-colors"
-              >
+              </span>
+              <span title="Próximamente" aria-label="Instagram (próximamente)" className="cursor-default text-white/40">
                 <IconInstagram />
-              </a>
-              <a
-                href="https://youtube.com/@intemperie"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="YouTube"
-                className="hover:text-green-200 transition-colors"
-              >
+              </span>
+              <span title="Próximamente" aria-label="YouTube (próximamente)" className="cursor-default text-white/40">
                 <IconYoutube />
-              </a>
+              </span>
             </div>
           </div>
         </div>
@@ -436,6 +420,20 @@ export function Header() {
                   <span className="hidden lg:block text-xs font-semibold">Ingresar</span>
                 </Link>
               )}
+
+              {/* Wishlist */}
+              <Link
+                href="/favoritos"
+                aria-label={`Favoritos${wishlistCount > 0 ? ` (${wishlistCount})` : ""}`}
+                className="relative p-2 rounded-md text-gray-600 hover:bg-gray-100 transition-colors"
+              >
+                <Heart className="h-5 w-5" />
+                {wishlistCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-black text-white leading-none">
+                    {wishlistCount > 9 ? "9+" : wishlistCount}
+                  </span>
+                )}
+              </Link>
 
               {/* Cart — mini-drawer */}
               <div className={`transition-transform ${cartBounce ? "scale-110" : "scale-100"}`}>

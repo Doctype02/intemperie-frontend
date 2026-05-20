@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { ShoppingCart, Star, ArrowRight } from "lucide-react";
+import { ShoppingCart, Star, ArrowRight, Heart } from "lucide-react";
 import { toast } from "sonner";
 import { useCartStore } from "@/lib/store/cart-store";
+import { useWishlist } from "@/lib/hooks/use-wishlist";
 import { BLUR_PLACEHOLDER } from "@/lib/image-utils";
 import { useImageOnLoad } from "@/lib/image-load-context";
 import type { ProductImage } from "@/types";
@@ -57,6 +58,8 @@ function Stars({ rating = 5, count = 0 }: { rating?: number; count?: number }) {
 export function ProductCard(p: ProductCardProps) {
   const addItem = useCartStore((s) => s.addItem);
   const onLoad  = useImageOnLoad();
+  const { toggle, isWishlisted } = useWishlist();
+  const wishlisted = isWishlisted(p.id);
 
   const collectionName = p.collection?.name || p.category?.name || "Intemperie";
   const catBg          = catColors[p.category?.name || ""] || "#f0fdf4";
@@ -130,6 +133,27 @@ export function ProductCard(p: ProductCardProps) {
               </span>
             )}
           </div>
+
+          {/* Wishlist heart */}
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              toggle({
+                id: p.id, name: p.name, slug: p.slug,
+                basePrice: p.basePrice, unit: p.unit,
+                imageUrl: primaryImage ?? undefined,
+                categoryName: p.category?.name ?? p.collection?.name,
+              });
+              toast(wishlisted ? "Eliminado de favoritos" : "Guardado en favoritos", {
+                icon: wishlisted ? "🗑️" : "❤️",
+                duration: 1800,
+              });
+            }}
+            aria-label={wishlisted ? "Quitar de favoritos" : "Guardar en favoritos"}
+            className="absolute top-2.5 right-2.5 flex h-8 w-8 items-center justify-center rounded-full bg-white/95 backdrop-blur-sm shadow-sm hover:scale-110 transition-all duration-200"
+          >
+            <Heart className={`h-4 w-4 transition-all duration-200 ${wishlisted ? "fill-red-500 text-red-500" : "text-gray-300 hover:text-red-400"}`} />
+          </button>
 
           {/* Quick-view icon — appears on hover, links to PDP */}
           <Link
