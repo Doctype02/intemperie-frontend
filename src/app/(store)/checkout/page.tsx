@@ -15,6 +15,22 @@ type Step = "address" | "review" | "payment";
 const STEP_ORDER: Record<Step, number> = { address: 0, review: 1, payment: 2 };
 const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "50762874042";
 
+const PANAMA_PROVINCES = [
+  "Bocas del Toro",
+  "Chiriquí",
+  "Coclé",
+  "Colón",
+  "Darién",
+  "Herrera",
+  "Los Santos",
+  "Panamá",
+  "Panamá Oeste",
+  "Veraguas",
+  "Guna Yala",
+  "Ngäbe-Buglé",
+  "Emberá-Wounaan",
+];
+
 const emptyAddress: GuestAddress = {
   name: "", phone: "", email: "", street: "", city: "", province: "",
 };
@@ -122,7 +138,7 @@ export default function CheckoutPage() {
     paymentMethod,
     items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
     guestAddress: {
-      street: address.street,
+      street: [address.street, address.address2].filter(Boolean).join(", "),
       city: address.city,
       province: address.province,
       phone: address.phone,
@@ -227,29 +243,117 @@ export default function CheckoutPage() {
               {/* ── STEP: ADDRESS ─────────────────────────────── */}
               {step === "address" && (
                 <div>
-                  <h2 className="text-lg font-bold text-gray-900 mb-4">Dirección de envío</h2>
-                  <form onSubmit={(e) => { e.preventDefault(); setStep("review"); }}>
+                  <h2 className="text-lg font-bold text-gray-900">Dirección de envío</h2>
+                  <p className="text-xs text-gray-400 mt-0.5 mb-5">Los campos con <span className="text-red-500">*</span> son obligatorios</p>
+                  <form onSubmit={(e) => { e.preventDefault(); setStep("review"); }} noValidate>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <Field label="Nombre completo">
-                        <input required className={inputCls} value={address.name} onChange={(e) => setAddress({ ...address, name: e.target.value })} />
+
+                      {/* Name */}
+                      <Field label="Nombre completo" htmlFor="addr-name" required>
+                        <input
+                          id="addr-name"
+                          required
+                          autoComplete="name"
+                          placeholder="Juan Pérez"
+                          className={inputCls}
+                          value={address.name}
+                          onChange={(e) => setAddress({ ...address, name: e.target.value })}
+                        />
                       </Field>
-                      <Field label="Teléfono">
-                        <input required type="tel" placeholder="+507 6000-0000" className={inputCls} value={address.phone} onChange={(e) => setAddress({ ...address, phone: e.target.value })} />
+
+                      {/* Phone */}
+                      <Field label="Teléfono" htmlFor="addr-phone" required>
+                        <input
+                          id="addr-phone"
+                          required
+                          type="tel"
+                          autoComplete="tel"
+                          placeholder="+507 6000-0000"
+                          className={inputCls}
+                          value={address.phone}
+                          onChange={(e) => setAddress({ ...address, phone: e.target.value })}
+                        />
                       </Field>
-                      <Field label="Correo electrónico" className="sm:col-span-2">
-                        <input required type="email" placeholder="tu@correo.com" className={inputCls} value={address.email} onChange={(e) => setAddress({ ...address, email: e.target.value })} />
+
+                      {/* Email */}
+                      <Field label="Correo electrónico" htmlFor="addr-email" required className="sm:col-span-2">
+                        <input
+                          id="addr-email"
+                          required
+                          type="email"
+                          autoComplete="email"
+                          placeholder="tu@correo.com"
+                          className={inputCls}
+                          value={address.email}
+                          onChange={(e) => setAddress({ ...address, email: e.target.value })}
+                        />
                       </Field>
-                      <Field label="Dirección" className="sm:col-span-2">
-                        <input required placeholder="Calle, casa, edificio, referencia" className={inputCls} value={address.street} onChange={(e) => setAddress({ ...address, street: e.target.value })} />
+
+                      {/* Address Line 1 */}
+                      <Field label="Dirección" htmlFor="addr-street" required className="sm:col-span-2">
+                        <input
+                          id="addr-street"
+                          required
+                          autoComplete="address-line1"
+                          placeholder="Calle, número de casa o edificio"
+                          className={inputCls}
+                          value={address.street}
+                          onChange={(e) => setAddress({ ...address, street: e.target.value })}
+                        />
                       </Field>
-                      <Field label="Ciudad">
-                        <input required className={inputCls} value={address.city} onChange={(e) => setAddress({ ...address, city: e.target.value })} />
+
+                      {/* Address Line 2 */}
+                      <Field label="Apartamento, local, suite" htmlFor="addr-street2" className="sm:col-span-2" optional>
+                        <input
+                          id="addr-street2"
+                          autoComplete="address-line2"
+                          placeholder="Piso 3, apto 4B, corregimiento…"
+                          className={inputCls}
+                          value={address.address2 ?? ""}
+                          onChange={(e) => setAddress({ ...address, address2: e.target.value })}
+                        />
                       </Field>
-                      <Field label="Provincia">
-                        <input required className={inputCls} value={address.province} onChange={(e) => setAddress({ ...address, province: e.target.value })} />
+
+                      {/* City */}
+                      <Field label="Ciudad / Distrito" htmlFor="addr-city" required>
+                        <input
+                          id="addr-city"
+                          required
+                          autoComplete="address-level2"
+                          placeholder="Ciudad de Panamá"
+                          className={inputCls}
+                          value={address.city}
+                          onChange={(e) => setAddress({ ...address, city: e.target.value })}
+                        />
                       </Field>
+
+                      {/* Province — select */}
+                      <Field label="Provincia" htmlFor="addr-province" required>
+                        <select
+                          id="addr-province"
+                          required
+                          autoComplete="address-level1"
+                          className={`${inputCls} bg-white`}
+                          value={address.province}
+                          onChange={(e) => setAddress({ ...address, province: e.target.value })}
+                        >
+                          <option value="" disabled>Selecciona una provincia</option>
+                          {PANAMA_PROVINCES.map((p) => (
+                            <option key={p} value={p}>{p}</option>
+                          ))}
+                        </select>
+                      </Field>
+
+                      {/* Country — fixed */}
+                      <Field label="País" htmlFor="addr-country" className="sm:col-span-2">
+                        <div id="addr-country" className={`${inputCls} bg-gray-50 text-gray-500 flex items-center gap-2 cursor-default select-none`}>
+                          <span>🇵🇦</span>
+                          <span>Panamá</span>
+                        </div>
+                      </Field>
+
                     </div>
-                    <Button type="submit" className="mt-6 w-full bg-green-700 hover:bg-green-800 h-12">
+                    <Button type="submit" className="mt-6 w-full bg-green-700 hover:bg-green-800 h-12 text-sm font-bold">
                       Continuar al resumen
                     </Button>
                   </form>
@@ -478,16 +582,26 @@ const inputCls = "w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm f
 
 function Field({
   label,
+  htmlFor,
   children,
   className = "",
+  required,
+  optional,
 }: {
   label: string;
+  htmlFor?: string;
   children: React.ReactNode;
   className?: string;
+  required?: boolean;
+  optional?: boolean;
 }) {
   return (
     <div className={className}>
-      <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+      <label htmlFor={htmlFor} className="block text-sm font-medium text-gray-700 mb-1">
+        {label}
+        {required && <span className="ml-0.5 text-red-500">*</span>}
+        {optional && <span className="ml-1 text-xs font-normal text-gray-400">(opcional)</span>}
+      </label>
       {children}
     </div>
   );

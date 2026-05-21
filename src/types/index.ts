@@ -222,6 +222,7 @@ export interface GuestAddress {
   name: string;
   email: string;
   street: string;
+  address2?: string;
   city: string;
   province: string;
   phone: string;
