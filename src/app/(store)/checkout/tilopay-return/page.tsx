@@ -13,26 +13,34 @@ function TilopayReturnContent() {
     const tpt = params.get("tpt") ?? params.get("transaction");
     const status = params.get("status");
 
-    const top = (typeof window !== "undefined" && window.top) ? window.top : window;
+    const inIframe = window.parent !== window;
 
-    if (!orderId) {
-      top.location.href = "/";
-      return;
-    }
+    const send = (msg: Record<string, unknown>) => {
+      if (inIframe) {
+        window.parent.postMessage(msg, window.location.origin);
+      } else {
+        // Fallback: navigated directly (not in iframe)
+        if (msg.type === "tilopay-success") {
+          window.location.href = `/checkout/success?ref=${(msg.orderId as string).slice(0, 8).toUpperCase()}&method=tilopay`;
+        } else {
+          window.location.href = "/checkout?error=pago_rechazado";
+        }
+      }
+    };
+
+    if (!orderId) { send({ type: "tilopay-error", reason: "no-order" }); return; }
 
     if (!tpt || status === "declined" || status === "failed" || status === "error") {
-      top.location.href = "/checkout?error=pago_rechazado";
+      send({ type: "tilopay-error", reason: "rejected", orderId });
       return;
     }
 
     confirmTilopay(orderId, tpt)
       .then(() => {
         try { sessionStorage.removeItem("intemperie-checkout-address"); } catch {}
-        top.location.href = `/checkout/success?ref=${orderId.slice(0, 8).toUpperCase()}&method=tilopay`;
+        send({ type: "tilopay-success", orderId });
       })
-      .catch(() => {
-        top.location.href = "/checkout?error=confirmacion_fallida";
-      });
+      .catch(() => send({ type: "tilopay-error", reason: "confirm-failed", orderId }));
   }, [params]);
 
   return (

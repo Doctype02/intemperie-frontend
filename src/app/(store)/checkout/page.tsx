@@ -42,7 +42,7 @@ export default function CheckoutPage() {
   const [address, setAddress] = useState<GuestAddress>(emptyAddress);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [tilopayFrame, setTilopayFrame] = useState<{ url: string } | null>(null);
+  const [tilopayFrame, setTilopayFrame] = useState<{ url: string; orderId: string } | null>(null);
 
   const router = useRouter();
   const { isAuthenticated, user } = useAuthStore();
@@ -160,13 +160,37 @@ export default function CheckoutPage() {
     guestEmail: address.email || undefined,
   });
 
+  // Listen for postMessage from tilopay-return iframe
+  useEffect(() => {
+    if (!tilopayFrame) return;
+    const handler = (e: MessageEvent) => {
+      if (e.origin !== window.location.origin) return;
+      if (e.data?.type === "tilopay-success") {
+        setTilopayFrame(null);
+        clearCart();
+        try { sessionStorage.removeItem("intemperie-checkout-address"); } catch {}
+        router.push(`/checkout/success?ref=${(e.data.orderId as string).slice(0, 8).toUpperCase()}&method=tilopay`);
+      } else if (e.data?.type === "tilopay-error") {
+        setTilopayFrame(null);
+        const reason = e.data.reason as string;
+        setError(
+          reason === "rejected" ? "El pago fue rechazado. Intenta con otra tarjeta." :
+          reason === "confirm-failed" ? "Error al confirmar el pago. Contacta soporte." :
+          "Ocurrió un error con el pago."
+        );
+      }
+    };
+    window.addEventListener("message", handler);
+    return () => window.removeEventListener("message", handler);
+  }, [tilopayFrame, clearCart, router]);
+
   const handleTilopay = async () => {
     setLoading(true);
     setError("");
     try {
       const order = await createOrder(buildOrderPayload("TILOPAY"));
       const { url } = await initiateTilopay(order.id);
-      setTilopayFrame({ url });
+      setTilopayFrame({ url, orderId: order.id });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al iniciar el pago. Intenta de nuevo.");
     } finally {
@@ -202,20 +226,20 @@ export default function CheckoutPage() {
     <>
     {/* Tilopay iframe modal */}
     {tilopayFrame && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-        <div className="relative flex w-full max-w-lg flex-col rounded-2xl bg-white shadow-2xl overflow-hidden" style={{ height: "640px" }}>
-          <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3 shrink-0">
-            <div className="flex items-center gap-2">
-              <Lock className="h-3.5 w-3.5 text-green-600" />
-              <span className="text-xs font-semibold text-gray-600">Pago seguro · Tilopay</span>
-            </div>
-            <button
-              onClick={() => setTilopayFrame(null)}
-              className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
-              aria-label="Cerrar"
-            >
-              <X className="h-4 w-4" />
-            </button>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+        {/* Close button — floating, always visible */}
+        <button
+          onClick={() => setTilopayFrame(null)}
+          className="absolute top-4 right-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-lg text-gray-600 hover:bg-gray-100 transition-colors"
+          aria-label="Cerrar"
+        >
+          <X className="h-5 w-5" />
+        </button>
+
+        <div className="flex w-full max-w-lg flex-col rounded-2xl bg-white shadow-2xl overflow-hidden" style={{ height: "640px" }}>
+          <div className="flex items-center gap-2 border-b border-gray-100 px-4 py-3 shrink-0">
+            <Lock className="h-3.5 w-3.5 text-green-600" />
+            <span className="text-xs font-semibold text-gray-600">Pago seguro · Tilopay</span>
           </div>
           <iframe
             src={tilopayFrame.url}
