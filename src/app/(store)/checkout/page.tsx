@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/lib/store/cart-store";
 import { useAuthStore } from "@/lib/store/auth-store";
-import { createOrder, initiateTilopay } from "@/lib/api/orders";
+import { createOrder, initiateTilopay, getOrderPaymentStatus } from "@/lib/api/orders";
 import { Check, ArrowLeft, ShoppingCart, Lock, Loader2, X } from "lucide-react";
 import type { GuestAddress } from "@/types";
 
@@ -89,16 +89,22 @@ export default function CheckoutPage() {
     } catch {}
   }, [address, ready]);
 
-  // Listen for postMessage from tilopay-return iframe
+  // Poll order status + listen for postMessage while iframe is open
   useEffect(() => {
     if (!tilopayFrame) return;
-    const handler = (e: MessageEvent) => {
+
+    const succeed = () => {
+      setTilopayFrame(null);
+      clearCart();
+      try { sessionStorage.removeItem("intemperie-checkout-address"); } catch {}
+      router.push(`/checkout/success?ref=${tilopayFrame.orderId.slice(0, 8).toUpperCase()}&method=tilopay`);
+    };
+
+    // postMessage from tilopay-return page loaded in iframe
+    const msgHandler = (e: MessageEvent) => {
       if (e.origin !== window.location.origin) return;
       if (e.data?.type === "tilopay-success") {
-        setTilopayFrame(null);
-        clearCart();
-        try { sessionStorage.removeItem("intemperie-checkout-address"); } catch {}
-        router.push(`/checkout/success?ref=${(e.data.orderId as string).slice(0, 8).toUpperCase()}&method=tilopay`);
+        succeed();
       } else if (e.data?.type === "tilopay-error") {
         setTilopayFrame(null);
         const reason = e.data.reason as string;
@@ -109,8 +115,23 @@ export default function CheckoutPage() {
         );
       }
     };
-    window.addEventListener("message", handler);
-    return () => window.removeEventListener("message", handler);
+    window.addEventListener("message", msgHandler);
+
+    // Polling fallback every 3 s — catches cases where returnData redirect fails
+    const poll = setInterval(async () => {
+      try {
+        const { orderStatus } = await getOrderPaymentStatus(tilopayFrame.orderId);
+        if (orderStatus === "CONFIRMED") {
+          clearInterval(poll);
+          succeed();
+        }
+      } catch { /* ignore transient errors */ }
+    }, 3000);
+
+    return () => {
+      window.removeEventListener("message", msgHandler);
+      clearInterval(poll);
+    };
   }, [tilopayFrame, clearCart, router]);
 
   if (!ready) {

@@ -66,6 +66,10 @@ export async function chargeTilopay(
   });
 }
 
+export async function getOrderPaymentStatus(orderId: string): Promise<{ orderStatus: string; paymentStatus: string | null }> {
+  return request(`/payments/order-status/${orderId}`);
+}
+
 export async function initiateTilopay(orderId: string): Promise<{ url: string }> {
   return request<{ url: string }>("/payments/tilopay/initiate", {
     method: "POST",
