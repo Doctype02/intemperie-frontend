@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/lib/store/cart-store";
 import { useAuthStore } from "@/lib/store/auth-store";
-import { createOrder, initiateTilopay } from "@/lib/api/orders";
+import { createOrder, chargeTilopay } from "@/lib/api/orders";
 import { Check, ArrowLeft, ShoppingCart, Lock, Loader2 } from "lucide-react";
 import type { GuestAddress } from "@/types";
 
@@ -26,6 +26,7 @@ export default function CheckoutPage() {
   const [address, setAddress] = useState<GuestAddress>(emptyAddress);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [card, setCard] = useState({ number: "", expiry: "", cvv: "" });
 
   const router = useRouter();
   const { isAuthenticated, user } = useAuthStore();
@@ -130,22 +131,35 @@ export default function CheckoutPage() {
     guestEmail: address.email || undefined,
   });
 
-  const handleTilopay = async () => {
+  const formatCardNumber = (val: string) =>
+    val.replace(/\D/g, "").slice(0, 16).replace(/(.{4})/g, "$1 ").trim();
+
+  const formatExpiry = (val: string) => {
+    const digits = val.replace(/\D/g, "").slice(0, 4);
+    return digits.length > 2 ? digits.slice(0, 2) + "/" + digits.slice(2) : digits;
+  };
+
+  const handleTilopay = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const digits = card.number.replace(/\s/g, "");
+    const [expM, expY] = card.expiry.split("/");
+    if (digits.length < 13 || !expM || !expY || card.cvv.length < 3) {
+      setError("Completa los datos de la tarjeta correctamente.");
+      return;
+    }
     setLoading(true);
     setError("");
     try {
-      // 1. Create order in DB
       const order = await createOrder(buildOrderPayload("TILOPAY"));
-
-      // 2. Persist orderId so tilopay-return can use it
-      try { sessionStorage.setItem("intemperie-pending-order-id", order.id); } catch {}
-
-      // 3. Get Tilopay redirect URL from backend
-      const { url } = await initiateTilopay(order.id);
-
-      // 4. Clear address from session, redirect
+      await chargeTilopay(order.id, {
+        cardNumber: digits,
+        expMonth: expM.padStart(2, "0"),
+        expYear: expY.length === 2 ? "20" + expY : expY,
+        cvv: card.cvv,
+      });
       try { sessionStorage.removeItem("intemperie-checkout-address"); } catch {}
-      window.location.href = url;
+      clearCart();
+      router.push(`/checkout/success?ref=${order.id.slice(0, 8).toUpperCase()}&method=tilopay`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al procesar el pago. Intenta de nuevo.");
       setLoading(false);
@@ -298,18 +312,17 @@ export default function CheckoutPage() {
                   )}
 
                   <div className="space-y-3">
-                    {/* Tilopay card payment */}
-                    <div className="rounded-xl border-2 border-green-200 bg-green-50/40 p-5">
-                      <div className="flex items-start justify-between gap-4 mb-3">
+                    {/* Tilopay — direct card form */}
+                    <form onSubmit={handleTilopay} className="rounded-xl border-2 border-green-200 bg-green-50/40 p-5">
+                      <div className="flex items-center justify-between mb-4">
                         <div>
                           <p className="text-sm font-bold text-gray-900">Pagar con tarjeta</p>
-                          <p className="text-xs text-gray-500 mt-0.5">Visa, Mastercard, Amex · Yappy · Apple Pay</p>
+                          <p className="text-xs text-gray-500 mt-0.5">Visa · Mastercard · Amex</p>
                         </div>
                         <div className="flex gap-1 shrink-0">
                           {[
                             { label: "VISA", bg: "bg-blue-600", text: "text-white" },
                             { label: "MC", bg: "bg-red-500", text: "text-white" },
-                            { label: "Yappy", bg: "bg-yellow-400", text: "text-gray-900" },
                           ].map((m) => (
                             <span key={m.label} className={`rounded px-1.5 py-0.5 text-[9px] font-black ${m.bg} ${m.text}`}>
                               {m.label}
@@ -317,19 +330,65 @@ export default function CheckoutPage() {
                           ))}
                         </div>
                       </div>
-                      <p className="text-[11px] text-gray-400 mb-3">
-                        Serás redirigido a la plataforma segura de Tilopay. Pago protegido con 3DS y PCI DSS.
-                      </p>
+
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Número de tarjeta</label>
+                          <input
+                            required
+                            placeholder="1234 5678 9012 3456"
+                            className={inputCls}
+                            value={card.number}
+                            maxLength={19}
+                            onChange={(e) => setCard({ ...card, number: formatCardNumber(e.target.value) })}
+                            inputMode="numeric"
+                            autoComplete="cc-number"
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">Vencimiento</label>
+                            <input
+                              required
+                              placeholder="MM/AA"
+                              className={inputCls}
+                              value={card.expiry}
+                              maxLength={5}
+                              onChange={(e) => setCard({ ...card, expiry: formatExpiry(e.target.value) })}
+                              inputMode="numeric"
+                              autoComplete="cc-exp"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">CVV</label>
+                            <input
+                              required
+                              placeholder="123"
+                              type="password"
+                              className={inputCls}
+                              value={card.cvv}
+                              maxLength={4}
+                              onChange={(e) => setCard({ ...card, cvv: e.target.value.replace(/\D/g, "").slice(0, 4) })}
+                              inputMode="numeric"
+                              autoComplete="cc-csc"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
                       <Button
-                        className="w-full bg-green-700 hover:bg-green-800 h-12 text-sm font-bold"
+                        type="submit"
+                        className="mt-4 w-full bg-green-700 hover:bg-green-800 h-12 text-sm font-bold"
                         disabled={loading}
-                        onClick={handleTilopay}
                       >
                         {loading ? (
                           <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Procesando…</>
-                        ) : "Pagar con tarjeta →"}
+                        ) : `Pagar $${total.toFixed(2)}`}
                       </Button>
-                    </div>
+                      <p className="text-[10px] text-gray-400 text-center mt-2 flex items-center justify-center gap-1">
+                        <Lock className="h-3 w-3" /> Pago seguro con Tilopay · PCI DSS
+                      </p>
+                    </form>
 
                     <div className="flex items-center gap-3">
                       <div className="flex-1 border-t border-gray-200" />

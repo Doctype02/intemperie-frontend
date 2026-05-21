@@ -56,6 +56,16 @@ export async function setDefaultAddress(id: string): Promise<Address> {
   return res.data;
 }
 
+export async function chargeTilopay(
+  orderId: string,
+  card: { cardNumber: string; expMonth: string; expYear: string; cvv: string },
+): Promise<{ success: boolean; transactionRef?: string }> {
+  return request("/payments/tilopay/charge", {
+    method: "POST",
+    body: JSON.stringify({ orderId, ...card }),
+  });
+}
+
 export async function initiateTilopay(orderId: string): Promise<{ url: string }> {
   return request<{ url: string }>("/payments/tilopay/initiate", {
     method: "POST",
