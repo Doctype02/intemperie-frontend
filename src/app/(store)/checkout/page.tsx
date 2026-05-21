@@ -102,7 +102,7 @@ export default function CheckoutPage() {
 
     // postMessage from tilopay-return page loaded in iframe
     const msgHandler = (e: MessageEvent) => {
-      if (e.origin !== window.location.origin) return;
+      if (e.origin !== window.location.origin && e.origin !== "null") return;
       if (e.data?.type === "tilopay-success") {
         succeed();
       } else if (e.data?.type === "tilopay-error") {
