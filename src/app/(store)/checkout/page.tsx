@@ -89,6 +89,30 @@ export default function CheckoutPage() {
     } catch {}
   }, [address, ready]);
 
+  // Listen for postMessage from tilopay-return iframe
+  useEffect(() => {
+    if (!tilopayFrame) return;
+    const handler = (e: MessageEvent) => {
+      if (e.origin !== window.location.origin) return;
+      if (e.data?.type === "tilopay-success") {
+        setTilopayFrame(null);
+        clearCart();
+        try { sessionStorage.removeItem("intemperie-checkout-address"); } catch {}
+        router.push(`/checkout/success?ref=${(e.data.orderId as string).slice(0, 8).toUpperCase()}&method=tilopay`);
+      } else if (e.data?.type === "tilopay-error") {
+        setTilopayFrame(null);
+        const reason = e.data.reason as string;
+        setError(
+          reason === "rejected" ? "El pago fue rechazado. Intenta con otra tarjeta." :
+          reason === "confirm-failed" ? "Error al confirmar el pago. Contacta soporte." :
+          "Ocurrió un error con el pago."
+        );
+      }
+    };
+    window.addEventListener("message", handler);
+    return () => window.removeEventListener("message", handler);
+  }, [tilopayFrame, clearCart, router]);
+
   if (!ready) {
     return (
       <main className="flex-1 bg-gray-50">
@@ -159,30 +183,6 @@ export default function CheckoutPage() {
     guestName: address.name,
     guestEmail: address.email || undefined,
   });
-
-  // Listen for postMessage from tilopay-return iframe
-  useEffect(() => {
-    if (!tilopayFrame) return;
-    const handler = (e: MessageEvent) => {
-      if (e.origin !== window.location.origin) return;
-      if (e.data?.type === "tilopay-success") {
-        setTilopayFrame(null);
-        clearCart();
-        try { sessionStorage.removeItem("intemperie-checkout-address"); } catch {}
-        router.push(`/checkout/success?ref=${(e.data.orderId as string).slice(0, 8).toUpperCase()}&method=tilopay`);
-      } else if (e.data?.type === "tilopay-error") {
-        setTilopayFrame(null);
-        const reason = e.data.reason as string;
-        setError(
-          reason === "rejected" ? "El pago fue rechazado. Intenta con otra tarjeta." :
-          reason === "confirm-failed" ? "Error al confirmar el pago. Contacta soporte." :
-          "Ocurrió un error con el pago."
-        );
-      }
-    };
-    window.addEventListener("message", handler);
-    return () => window.removeEventListener("message", handler);
-  }, [tilopayFrame, clearCart, router]);
 
   const handleTilopay = async () => {
     setLoading(true);
