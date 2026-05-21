@@ -4,7 +4,7 @@ import { useRef } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
 import { ProductCard } from "@/components/products/product-card";
-import type { ProductImage } from "@/types";
+import type { ProductImage, ProductUnit } from "@/types";
 
 export interface CarouselProduct {
   id: string;
@@ -12,7 +12,7 @@ export interface CarouselProduct {
   slug: string;
   basePrice: number;
   comparePrice?: number;
-  unit: string;
+  unit: ProductUnit;
   stock: number;
   isNew?: boolean;
   reviewCount?: number;

@@ -29,7 +29,7 @@ function LoginForm() {
     setError("");
     try {
       const result = await loginApi(data.email, data.password);
-      setAuth(result.user, result.tokens.accessToken, result.tokens.refreshToken);
+      setAuth(result.user, result.accessToken, result.refreshToken);
       const redirect = searchParams.get("redirect") || "/";
       router.push(redirect);
       router.refresh();

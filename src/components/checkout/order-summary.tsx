@@ -5,12 +5,12 @@ import type { CartItem } from "@/types";
 interface OrderSummaryProps {
   items: CartItem[];
   subtotal: number;
-  addressName: string;
+  addressName?: string;
 }
 
 export function OrderSummary({ items, subtotal, addressName }: OrderSummaryProps) {
   const tax = subtotal * 0.07;
-  const shipping = subtotal > 500 ? 0 : 35;
+  const shipping = subtotal > 500 ? 0 : 5.99;
   const total = subtotal + tax + shipping;
 
   return (
@@ -23,17 +23,11 @@ export function OrderSummary({ items, subtotal, addressName }: OrderSummaryProps
             <div className="flex-1">
               <p className="font-medium">{item.product.name}</p>
               <p className="text-gray-500">
-                {item.quantity} {item.unit === "meters" ? "metros" : "paneles"}
+                {item.quantity} {item.product.unit === "METRO" ? "m" : "unid."}
               </p>
             </div>
             <span className="font-medium">
-              {formatCurrency(
-                item.unit === "meters"
-                  ? item.quantity * item.product.pricePerMeter
-                  : item.quantity *
-                      (item.product.pricePerPanel ??
-                        item.product.pricePerMeter * (item.product.panelWidth ?? 2.5))
-              )}
+              {formatCurrency(Number(item.product.basePrice) * item.quantity)}
             </span>
           </div>
         ))}
@@ -63,11 +57,11 @@ export function OrderSummary({ items, subtotal, addressName }: OrderSummaryProps
         <span className="text-green-700">{formatCurrency(total)}</span>
       </div>
 
-      <div className="text-sm text-gray-500">
-        <p>
+      {addressName && (
+        <div className="text-sm text-gray-500">
           <span className="font-medium">Dirección de envío:</span> {addressName}
-        </p>
-      </div>
+        </div>
+      )}
     </div>
   );
 }

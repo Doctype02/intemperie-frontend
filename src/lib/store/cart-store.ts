@@ -1,15 +1,16 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import type { ProductUnit } from "@/types";
 
 interface CartProduct {
   id: string;
   name: string;
   slug: string;
   basePrice: number;
-  unit: string;
+  unit: ProductUnit;
   stock: number;
-  collection?: { name: string };
-  category?: { name: string };
+  collection?: { name: string } | null;
+  category?: { name: string } | null;
   images?: { url: string; alt?: string | null }[];
 }
 
@@ -48,12 +49,15 @@ export const useCartStore = create<CartState>()(
             };
           }
           return {
-            items: [...state.items, {
-              id: Math.random().toString(36).slice(2),
-              productId: product.id,
-              product,
-              quantity,
-            }],
+            items: [
+              ...state.items,
+              {
+                id: crypto.randomUUID(),
+                productId: product.id,
+                product,
+                quantity,
+              },
+            ],
           };
         });
       },
@@ -80,23 +84,31 @@ export const useCartStore = create<CartState>()(
 
       itemCount: () => {
         try {
-          return get().items.filter(i => i && i.product).reduce((sum, item) => sum + item.quantity, 0);
-        } catch { return 0; }
+          return get()
+            .items.filter((i) => i && i.product)
+            .reduce((sum, item) => sum + item.quantity, 0);
+        } catch {
+          return 0;
+        }
       },
 
       subtotal: () => {
         try {
-          return get().items
-            .filter(i => i && i.product)
+          return get()
+            .items.filter((i) => i && i.product)
             .reduce((sum, item) => sum + (Number(item.product.basePrice) || 0) * item.quantity, 0);
-        } catch { return 0; }
+        } catch {
+          return 0;
+        }
       },
     }),
     {
       name: "intemperie-cart",
       onRehydrateStorage: () => (state) => {
         if (state) {
-          state.items = (state.items || []).filter((item: any) => item && item.product && item.productId);
+          state.items = (state.items || []).filter(
+            (item: any) => item && item.product && item.productId
+          );
         }
       },
     }

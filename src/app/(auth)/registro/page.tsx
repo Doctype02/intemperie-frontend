@@ -36,7 +36,7 @@ export default function RegisterPage() {
         email: data.email,
         password: data.password,
       });
-      setAuth(result.user, result.tokens.accessToken, result.tokens.refreshToken);
+      setAuth(result.user, result.accessToken, result.refreshToken);
       router.push("/");
       router.refresh();
     } catch (err) {

@@ -19,7 +19,7 @@ interface ProductData {
   basePrice?: number;
   pricePerMeter?: number;
   comparePrice?: number;
-  unit?: string;
+  unit?: import("@/types").ProductUnit;
   stock: number;
   sku?: string;
   collection?: { name: string };
@@ -121,7 +121,7 @@ export function ProductDetailClient({ product }: { product: ProductData }) {
 
   // Normalize price — API may return either field
   const price     = Number(product.pricePerMeter ?? product.basePrice ?? 0);
-  const unitLabel = product.unit === "PANEL" ? "/panel" : product.unit === "M2" ? "/m²" : "/m lineal";
+  const unitLabel = product.unit === "PANEL" ? "/panel" : "/m lineal";
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const specs: { label: string; value: any }[] =

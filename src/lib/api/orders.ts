@@ -1,17 +1,9 @@
 import { request } from "@/lib/api";
-import type { ApiResponse, Order, PaginatedResponse, Address } from "@/types";
+import type { ApiResponse, Order, Address, CreateOrderPayload } from "@/types";
 
-export async function getOrders(params?: {
-  page?: number;
-  limit?: number;
-}): Promise<PaginatedResponse<Order>> {
-  const searchParams = new URLSearchParams();
-  if (params?.page) searchParams.set("page", String(params.page));
-  if (params?.limit) searchParams.set("limit", String(params.limit));
-  const query = searchParams.toString();
-  return request<PaginatedResponse<Order>>(
-    `/orders${query ? `?${query}` : ""}`
-  );
+export async function getOrders(): Promise<Order[]> {
+  const res = await request<ApiResponse<Order[]>>("/orders");
+  return res.data;
 }
 
 export async function getOrderById(id: string): Promise<Order> {
@@ -19,13 +11,10 @@ export async function getOrderById(id: string): Promise<Order> {
   return res.data;
 }
 
-export async function createOrder(data: {
-  addressId: string;
-  items: { productId: string; quantity: number; unit: "meters" | "panels" }[];
-}): Promise<Order> {
+export async function createOrder(payload: CreateOrderPayload): Promise<Order> {
   const res = await request<ApiResponse<Order>>("/orders", {
     method: "POST",
-    body: JSON.stringify(data),
+    body: JSON.stringify(payload),
   });
   return res.data;
 }
@@ -58,4 +47,28 @@ export async function updateAddress(
 
 export async function deleteAddress(id: string): Promise<void> {
   await request(`/addresses/${id}`, { method: "DELETE" });
+}
+
+export async function setDefaultAddress(id: string): Promise<Address> {
+  const res = await request<ApiResponse<Address>>(`/addresses/${id}/default`, {
+    method: "PATCH",
+  });
+  return res.data;
+}
+
+export async function initiateTilopay(orderId: string): Promise<{ url: string }> {
+  return request<{ url: string }>("/payments/tilopay/initiate", {
+    method: "POST",
+    body: JSON.stringify({ orderId }),
+  });
+}
+
+export async function confirmTilopay(
+  orderId: string,
+  tpt: string
+): Promise<{ success: boolean; alreadyConfirmed: boolean }> {
+  return request("/payments/tilopay/confirm", {
+    method: "POST",
+    body: JSON.stringify({ orderId, tpt }),
+  });
 }

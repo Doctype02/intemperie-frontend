@@ -52,7 +52,7 @@ export default function OrdersPage() {
     const fetchOrders = async () => {
       try {
         const data = await getOrders();
-        setOrders(data.data || []);
+        setOrders(data || []);
       } catch {
         // silently fail
       } finally {

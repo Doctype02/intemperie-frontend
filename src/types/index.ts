@@ -1,20 +1,24 @@
+// Roles match backend Prisma enum Role { CLIENT | ADMIN }
+export type UserRole = 'CLIENT' | 'ADMIN';
+
 export interface User {
   id: string;
   name: string;
   email: string;
-  role: "CUSTOMER" | "ADMIN";
+  phone?: string | null;
+  role: UserRole;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface Address {
   id: string;
-  userId: string;
-  fullName: string;
+  userId: string | null;
   street: string;
   city: string;
-  state: string;
-  zipCode: string;
+  province: string;
+  country: string;
+  postalCode?: string | null;
   phone: string;
   isDefault: boolean;
   createdAt: string;
@@ -46,24 +50,25 @@ export interface ProductImage {
   order?: number;
 }
 
+// Product unit matches backend enum: METRO | PANEL | UNIDAD
+export type ProductUnit = 'METRO' | 'PANEL' | 'UNIDAD';
+
 export interface Product {
   id: string;
   name: string;
   slug: string;
   description: string;
-  pricePerMeter: number;
-  pricePerPanel: number | null;
-  panelHeight: number | null;
-  panelWidth: number | null;
-  material: string;
+  categoryId: string;
+  collectionId: string;
+  basePrice: number;
+  unit: ProductUnit;
   stock: number;
   isActive: boolean;
-  categoryId: string;
-  collectionId: string | null;
   category?: Category;
   collection?: Collection | null;
   images: ProductImage[];
-  specifications: Record<string, string> | null;
+  attributes?: Record<string, unknown> | null;
+  specifications?: { label: string; value: string }[] | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -73,7 +78,6 @@ export interface CartItem {
   productId: string;
   product: Product;
   quantity: number;
-  unit: "meters" | "panels";
 }
 
 export interface Cart {
@@ -87,40 +91,50 @@ export interface Cart {
 
 export interface OrderItem {
   id: string;
+  orderId: string;
   productId: string;
-  product: Product;
+  productName: string;
   quantity: number;
-  unit: "meters" | "panels";
   unitPrice: number;
   totalPrice: number;
+  product?: Product;
 }
 
-export interface Order {
-  id: string;
-  userId: string;
-  user?: User;
-  status: "PENDING" | "CONFIRMED" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "CANCELLED";
-  total: number;
-  subtotal: number;
-  tax: number;
-  shippingCost: number;
-  shippingAddress: Address;
-  items: OrderItem[];
-  paymentId: string | null;
-  paymentStatus: "PENDING" | "PAID" | "FAILED" | "REFUNDED";
-  createdAt: string;
-  updatedAt: string;
-}
+export type OrderStatus = 'PENDING' | 'CONFIRMED' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
+export type PaymentStatus = 'PENDING' | 'COMPLETED' | 'FAILED' | 'REFUNDED';
+export type PaymentMethod = 'STRIPE' | 'TRANSFERENCIA' | 'TILOPAY' | 'MERCADOPAGO';
 
 export interface Payment {
   id: string;
   orderId: string;
-  amount: number;
-  currency: string;
-  method: string;
-  status: "PENDING" | "PAID" | "FAILED" | "REFUNDED";
   stripeSessionId: string | null;
+  stripePaymentIntentId: string | null;
+  tilopayRef: string | null;
+  status: PaymentStatus;
+  amount: number;
+  paidAt: string | null;
   createdAt: string;
+}
+
+export interface Order {
+  id: string;
+  userId: string | null;
+  guestName: string | null;
+  guestEmail: string | null;
+  status: OrderStatus;
+  subtotal: number;
+  tax: number;
+  shipping: number;
+  total: number;
+  shippingAddressId: string;
+  shippingAddress: Address;
+  paymentMethod: PaymentMethod;
+  notes: string | null;
+  items: OrderItem[];
+  payment: Payment | null;
+  user?: Pick<User, 'id' | 'name' | 'email'> | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Review {
@@ -135,25 +149,33 @@ export interface Review {
 
 export interface ContentBlock {
   id: string;
-  key: string;
-  title: string;
-  body: string;
+  section: string;
+  title: string | null;
+  subtitle: string | null;
+  body: string | null;
   image: string | null;
+  link: string | null;
+  order: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface CalculatorInput {
-  productId: string;
-  linearMeters: number;
+  productSlug: string;
+  meters: number;
   includeInstallation: boolean;
 }
 
 export interface CalculatorResult {
   productName: string;
-  linearMeters: number;
-  costPerMeter: number;
-  materialCost: number;
+  unitPrice: number;
+  meters: number;
+  subtotal: number;
   installationCost: number;
-  totalCost: number;
+  tax: number;
+  total: number;
+  details: { description: string; amount: number }[];
 }
 
 export interface ApiResponse<T> {
@@ -180,7 +202,8 @@ export interface AuthTokens {
 
 export interface AuthResponse {
   user: User;
-  tokens: AuthTokens;
+  accessToken: string;
+  refreshToken: string;
 }
 
 export interface LoginInput {
@@ -194,7 +217,29 @@ export interface RegisterInput {
   password: string;
 }
 
-export interface CheckoutInput {
-  addressId: string;
-  items: { productId: string; quantity: number; unit: "meters" | "panels" }[];
+// Inline address for guest checkout or new address on checkout
+export interface GuestAddress {
+  name: string;
+  email: string;
+  street: string;
+  city: string;
+  province: string;
+  phone: string;
+}
+
+export interface CreateOrderPayload {
+  items: { productId: string; quantity: number }[];
+  paymentMethod: 'STRIPE' | 'TRANSFERENCIA' | 'TILOPAY';
+  shippingAddressId?: string;
+  guestAddress?: {
+    street: string;
+    city: string;
+    province: string;
+    phone: string;
+    country?: string;
+    postalCode?: string;
+  };
+  guestName?: string;
+  guestEmail?: string;
+  notes?: string;
 }

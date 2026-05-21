@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import type { ProductUnit } from "@/types";
 
 export interface WishlistItem {
   id: string;
   name: string;
   slug: string;
   basePrice: number;
-  unit: string;
+  unit: ProductUnit;
   imageUrl?: string;
   categoryName?: string;
 }

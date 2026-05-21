@@ -8,7 +8,7 @@ import { useCartStore } from "@/lib/store/cart-store";
 import { useWishlist } from "@/lib/hooks/use-wishlist";
 import { BLUR_PLACEHOLDER } from "@/lib/image-utils";
 import { useImageOnLoad } from "@/lib/image-load-context";
-import type { ProductImage } from "@/types";
+import type { ProductImage, ProductUnit } from "@/types";
 
 interface ProductCardProps {
   id: string;
@@ -16,7 +16,7 @@ interface ProductCardProps {
   slug: string;
   basePrice: number;
   comparePrice?: number;
-  unit: string;
+  unit: ProductUnit;
   stock: number;
   isNew?: boolean;
   reviewCount?: number;

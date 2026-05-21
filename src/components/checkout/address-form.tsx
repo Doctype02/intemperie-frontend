@@ -25,11 +25,11 @@ export function AddressForm({ onSubmit, isSubmitting, defaultValues }: AddressFo
   } = useForm<AddressInput>({
     resolver: zodResolver(addressSchema),
     defaultValues: {
-      fullName: defaultValues?.fullName || "",
       street: defaultValues?.street || "",
       city: defaultValues?.city || "",
-      state: defaultValues?.state || "",
-      zipCode: defaultValues?.zipCode || "",
+      province: defaultValues?.province || "",
+      country: defaultValues?.country || "Panama",
+      postalCode: defaultValues?.postalCode || "",
       phone: defaultValues?.phone || "",
       isDefault: defaultValues?.isDefault ?? true,
     },
@@ -37,14 +37,6 @@ export function AddressForm({ onSubmit, isSubmitting, defaultValues }: AddressFo
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="fullName">Nombre completo</Label>
-        <Input id="fullName" {...register("fullName")} placeholder="Juan Pérez" />
-        {errors.fullName && (
-          <p className="text-sm text-red-500">{errors.fullName.message}</p>
-        )}
-      </div>
-
       <div className="space-y-2">
         <Label htmlFor="phone">Teléfono</Label>
         <Input id="phone" {...register("phone")} placeholder="+507 6000-0000" />
@@ -71,20 +63,17 @@ export function AddressForm({ onSubmit, isSubmitting, defaultValues }: AddressFo
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="state">Provincia</Label>
-          <Input id="state" {...register("state")} placeholder="Panamá Oeste" />
-          {errors.state && (
-            <p className="text-sm text-red-500">{errors.state.message}</p>
+          <Label htmlFor="province">Provincia</Label>
+          <Input id="province" {...register("province")} placeholder="Panamá Oeste" />
+          {errors.province && (
+            <p className="text-sm text-red-500">{errors.province.message}</p>
           )}
         </div>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="zipCode">Código postal</Label>
-        <Input id="zipCode" {...register("zipCode")} placeholder="1001" />
-        {errors.zipCode && (
-          <p className="text-sm text-red-500">{errors.zipCode.message}</p>
-        )}
+        <Label htmlFor="postalCode">Código postal (opcional)</Label>
+        <Input id="postalCode" {...register("postalCode")} placeholder="1001" />
       </div>
 
       <div className="flex items-center gap-2">
@@ -103,7 +92,7 @@ export function AddressForm({ onSubmit, isSubmitting, defaultValues }: AddressFo
         className="w-full bg-green-700 hover:bg-green-800"
         disabled={isSubmitting}
       >
-        {isSubmitting ? "Guardando..." : "Continuar"}
+        {isSubmitting ? "Guardando..." : "Guardar dirección"}
       </Button>
     </form>
   );

@@ -43,7 +43,7 @@ function normalizeProduct(p: ApiProduct): CarouselProduct {
     slug:         String(p.slug ?? ""),
     basePrice:    Number(p.pricePerMeter ?? p.basePrice ?? 0),
     comparePrice: p.comparePrice ? Number(p.comparePrice) : undefined,
-    unit:         String(p.unit ?? "METRO"),
+    unit:         (p.unit ?? "METRO") as import("@/types").ProductUnit,
     stock:        Number(p.stock ?? 0),
     isNew,
     reviewCount:  p.reviewCount ? Number(p.reviewCount) : undefined,

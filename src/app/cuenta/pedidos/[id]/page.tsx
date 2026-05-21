@@ -115,9 +115,9 @@ export default function OrderDetailPage() {
                     className="flex items-center justify-between py-2 border-b last:border-0"
                   >
                     <div>
-                      <p className="font-medium text-sm">{item.product.name}</p>
+                      <p className="font-medium text-sm">{item.productName}</p>
                       <p className="text-sm text-gray-500">
-                        {item.quantity} {item.unit === "meters" ? "metros" : "paneles"}
+                        {item.quantity} {item.product?.unit === "METRO" ? "metros" : "unid."}
                       </p>
                     </div>
                     <span className="font-medium">{formatCurrency(item.totalPrice)}</span>
@@ -131,11 +131,10 @@ export default function OrderDetailPage() {
             <CardContent className="p-6">
               <h3 className="font-semibold mb-4">Dirección de Envío</h3>
               <div className="text-sm text-gray-600">
-                <p className="font-medium text-gray-900">{order.shippingAddress.fullName}</p>
                 <p>{order.shippingAddress.street}</p>
                 <p>
-                  {order.shippingAddress.city}, {order.shippingAddress.state}{" "}
-                  {order.shippingAddress.zipCode}
+                  {order.shippingAddress.city}, {order.shippingAddress.province}
+                  {order.shippingAddress.postalCode ? ` ${order.shippingAddress.postalCode}` : ""}
                 </p>
                 <p>{order.shippingAddress.phone}</p>
               </div>
@@ -159,7 +158,7 @@ export default function OrderDetailPage() {
                 <div className="flex justify-between">
                   <span className="text-gray-600">Envío</span>
                   <span>
-                    {order.shippingCost === 0 ? "Gratis" : formatCurrency(order.shippingCost)}
+                    {order.shipping === 0 ? "Gratis" : formatCurrency(order.shipping)}
                   </span>
                 </div>
               </div>

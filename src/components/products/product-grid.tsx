@@ -1,13 +1,14 @@
 "use client";
 
 import { ProductCard } from "./product-card";
+import type { ProductUnit } from "@/types";
 
 interface Product {
   id: string;
   name: string;
   slug: string;
   basePrice: number;
-  unit: string;
+  unit: ProductUnit;
   stock: number;
   category?: { name: string };
   collection?: { name: string };

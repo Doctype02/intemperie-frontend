@@ -48,7 +48,15 @@ export default function AddressesPage() {
   const handleAddAddress = async (data: AddressInput) => {
     setIsSubmitting(true);
     try {
-      const newAddress = await createAddress(data as Omit<Address, "id" | "userId" | "createdAt" | "updatedAt">);
+      const newAddress = await createAddress({
+        street: data.street,
+        city: data.city,
+        province: data.province,
+        country: data.country ?? "Panama",
+        postalCode: data.postalCode,
+        phone: data.phone,
+        isDefault: data.isDefault ?? false,
+      });
       setAddresses((prev) => [...prev, newAddress]);
       setDialogOpen(false);
     } catch {
@@ -108,10 +116,10 @@ export default function AddressesPage() {
               <CardContent className="p-5">
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
-                    <p className="font-semibold text-gray-900">{address.fullName}</p>
                     <p className="text-sm text-gray-600">{address.street}</p>
                     <p className="text-sm text-gray-600">
-                      {address.city}, {address.state} {address.zipCode}
+                      {address.city}, {address.province}
+                      {address.postalCode ? ` ${address.postalCode}` : ""}
                     </p>
                     <p className="text-sm text-gray-600">{address.phone}</p>
                     {address.isDefault && (

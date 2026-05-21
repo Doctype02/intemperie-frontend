@@ -18,11 +18,11 @@ export const registerSchema = z
   });
 
 export const addressSchema = z.object({
-  fullName: z.string().min(2, "El nombre completo es requerido"),
   street: z.string().min(5, "La dirección es requerida"),
   city: z.string().min(2, "La ciudad es requerida"),
-  state: z.string().min(2, "La provincia es requerida"),
-  zipCode: z.string().min(1, "El código postal es requerido"),
+  province: z.string().min(2, "La provincia es requerida"),
+  country: z.string().min(1),
+  postalCode: z.string().optional(),
   phone: z.string().min(8, "El teléfono debe tener al menos 8 dígitos"),
   isDefault: z.boolean().optional(),
 });

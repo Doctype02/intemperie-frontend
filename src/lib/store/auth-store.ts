@@ -1,3 +1,7 @@
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import type { User } from "@/types";
+
 function setCookie(name: string, value: string, days: number) {
   if (typeof document === "undefined") return;
   const expires = new Date(Date.now() + days * 86400000).toUTCString();
@@ -8,10 +12,6 @@ function clearCookie(name: string) {
   if (typeof document === "undefined") return;
   document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
 }
-
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
-import type { User } from "@/types";
 
 interface AuthState {
   user: User | null;
@@ -34,10 +34,12 @@ export const useAuthStore = create<AuthState>()(
 
       setAuth: (user, accessToken, refreshToken) => {
         if (typeof window !== "undefined") {
+          // localStorage for API calls (client-only, not edge middleware)
           localStorage.setItem("accessToken", accessToken);
           localStorage.setItem("refreshToken", refreshToken);
+          // Cookies for Next.js middleware (edge runtime reads these)
+          // accessToken cookie contains the full JWT so middleware can decode the role
           setCookie("accessToken", accessToken, 7);
-          setCookie("userRole", user.role, 7);
         }
         set({ user, accessToken, refreshToken, isAuthenticated: true });
       },
@@ -49,18 +51,11 @@ export const useAuthStore = create<AuthState>()(
           localStorage.removeItem("accessToken");
           localStorage.removeItem("refreshToken");
           clearCookie("accessToken");
-          clearCookie("userRole");
+          clearCookie("userRole"); // legacy — kept for clean removal
         }
-        set({
-          user: null,
-          accessToken: null,
-          refreshToken: null,
-          isAuthenticated: false,
-        });
+        set({ user: null, accessToken: null, refreshToken: null, isAuthenticated: false });
       },
     }),
-    {
-      name: "intemperie-auth",
-    }
+    { name: "intemperie-auth" }
   )
 );
