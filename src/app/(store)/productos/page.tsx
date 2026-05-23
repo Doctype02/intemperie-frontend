@@ -12,7 +12,7 @@ async function getCategories() {
     const res = await fetch(`${API_BASE}/categories`, { next: { revalidate: 300 } });
     if (!res.ok) return [];
     const data = await res.json();
-    return Array.isArray(data) ? data : (data.value || data.data || []);
+    return data.data || [];
   } catch { return []; }
 }
 
@@ -21,7 +21,7 @@ async function getCollections() {
     const res = await fetch(`${API_BASE}/collections`, { next: { revalidate: 300 } });
     if (!res.ok) return [];
     const data = await res.json();
-    return Array.isArray(data) ? data : (data.value || data.data || []);
+    return data.data || [];
   } catch { return []; }
 }
 

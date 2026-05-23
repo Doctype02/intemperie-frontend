@@ -33,7 +33,7 @@ export default function AdminContent() {
 
   useEffect(() => {
     getContentBlocks()
-      .then((r: any) => setBlocks(r.data || r || []))
+      .then((r: any) => setBlocks(r || []))
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);

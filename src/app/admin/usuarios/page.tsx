@@ -26,7 +26,7 @@ export default function AdminUsers() {
 
   useEffect(() => {
     getAdminUsers({ limit: 100 })
-      .then((r: any) => setUsers(r.data || r || []))
+      .then((r: any) => setUsers(r || []))
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);

@@ -2,11 +2,10 @@ import { request } from "@/lib/api";
 import type { AuthResponse, AuthTokens, User } from "@/types";
 
 export async function login(email: string, password: string): Promise<AuthResponse> {
-  const res = await request<any>("/auth/login", {
+  return request<AuthResponse>("/auth/login", {
     method: "POST",
     body: JSON.stringify({ email, password }),
   });
-  return { user: res.user, accessToken: res.accessToken, refreshToken: res.refreshToken };
 }
 
 export async function register(data: {
@@ -14,19 +13,17 @@ export async function register(data: {
   email: string;
   password: string;
 }): Promise<AuthResponse> {
-  const res = await request<any>("/auth/register", {
+  return request<AuthResponse>("/auth/register", {
     method: "POST",
     body: JSON.stringify(data),
   });
-  return { user: res.user, accessToken: res.accessToken, refreshToken: res.refreshToken };
 }
 
 export async function refreshToken(token: string): Promise<AuthTokens> {
-  const res = await request<any>("/auth/refresh", {
+  return request<AuthTokens>("/auth/refresh", {
     method: "POST",
     body: JSON.stringify({ refreshToken: token }),
   });
-  return { accessToken: res.accessToken, refreshToken: res.refreshToken };
 }
 
 export async function logout(): Promise<void> {
@@ -34,6 +31,5 @@ export async function logout(): Promise<void> {
 }
 
 export async function getMe(): Promise<User> {
-  const res = await request<any>("/auth/me");
-  return res.user || res;
+  return request<User>("/auth/me");
 }

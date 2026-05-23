@@ -14,7 +14,7 @@ async function getCategoryBySlug(slug: string): Promise<Category | null> {
   const res = await fetch(`${API_BASE}/categories/${slug}`, { cache: "no-store" });
   if (!res.ok) return null;
   const data = await res.json();
-  return data || null;
+  return data.data || data || null;
 }
 
 async function getProductsByCategory(slug: string) {

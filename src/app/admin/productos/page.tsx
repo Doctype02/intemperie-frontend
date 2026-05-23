@@ -70,9 +70,9 @@ export default function AdminProducts() {
       getCategories(),
       getCollections(),
     ]).then(([prods, cats, cols]) => {
-      setProducts(prods.data || prods);
-      setCategories(cats.data || cats || []);
-      setCollections(cols.data || cols || []);
+      setProducts(prods || []);
+      setCategories(cats || []);
+      setCollections(cols || []);
       setLoading(false);
     });
   }, []);
@@ -128,7 +128,7 @@ export default function AdminProducts() {
       setDialogOpen(false);
       resetForm();
       const prods = await getProducts({ limit: 100 });
-      setProducts((prods as any).data || prods);
+      setProducts((prods as any) || prods);
     } catch (e) {
       console.error(e);
     } finally {

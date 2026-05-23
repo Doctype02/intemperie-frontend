@@ -181,7 +181,17 @@ export interface CalculatorResult {
 export interface ApiResponse<T> {
   success: boolean;
   data: T;
-  message?: string;
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+  error?: {
+    message: string;
+    code?: string;
+    errors?: { field: string; message: string }[];
+  };
 }
 
 export interface PaginatedResponse<T> {

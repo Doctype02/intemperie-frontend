@@ -57,7 +57,7 @@ export default function AdminOrders() {
 
   useEffect(() => {
     getAdminOrders({ limit: 100 })
-      .then((r: any) => setOrders(r.data || r || []))
+      .then((r: any) => setOrders(r || []))
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);

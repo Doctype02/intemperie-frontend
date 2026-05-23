@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { User } from "@/types";
+import { setMemoryTokens, clearMemoryTokens } from "@/lib/api";
 
 function setCookie(name: string, value: string, days: number) {
   if (typeof document === "undefined") return;
@@ -34,12 +35,8 @@ export const useAuthStore = create<AuthState>()(
 
       setAuth: (user, accessToken, refreshToken) => {
         if (typeof window !== "undefined") {
-          // localStorage for API calls (client-only, not edge middleware)
-          localStorage.setItem("accessToken", accessToken);
-          localStorage.setItem("refreshToken", refreshToken);
-          // Cookies for Next.js middleware (edge runtime reads these)
-          // accessToken cookie contains the full JWT so middleware can decode the role
           setCookie("accessToken", accessToken, 7);
+          setMemoryTokens(accessToken, refreshToken);
         }
         set({ user, accessToken, refreshToken, isAuthenticated: true });
       },
@@ -48,14 +45,19 @@ export const useAuthStore = create<AuthState>()(
 
       logout: () => {
         if (typeof window !== "undefined") {
-          localStorage.removeItem("accessToken");
-          localStorage.removeItem("refreshToken");
           clearCookie("accessToken");
-          clearCookie("userRole"); // legacy — kept for clean removal
+          clearCookie("userRole");
+          clearMemoryTokens();
         }
         set({ user: null, accessToken: null, refreshToken: null, isAuthenticated: false });
       },
     }),
-    { name: "intemperie-auth" }
+    {
+      name: "intemperie-auth",
+      partialize: (state) => ({
+        user: state.user,
+        isAuthenticated: state.isAuthenticated,
+      }),
+    }
   )
 );

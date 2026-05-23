@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { jwtVerify } from "jose";
 
 const protectedPaths = ["/cuenta", "/admin"];
 const adminPaths = ["/admin"];
@@ -8,27 +9,33 @@ interface JwtPayload {
   userId: string;
   email: string;
   role: string;
-  exp: number;
+  exp?: number;
 }
 
-function decodeJwtPayload(token: string): JwtPayload | null {
+function getSecretKey(): Uint8Array {
+  const secret = process.env.JWT_ACCESS_SECRET;
+  if (!secret) {
+    throw new Error("JWT_ACCESS_SECRET environment variable is not set");
+  }
+  return new TextEncoder().encode(secret);
+}
+
+async function verifyToken(token: string): Promise<JwtPayload | null> {
   try {
-    const base64Url = token.split(".")[1];
-    if (!base64Url) return null;
-    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-    const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
-    const json = atob(padded);
-    return JSON.parse(json) as JwtPayload;
+    const secretKey = getSecretKey();
+    const { payload } = await jwtVerify(token, secretKey);
+    return payload as unknown as JwtPayload;
   } catch {
     return null;
   }
 }
 
 function isTokenExpired(payload: JwtPayload): boolean {
+  if (!payload.exp) return true;
   return payload.exp * 1000 < Date.now();
 }
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const isProtected = protectedPaths.some((p) => pathname.startsWith(p));
@@ -42,9 +49,8 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  const payload = decodeJwtPayload(accessToken);
+  const payload = await verifyToken(accessToken);
 
-  // Redirect to login if token is missing, malformed, or expired
   if (!payload || isTokenExpired(payload)) {
     const response = NextResponse.redirect(new URL("/login", request.url));
     response.cookies.delete("accessToken");

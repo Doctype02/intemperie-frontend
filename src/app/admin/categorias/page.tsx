@@ -23,7 +23,7 @@ export default function AdminCategories() {
 
   const load = () => {
     getCategories()
-      .then((r: any) => setItems(r.data || r || []))
+      .then((r: any) => setItems(r || []))
       .catch(console.error)
       .finally(() => setLoading(false));
   };
