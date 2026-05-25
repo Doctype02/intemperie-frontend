@@ -57,7 +57,7 @@ async function request<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const { accessToken } = await getTokens();
+  const { accessToken, refreshToken } = await getTokens();
 
   const headers: HeadersInit = {
     "Content-Type": "application/json",
@@ -68,49 +68,55 @@ async function request<T>(
     (headers as Record<string, string>)["Authorization"] = `Bearer ${accessToken}`;
   }
 
-  const response = await fetch(`${API_BASE}${endpoint}`, {
-    ...options,
-    headers,
-  });
+  async function doFetch(overrideHeaders?: HeadersInit): Promise<Response> {
+    return fetch(`${API_BASE}${endpoint}`, {
+      ...options,
+      headers: overrideHeaders ?? headers,
+      credentials: 'include',
+    });
+  }
 
-  if (response.status === 401) {
-    const { refreshToken } = await getTokens();
-    if (refreshToken && !endpoint.includes("/auth/refresh")) {
-      try {
-        const refreshResponse = await fetch(`${API_BASE}/auth/refresh`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ refreshToken }),
-        });
+  const response = await doFetch();
 
-        if (refreshResponse.ok) {
-          const envelope = await refreshResponse.json() as ApiEnvelope<{ accessToken: string; refreshToken: string }>;
-          const tokens = envelope.data;
+  if (response.status === 401 && refreshToken && !endpoint.includes("/auth/refresh")) {
+    try {
+      const refreshResponse = await fetch(`${API_BASE}/auth/refresh`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refreshToken }),
+        credentials: 'include',
+      });
 
-          setMemoryTokens(tokens.accessToken, tokens.refreshToken);
+      if (refreshResponse.ok) {
+        const envelope = await refreshResponse.json() as ApiEnvelope<{ accessToken: string; refreshToken: string }>;
+        const tokens = envelope.data;
 
-          (headers as Record<string, string>)["Authorization"] = `Bearer ${tokens.accessToken}`;
-          const retryResponse = await fetch(`${API_BASE}${endpoint}`, {
-            ...options,
-            headers,
-          });
+        setMemoryTokens(tokens.accessToken, tokens.refreshToken);
 
-          if (!retryResponse.ok) {
-            const errorEnvelope = await retryResponse.json().catch(() => ({}));
-            throw new ApiError(
-              errorEnvelope.error?.message || "Error en la solicitud",
-              retryResponse.status,
-              errorEnvelope.error?.code,
-              errorEnvelope.error?.errors,
-            );
-          }
+        const retryHeaders: HeadersInit = {
+          "Content-Type": "application/json",
+          ...options.headers,
+          Authorization: `Bearer ${tokens.accessToken}`,
+        };
 
-          const retryEnvelope = await retryResponse.json() as ApiEnvelope<T>;
-          return retryEnvelope.data;
+        const retryResponse = await doFetch(retryHeaders);
+
+        if (!retryResponse.ok) {
+          const errorEnvelope = await retryResponse.json().catch(() => ({}));
+          throw new ApiError(
+            errorEnvelope.error?.message || "Error en la solicitud",
+            retryResponse.status,
+            errorEnvelope.error?.code,
+            errorEnvelope.error?.errors,
+          );
         }
-      } catch {
-        // refresh failed, clear and redirect
+
+        const retryEnvelope = await retryResponse.json() as ApiEnvelope<T>;
+        return retryEnvelope.data;
       }
+    } catch (e) {
+      if (e instanceof ApiError) throw e;
+      // refresh failed, fall through to redirect
     }
 
     clearMemoryTokens();
@@ -136,7 +142,7 @@ async function requestPaginated<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<{ data: T[]; pagination: ApiEnvelope<T>["pagination"] }> {
-  const { accessToken } = await getTokens();
+  const { accessToken, refreshToken } = await getTokens();
 
   const headers: HeadersInit = {
     "Content-Type": "application/json",
@@ -150,9 +156,48 @@ async function requestPaginated<T>(
   const response = await fetch(`${API_BASE}${endpoint}`, {
     ...options,
     headers,
+    credentials: 'include',
   });
 
-  if (response.status === 401) {
+  if (response.status === 401 && refreshToken && !endpoint.includes("/auth/refresh")) {
+    try {
+      const refreshResponse = await fetch(`${API_BASE}/auth/refresh`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refreshToken }),
+        credentials: 'include',
+      });
+
+      if (refreshResponse.ok) {
+        const envelope = await refreshResponse.json() as ApiEnvelope<{ accessToken: string; refreshToken: string }>;
+        const tokens = envelope.data;
+
+        setMemoryTokens(tokens.accessToken, tokens.refreshToken);
+
+        (headers as Record<string, string>)["Authorization"] = `Bearer ${tokens.accessToken}`;
+        const retryResponse = await fetch(`${API_BASE}${endpoint}`, {
+          ...options,
+          headers,
+          credentials: 'include',
+        });
+
+        if (!retryResponse.ok) {
+          const errorEnvelope = await retryResponse.json().catch(() => ({}));
+          throw new ApiError(
+            errorEnvelope.error?.message || "Error en la solicitud",
+            retryResponse.status,
+            errorEnvelope.error?.code,
+            errorEnvelope.error?.errors,
+          );
+        }
+
+        const retryEnvelope = await retryResponse.json() as ApiEnvelope<T[]>;
+        return { data: retryEnvelope.data, pagination: retryEnvelope.pagination };
+      }
+    } catch (e) {
+      if (e instanceof ApiError) throw e;
+    }
+
     clearMemoryTokens();
     redirectToLogin();
     throw new ApiError("Sesión expirada", 401);

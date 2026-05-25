@@ -2,17 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { User } from "@/types";
 import { setMemoryTokens, clearMemoryTokens } from "@/lib/api";
-
-function setCookie(name: string, value: string, days: number) {
-  if (typeof document === "undefined") return;
-  const expires = new Date(Date.now() + days * 86400000).toUTCString();
-  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax`;
-}
-
-function clearCookie(name: string) {
-  if (typeof document === "undefined") return;
-  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
-}
+import { logout as logoutApi } from "@/lib/api/auth";
 
 interface AuthState {
   user: User | null;
@@ -22,7 +12,7 @@ interface AuthState {
 
   setAuth: (user: User, accessToken: string, refreshToken: string) => void;
   setUser: (user: User) => void;
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -35,7 +25,6 @@ export const useAuthStore = create<AuthState>()(
 
       setAuth: (user, accessToken, refreshToken) => {
         if (typeof window !== "undefined") {
-          setCookie("accessToken", accessToken, 7);
           setMemoryTokens(accessToken, refreshToken);
         }
         set({ user, accessToken, refreshToken, isAuthenticated: true });
@@ -43,10 +32,13 @@ export const useAuthStore = create<AuthState>()(
 
       setUser: (user) => set({ user }),
 
-      logout: () => {
+      logout: async () => {
+        try {
+          await logoutApi();
+        } catch {
+          // best-effort: clear cookies even if API call fails
+        }
         if (typeof window !== "undefined") {
-          clearCookie("accessToken");
-          clearCookie("userRole");
           clearMemoryTokens();
         }
         set({ user: null, accessToken: null, refreshToken: null, isAuthenticated: false });
