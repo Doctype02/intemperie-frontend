@@ -102,13 +102,11 @@ export interface OrderItem {
 
 export type OrderStatus = 'PENDING' | 'CONFIRMED' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
 export type PaymentStatus = 'PENDING' | 'COMPLETED' | 'FAILED' | 'REFUNDED';
-export type PaymentMethod = 'STRIPE' | 'TRANSFERENCIA' | 'TILOPAY' | 'MERCADOPAGO';
+export type PaymentMethod = 'TRANSFERENCIA' | 'TILOPAY' | 'MERCADOPAGO';
 
 export interface Payment {
   id: string;
   orderId: string;
-  stripeSessionId: string | null;
-  stripePaymentIntentId: string | null;
   tilopayRef: string | null;
   status: PaymentStatus;
   amount: number;
@@ -240,7 +238,7 @@ export interface GuestAddress {
 
 export interface CreateOrderPayload {
   items: { productId: string; quantity: number }[];
-  paymentMethod: 'STRIPE' | 'TRANSFERENCIA' | 'TILOPAY';
+  paymentMethod: 'TRANSFERENCIA' | 'TILOPAY';
   shippingAddressId?: string;
   guestAddress?: {
     street: string;

@@ -192,7 +192,7 @@ export default function CheckoutPage() {
   const total = subtotal + tax + shipping;
 
   // Builds the common order payload from the Zustand cart + address
-  const buildOrderPayload = (paymentMethod: "STRIPE" | "TRANSFERENCIA" | "TILOPAY") => ({
+  const buildOrderPayload = (paymentMethod: "TRANSFERENCIA" | "TILOPAY") => ({
     paymentMethod,
     items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
     guestAddress: {
