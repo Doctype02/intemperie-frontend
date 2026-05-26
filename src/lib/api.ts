@@ -138,7 +138,7 @@ async function request<T>(
 
   if (!response.ok || envelope.success === false) {
     throw new ApiError(
-      envelope.error?.message || "Error en la solicitud",
+      envelope.error?.message || envelope.message || "Error en la solicitud",
       response.status,
       envelope.error?.code,
       envelope.error?.errors,
@@ -228,7 +228,7 @@ async function requestPaginated<T>(
 
   if (!response.ok || envelope.success === false) {
     throw new ApiError(
-      envelope.error?.message || "Error en la solicitud",
+      envelope.error?.message || envelope.message || "Error en la solicitud",
       response.status,
       envelope.error?.code,
       envelope.error?.errors,
