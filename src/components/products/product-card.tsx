@@ -25,6 +25,7 @@ interface ProductCardProps {
   category?: { name: string };
   collection?: { name: string };
   images?: ProductImage[];
+  priority?: boolean;
 }
 
 const catColors: Record<string, string> = {
@@ -110,6 +111,7 @@ export function ProductCard(p: ProductCardProps) {
               className="object-cover transition-transform duration-500 group-hover:scale-105"
               placeholder="blur"
               blurDataURL={BLUR_PLACEHOLDER}
+              priority={p.priority}
               onLoad={onLoad}
             />
           ) : (

@@ -25,7 +25,7 @@ type ApiProduct = Record<string, any>;
 async function getProducts(): Promise<ApiProduct[]> {
   try {
     const base = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
-    const res  = await fetch(`${base}/products?limit=50`, { next: { revalidate: 60 } });
+    const res  = await fetch(`${base}/products?limit=50`, { next: { revalidate: 3600 } });
     if (!res.ok) return [];
     const data = await res.json();
     return (data.data ?? data ?? []) as ApiProduct[];

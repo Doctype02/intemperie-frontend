@@ -220,9 +220,12 @@ export function Header() {
   const cartCount = cartItems.reduce((s, i) => s + i.quantity, 0);
   const { count: wishlistCount } = useWishlist();
 
-  /* Scroll shadow */
+  /* Scroll shadow — only triggers re-render on threshold cross (not every pixel) */
   useEffect(() => {
-    const fn = () => setScrolled(window.scrollY > 8);
+    const fn = () => {
+      const next = window.scrollY > 8;
+      setScrolled((prev) => (prev === next ? prev : next));
+    };
     window.addEventListener("scroll", fn, { passive: true });
     return () => window.removeEventListener("scroll", fn);
   }, []);
@@ -289,7 +292,7 @@ export function Header() {
       </a>
 
       {/* ── Tier 1: Announcement bar ──────────────────────────────────────── */}
-      <div className={`bg-green-800 text-white text-xs overflow-hidden transition-all duration-300 ${scrolled ? "max-h-0" : "max-h-8"}`}>
+      <div className={`bg-green-800 text-white text-xs overflow-hidden transition-[max-height] duration-300 ${scrolled ? "max-h-0" : "max-h-8"}`}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 flex items-center justify-between h-8">
           <p className="font-semibold truncate text-[11px]">
             🚚&nbsp;Envío gratis en pedidos mayores a $50 — Panamá y provincias
