@@ -26,7 +26,7 @@ interface FenceCalculatorProps { products: Product[]; }
 
 export function FenceCalculator({ products }: FenceCalculatorProps) {
   const [productId, setProductId] = useState("");
-  const [linearMeters, setLinearMeters] = useState(25);
+  const [linearMeters, setLinearMeters] = useState(10);
   const [includeInstallation, setIncludeInstallation] = useState(true);
 
   const selectedProduct = products.find((p) => p.id === productId);
@@ -98,16 +98,16 @@ export function FenceCalculator({ products }: FenceCalculatorProps) {
             <Label className="text-sm font-semibold text-gray-700">2. Metros lineales</Label>
             <div className="flex items-center rounded-xl border-2 border-gray-200 focus-within:border-green-400 transition-colors overflow-hidden">
               <button
-                onClick={() => setLinearMeters(Math.max(1, linearMeters - 1))}
+                onClick={() => setLinearMeters(Math.max(10, linearMeters - 1))}
                 className="px-4 py-3 text-gray-400 hover:text-green-600 hover:bg-green-50 transition-colors"
               >
                 <Minus className="h-5 w-5" />
               </button>
               <input
                 type="number"
-                min={1}
+                min={10}
                 value={linearMeters}
-                onChange={(e) => setLinearMeters(Math.max(1, parseInt(e.target.value) || 1))}
+                onChange={(e) => setLinearMeters(Math.max(10, parseInt(e.target.value) || 10))}
                 className="w-full text-center font-extrabold text-xl bg-transparent border-0 outline-none text-gray-900"
               />
               <button

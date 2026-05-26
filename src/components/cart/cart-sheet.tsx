@@ -96,7 +96,10 @@ export function CartSheet() {
                     <div className="mt-2 flex items-center justify-between">
                       <div className="flex items-center rounded-lg border border-gray-200 overflow-hidden">
                         <button
-                          onClick={() => updateQuantity(item.productId, item.quantity - 1)}
+                          onClick={() => {
+                            const minQty = item.product.unit === "METRO" ? 10 : 1;
+                            updateQuantity(item.productId, Math.max(minQty, item.quantity - 1));
+                          }}
                           className="px-2.5 py-1.5 text-gray-400 hover:bg-gray-50 active:bg-gray-100 transition-colors"
                         >
                           <Minus className="h-3 w-3" />

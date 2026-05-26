@@ -89,6 +89,11 @@ export default function CheckoutPage() {
     } catch {}
   }, [address, ready]);
 
+  // Redirect to cart if cart becomes empty after hydration
+  useEffect(() => {
+    if (ready && items.length === 0) router.push("/carrito");
+  }, [ready, items.length, router]);
+
   // Poll order status + listen for postMessage while iframe is open
   useEffect(() => {
     if (!tilopayFrame) return;
@@ -182,10 +187,7 @@ export default function CheckoutPage() {
     );
   }
 
-  if (items.length === 0) {
-    router.push("/carrito");
-    return null;
-  }
+  if (items.length === 0) return null;
 
   const tax = subtotal * 0.07;
   const shipping = subtotal > 500 ? 0 : 5.99;
@@ -239,6 +241,7 @@ export default function CheckoutPage() {
       router.push(`/checkout/success?ref=${order.id.slice(0, 8).toUpperCase()}&method=whatsapp`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al procesar el pedido. Intenta de nuevo.");
+    } finally {
       setLoading(false);
     }
   };
@@ -309,7 +312,15 @@ export default function CheckoutPage() {
                 <div>
                   <h2 className="text-lg font-bold text-gray-900">Dirección de envío</h2>
                   <p className="text-xs text-gray-400 mt-0.5 mb-5">Los campos con <span className="text-red-500">*</span> son obligatorios</p>
-                  <form onSubmit={(e) => { e.preventDefault(); setStep("review"); }} noValidate>
+                  <form onSubmit={(e) => {
+                    e.preventDefault();
+                    if (!address.name.trim() || !address.phone.trim() || !address.email.trim() || !address.street.trim() || !address.city.trim() || !address.province) {
+                      setError("Completa todos los campos obligatorios antes de continuar.");
+                      return;
+                    }
+                    setError("");
+                    setStep("review");
+                  }} noValidate>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
                       {/* Name */}
@@ -417,7 +428,12 @@ export default function CheckoutPage() {
                       </Field>
 
                     </div>
-                    <Button type="submit" className="mt-6 w-full bg-green-700 hover:bg-green-800 h-12 text-sm font-bold">
+                    {error && (
+                      <div className="mt-4 rounded-xl bg-red-50 border border-red-100 text-red-700 text-sm px-4 py-3">
+                        {error}
+                      </div>
+                    )}
+                    <Button type="submit" className="mt-4 w-full bg-green-700 hover:bg-green-800 h-12 text-sm font-bold">
                       Continuar al resumen
                     </Button>
                   </form>

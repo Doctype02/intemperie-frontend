@@ -140,7 +140,7 @@ export function ProductCard(p: ProductCardProps) {
               e.preventDefault();
               toggle({
                 id: p.id, name: p.name, slug: p.slug,
-                basePrice: p.basePrice, unit: p.unit,
+                basePrice: p.basePrice, unit: p.unit, stock: p.stock,
                 imageUrl: primaryImage ?? undefined,
                 categoryName: p.category?.name ?? p.collection?.name,
               });

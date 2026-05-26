@@ -93,7 +93,7 @@ export default async function ProductosPage({ searchParams }: { searchParams: Pr
           <div className="flex items-center gap-1.5 text-xs text-gray-400 mb-3">
             <Link href="/" className="hover:text-green-600 transition-colors">Inicio</Link>
             <ChevronRight className="h-3 w-3" />
-            {activeCategory && (
+            {(activeCategory || activeCollection) && (
               <>
                 <Link href="/productos" className="hover:text-green-600 transition-colors">Productos</Link>
                 <ChevronRight className="h-3 w-3" />
@@ -131,6 +131,12 @@ export default async function ProductosPage({ searchParams }: { searchParams: Pr
             {categories.map((cat: any) => (
               <Link key={cat.slug} href={`/productos?category=${cat.slug}`} className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${activeCategory === cat.slug ? "bg-green-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
                 {cat.name}
+              </Link>
+            ))}
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            {collections.map((col: any) => (
+              <Link key={col.slug} href={`/productos?collection=${col.slug}`} className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${activeCollection === col.slug ? "bg-green-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
+                {col.name}
               </Link>
             ))}
           </div>

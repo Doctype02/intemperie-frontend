@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Eye, Package2 } from "lucide-react";
+import { Eye, Package2, AlertCircle } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -42,6 +43,7 @@ export default function OrdersPage() {
   const { isAuthenticated } = useAuthStore();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -54,7 +56,8 @@ export default function OrdersPage() {
         const data = await getOrders();
         setOrders(data || []);
       } catch {
-        // silently fail
+        setFetchError(true);
+        toast.error("No se pudieron cargar tus pedidos. Intenta de nuevo.");
       } finally {
         setLoading(false);
       }
@@ -79,7 +82,18 @@ export default function OrdersPage() {
     <div className="max-w-5xl mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold text-gray-900 mb-8">Mis Pedidos</h1>
 
-      {orders.length === 0 ? (
+      {fetchError ? (
+        <div className="text-center py-16">
+          <div className="w-16 h-16 mx-auto rounded-full bg-red-50 flex items-center justify-center mb-4">
+            <AlertCircle className="h-8 w-8 text-red-400" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900">Error al cargar pedidos</h3>
+          <p className="text-gray-500 mt-1 mb-6">No pudimos conectarnos. Verifica tu conexión e intenta de nuevo.</p>
+          <Button className="bg-green-700 hover:bg-green-800" onClick={() => window.location.reload()}>
+            Reintentar
+          </Button>
+        </div>
+      ) : orders.length === 0 ? (
         <div className="text-center py-16">
           <div className="w-16 h-16 mx-auto rounded-full bg-gray-100 flex items-center justify-center mb-4">
             <Package2 className="h-8 w-8 text-gray-400" />

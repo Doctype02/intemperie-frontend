@@ -15,6 +15,7 @@ import { HeroCarousel } from "@/components/home/hero-carousel";
 import { ProductCarousel } from "@/components/home/product-carousel";
 import type { CarouselProduct } from "@/components/home/product-carousel";
 import { RecentlyViewedSection } from "@/components/shared/recently-viewed-section";
+import { NewsletterSection } from "@/components/home/newsletter-section";
 
 /* ── Types ───────────────────────────────────────────────────────────────── */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -576,40 +577,6 @@ function WhatsAppBanner() {
         </div>
       </div>
     </div>
-  );
-}
-
-/* ── Section 14: Newsletter ──────────────────────────────────────────────── */
-function NewsletterSection() {
-  return (
-    <section className="bg-gray-900 py-12 sm:py-16">
-      <div className="mx-auto max-w-lg px-4 sm:px-6 text-center">
-        <p className="text-[11px] font-bold uppercase tracking-widest text-green-500 mb-2">
-          Mantente informado
-        </p>
-        <h2 className="text-xl sm:text-2xl font-extrabold text-white mb-1.5">
-          ¡No te pierdas ninguna novedad!
-        </h2>
-        <p className="text-sm text-gray-400 mb-7 leading-relaxed">
-          Nuevos modelos, precios especiales y proyectos inspiradores directo a tu correo.
-        </p>
-        <div className="flex gap-2">
-          <input
-            type="email"
-            placeholder="tu@email.com"
-            aria-label="Correo electrónico"
-            className="flex-1 h-11 rounded-xl border border-gray-700 bg-gray-800 px-4 text-sm text-white placeholder-gray-500 focus:border-green-500 focus:outline-none transition-colors"
-          />
-          <button
-            type="button"
-            className="h-11 px-6 rounded-xl bg-green-600 text-sm font-bold text-white hover:bg-green-500 transition-colors whitespace-nowrap"
-          >
-            Suscribirse
-          </button>
-        </div>
-        <p className="mt-3 text-[11px] text-gray-600">Sin spam. Cancela cuando quieras.</p>
-      </div>
-    </section>
   );
 }
 

@@ -1,17 +1,22 @@
 "use client";
 
 import { ProductCard } from "./product-card";
-import type { ProductUnit } from "@/types";
+import type { ProductUnit, ProductImage } from "@/types";
 
 interface Product {
   id: string;
   name: string;
   slug: string;
   basePrice: number;
+  comparePrice?: number;
   unit: ProductUnit;
   stock: number;
+  isNew?: boolean;
+  reviewCount?: number;
+  rating?: number;
   category?: { name: string };
   collection?: { name: string };
+  images?: ProductImage[];
   isActive?: boolean;
 }
 

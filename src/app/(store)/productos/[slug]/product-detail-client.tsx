@@ -239,6 +239,7 @@ export function ProductDetailClient({ product }: { product: ProductData }) {
                     slug: product.slug,
                     basePrice: price,
                     unit: product.unit ?? "METRO",
+                    stock: product.stock,
                     imageUrl: product.images?.[0]?.url,
                     categoryName: product.category?.name ?? product.collection?.name,
                   });
@@ -284,13 +285,19 @@ export function ProductDetailClient({ product }: { product: ProductData }) {
                     {product.unit === "PANEL" ? "Cantidad de paneles" : "Metros lineales"}
                   </label>
                   <div className="mt-1 flex items-center rounded-lg border bg-white">
-                    <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-3 py-2 text-gray-400 hover:bg-gray-50 rounded-l-lg">
+                    <button onClick={() => {
+                      const minQty = product.unit === "PANEL" ? 1 : 10;
+                      setQuantity(Math.max(minQty, quantity - 1));
+                    }} className="px-3 py-2 text-gray-400 hover:bg-gray-50 rounded-l-lg">
                       <Minus className="h-4 w-4" />
                     </button>
                     <input
                       type="number"
                       value={quantity}
-                      onChange={(e) => setQuantity(Math.max(1, Math.min(product.stock, parseInt(e.target.value) || 1)))}
+                      onChange={(e) => {
+                        const minQty = product.unit === "PANEL" ? 1 : 10;
+                        setQuantity(Math.max(minQty, Math.min(product.stock, parseInt(e.target.value) || minQty)));
+                      }}
                       className="w-full text-center font-bold text-base bg-transparent border-0 outline-none"
                     />
                     <button onClick={() => setQuantity(Math.min(product.stock, quantity + 1))} className="px-3 py-2 text-gray-400 hover:bg-gray-50 rounded-r-lg">
@@ -374,7 +381,7 @@ export function ProductDetailClient({ product }: { product: ProductData }) {
             onClick={handleAdd}
           >
             <ShoppingCart className="mr-2 h-4 w-4" />
-            {added ? "¡Agregado!" : `Agregar ${quantity}m — $${subtotal.toFixed(2)}`}
+            {added ? "¡Agregado!" : `Agregar ${quantity}${product.unit === "PANEL" ? " panel(es)" : "m"} — $${subtotal.toFixed(2)}`}
           </Button>
           <Link
             href={`https://wa.me/50762874042?text=${waText}`}

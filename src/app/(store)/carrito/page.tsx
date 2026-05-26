@@ -15,6 +15,7 @@ export default function CartPage() {
   const updateQuantity = useCartStore((s) => s.updateQuantity);
   const removeItem = useCartStore((s) => s.removeItem);
   const subtotal = useCartStore((s) => s.subtotal);
+  const itemCount = useCartStore((s) => s.itemCount);
   const onLoad = useImageOnLoad();
 
   useEffect(() => { setReady(true); }, []);
@@ -61,6 +62,7 @@ export default function CartPage() {
   }
 
   const total = subtotal();
+  const count = itemCount();
   const tax = total * 0.07;
   const FREE_SHIPPING_THRESHOLD = 50;
   const shippingProgress = Math.min((total / FREE_SHIPPING_THRESHOLD) * 100, 100);
@@ -71,7 +73,7 @@ export default function CartPage() {
       <div className="mx-auto max-w-4xl px-4 py-8">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
-            Carrito ({items.length} {items.length === 1 ? "producto" : "productos"})
+            Carrito ({count} {count === 1 ? "producto" : "productos"})
           </h1>
           <Link href="/productos" className="flex items-center gap-1 text-sm text-green-700 hover:text-green-800">
             <ArrowLeft className="h-4 w-4" /> Seguir comprando
@@ -120,7 +122,10 @@ export default function CartPage() {
                       <p className="text-xs text-gray-400">{item.product?.collection?.name}</p>
                       <div className="mt-1.5 flex items-center gap-3 sm:gap-4">
                         <div className="flex items-center rounded border">
-                          <button onClick={() => updateQuantity(item.productId, item.quantity - 1)} className="px-2 sm:px-3 py-1.5 text-gray-400 hover:bg-gray-50 active:bg-gray-100"><Minus className="h-3.5 w-3.5 sm:h-4 sm:w-4" /></button>
+                          <button onClick={() => {
+                          const minQty = item.product?.unit === "METRO" ? 10 : 1;
+                          updateQuantity(item.productId, Math.max(minQty, item.quantity - 1));
+                        }} className="px-2 sm:px-3 py-1.5 text-gray-400 hover:bg-gray-50 active:bg-gray-100"><Minus className="h-3.5 w-3.5 sm:h-4 sm:w-4" /></button>
                           <span className="min-w-[1.8rem] sm:min-w-[2rem] text-center text-sm font-medium">{item.quantity}</span>
                           <button onClick={() => updateQuantity(item.productId, item.quantity + 1)} className="px-2 sm:px-3 py-1.5 text-gray-400 hover:bg-gray-50 active:bg-gray-100"><Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" /></button>
                         </div>

@@ -17,10 +17,26 @@ function IconWhatsApp({ className }: { className?: string }) {
 function SuccessContent() {
   const searchParams = useSearchParams();
   const orderRef = searchParams.get("ref");
+  const method = searchParams.get("method");
+  const isPaidByCard = method === "tilopay";
 
   useEffect(() => {
     window.scrollTo({ top: 0 });
   }, []);
+
+  const whatsappSteps = [
+    { num: "1", title: "Confirmación del equipo", desc: "Un asesor revisará tu pedido y te contactará para confirmar disponibilidad." },
+    { num: "2", title: "Coordinación del pago", desc: "Aceptamos transferencia bancaria, Yappy, Clave, Visa y Mastercard." },
+    { num: "3", title: "Fecha de entrega", desc: "Coordinamos la entrega e instalación según tu ubicación en Panamá." },
+  ];
+
+  const tilopaySteps = [
+    { num: "1", title: "Pago confirmado", desc: "Tu pago fue procesado exitosamente. Recibirás un correo de confirmación." },
+    { num: "2", title: "Preparación del pedido", desc: "Nuestro equipo revisará disponibilidad y preparará tu pedido." },
+    { num: "3", title: "Fecha de entrega", desc: "Coordinamos la entrega e instalación según tu ubicación en Panamá." },
+  ];
+
+  const steps = isPaidByCard ? tilopaySteps : whatsappSteps;
 
   return (
     <div className="mx-auto max-w-xl px-4 py-16 sm:py-20">
@@ -30,9 +46,13 @@ function SuccessContent() {
         <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-green-100 ring-8 ring-green-50">
           <CheckCircle className="h-10 w-10 text-green-600" />
         </div>
-        <h1 className="text-2xl sm:text-3xl font-black text-gray-900">¡Pedido enviado!</h1>
+        <h1 className="text-2xl sm:text-3xl font-black text-gray-900">
+          {isPaidByCard ? "¡Pago confirmado!" : "¡Pedido enviado!"}
+        </h1>
         <p className="mt-2 text-gray-500 text-sm max-w-xs mx-auto">
-          Tu pedido fue enviado a nuestro equipo por WhatsApp. Te contactaremos en breve para confirmar.
+          {isPaidByCard
+            ? "Tu pago fue procesado con éxito. Coordinaremos la entrega a la brevedad."
+            : "Tu pedido fue enviado a nuestro equipo por WhatsApp. Te contactaremos en breve para confirmar."}
         </p>
         {orderRef && (
           <div className="mt-4 inline-flex items-center gap-2 rounded-xl bg-green-50 border border-green-200 px-4 py-2.5">
@@ -48,11 +68,7 @@ function SuccessContent() {
           <p className="text-xs font-black uppercase tracking-wider text-gray-500">¿Qué sigue?</p>
         </div>
         <div className="divide-y divide-gray-100">
-          {[
-            { num: "1", title: "Confirmación del equipo", desc: "Un asesor revisará tu pedido y te contactará para confirmar disponibilidad." },
-            { num: "2", title: "Coordinación del pago", desc: "Aceptamos transferencia bancaria, Yappy, Clave, Visa y Mastercard." },
-            { num: "3", title: "Fecha de entrega", desc: "Coordinamos la entrega e instalación según tu ubicación en Panamá." },
-          ].map((step) => (
+          {steps.map((step) => (
             <div key={step.num} className="flex gap-4 px-5 py-4">
               <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-green-100 text-xs font-black text-green-700">
                 {step.num}
@@ -80,7 +96,7 @@ function SuccessContent() {
       {/* CTAs */}
       <div className="flex flex-col sm:flex-row gap-3">
         <a
-          href={`https://wa.me/50762874042?text=Hola%2C%20acabo%20de%20enviar%20mi%20pedido${orderRef ? `%20(Ref%3A%20${orderRef})` : ""}%20y%20quiero%20confirmar%20los%20detalles`}
+          href={`https://wa.me/50762874042?text=Hola%2C%20acabo%20de%20${isPaidByCard ? "pagar" : "enviar"}%20mi%20pedido${orderRef ? `%20(Ref%3A%20${orderRef})` : ""}%20y%20quiero%20confirmar%20los%20detalles`}
           target="_blank"
           rel="noopener noreferrer"
           className="flex-1 flex items-center justify-center gap-2 h-12 rounded-xl bg-green-700 hover:bg-green-800 text-white text-sm font-bold transition-colors"

@@ -73,11 +73,12 @@ const colecciones = [
 /* ── Small dropdown wrapper ───────────────────────────────────────────────── */
 interface SimpleDropdownProps {
   label: string;
-  children: React.ReactNode;
+  children: (close: () => void) => React.ReactNode;
 }
 function SimpleDropdown({ label, children }: SimpleDropdownProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const close = () => setOpen(false);
 
   useEffect(() => {
     if (!open) return;
@@ -99,9 +100,9 @@ function SimpleDropdown({ label, children }: SimpleDropdownProps) {
       </button>
       {open && (
         <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="fixed inset-0 z-40" onClick={close} />
           <div className="absolute left-0 top-full z-50 mt-1 min-w-[200px] rounded-xl border border-gray-100 bg-white py-1.5 shadow-xl">
-            {children}
+            {children(close)}
           </div>
         </>
       )}
@@ -209,9 +210,10 @@ export function Header() {
   const [search,       setSearch]       = useState("");
   const [cartBounce,   setCartBounce]   = useState(false);
 
-  const cercasRef   = useRef<HTMLDivElement>(null);
-  const hoverTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const router      = useRouter();
+  const cercasRef      = useRef<HTMLDivElement>(null);
+  const hoverTimer     = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cartMounted    = useRef(false);
+  const router         = useRouter();
 
   const { user, isAuthenticated, logout } = useAuthStore();
   const cartItems = useCartStore((s) => s.items);
@@ -225,8 +227,9 @@ export function Header() {
     return () => window.removeEventListener("scroll", fn);
   }, []);
 
-  /* Cart bounce */
+  /* Cart bounce — skip first render (Zustand rehydration from localStorage) */
   useEffect(() => {
+    if (!cartMounted.current) { cartMounted.current = true; return; }
     if (cartCount > 0) {
       setCartBounce(true);
       setTimeout(() => setCartBounce(false), 400);
@@ -495,38 +498,49 @@ export function Header() {
 
             {/* Mallas dropdown */}
             <SimpleDropdown label="Mallas Electrosoldadas">
-              {mallas.map((p) => (
-                <Link
-                  key={p.slug}
-                  href={`/productos/${p.slug}`}
-                  className="flex items-center gap-2 mx-1 rounded-lg px-3 py-2 text-[13px] font-medium text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors group"
-                >
-                  <ChevronRight className="h-3 w-3 text-gray-300 group-hover:text-green-500 shrink-0" />
-                  {p.name}
-                </Link>
-              ))}
-              <div className="mx-1 border-t border-gray-100 mt-1 pt-1">
-                <Link
-                  href="/productos?category=industrial"
-                  className="block px-3 py-2 text-[13px] font-bold text-green-700 hover:bg-green-50 rounded-lg transition-colors"
-                >
-                  Ver todos →
-                </Link>
-              </div>
+              {(close) => (
+                <>
+                  {mallas.map((p) => (
+                    <Link
+                      key={p.slug}
+                      href={`/productos/${p.slug}`}
+                      onClick={close}
+                      className="flex items-center gap-2 mx-1 rounded-lg px-3 py-2 text-[13px] font-medium text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors group"
+                    >
+                      <ChevronRight className="h-3 w-3 text-gray-300 group-hover:text-green-500 shrink-0" />
+                      {p.name}
+                    </Link>
+                  ))}
+                  <div className="mx-1 border-t border-gray-100 mt-1 pt-1">
+                    <Link
+                      href="/productos?category=industrial"
+                      onClick={close}
+                      className="block px-3 py-2 text-[13px] font-bold text-green-700 hover:bg-green-50 rounded-lg transition-colors"
+                    >
+                      Ver todos →
+                    </Link>
+                  </div>
+                </>
+              )}
             </SimpleDropdown>
 
             {/* Colecciones dropdown */}
             <SimpleDropdown label="Colecciones">
-              {colecciones.map((c) => (
-                <Link
-                  key={c.slug}
-                  href={`/productos?category=${c.slug}`}
-                  className="flex items-center gap-2 mx-1 rounded-lg px-3 py-2 text-[13px] font-medium text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors group"
-                >
-                  <ChevronRight className="h-3 w-3 text-gray-300 group-hover:text-green-500 shrink-0" />
-                  {c.name}
-                </Link>
-              ))}
+              {(close) => (
+                <>
+                  {colecciones.map((c) => (
+                    <Link
+                      key={c.slug}
+                      href={`/productos?collection=${c.slug}`}
+                      onClick={close}
+                      className="flex items-center gap-2 mx-1 rounded-lg px-3 py-2 text-[13px] font-medium text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors group"
+                    >
+                      <ChevronRight className="h-3 w-3 text-gray-300 group-hover:text-green-500 shrink-0" />
+                      {c.name}
+                    </Link>
+                  ))}
+                </>
+              )}
             </SimpleDropdown>
 
             {/* Direct links */}
@@ -639,7 +653,7 @@ export function Header() {
           {/* Colecciones section */}
           <MobileSection title="Colecciones">
             {colecciones.map((c) => (
-              <Link key={c.slug} href={`/productos?category=${c.slug}`} onClick={closeAll}
+              <Link key={c.slug} href={`/productos?collection=${c.slug}`} onClick={closeAll}
                 className="block rounded-lg px-3 py-2.5 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors">
                 {c.name}
               </Link>

@@ -139,29 +139,36 @@ export default function FavoritosPage() {
                     {item.unit === "PANEL" ? "/panel" : "/m"}
                   </span>
                 </div>
-                <button
-                  onClick={() => {
-                    addItem(
-                      {
-                        id: item.id,
-                        name: item.name,
-                        slug: item.slug,
-                        basePrice: item.basePrice,
-                        unit: item.unit,
-                        stock: 999,
-                        images: item.imageUrl ? [{ url: item.imageUrl }] : [],
-                      },
-                      item.unit === "METRO" ? 10 : 1
-                    );
-                    toast.success(`${item.name} agregado`, {
-                      description: `${item.unit === "METRO" ? "10m" : "1 unid."}`,
-                    });
-                  }}
-                  className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg bg-green-700 py-2.5 text-[13px] font-bold text-white hover:bg-green-800 transition-colors"
-                >
-                  <ShoppingCart className="h-3.5 w-3.5" />
-                  Agregar al carrito
-                </button>
+                {item.stock === 0 ? (
+                  <div className="mt-3 flex w-full items-center justify-center rounded-lg border border-gray-200 py-2.5 text-[13px] font-semibold text-gray-400">
+                    Agotado
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => {
+                      const minQty = item.unit === "METRO" ? 10 : 1;
+                      addItem(
+                        {
+                          id: item.id,
+                          name: item.name,
+                          slug: item.slug,
+                          basePrice: item.basePrice,
+                          unit: item.unit,
+                          stock: item.stock ?? 1,
+                          images: item.imageUrl ? [{ url: item.imageUrl }] : [],
+                        },
+                        minQty,
+                      );
+                      toast.success(`${item.name} agregado`, {
+                        description: `${item.unit === "METRO" ? "10m" : "1 unid."}`,
+                      });
+                    }}
+                    className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg bg-green-700 py-2.5 text-[13px] font-bold text-white hover:bg-green-800 transition-colors"
+                  >
+                    <ShoppingCart className="h-3.5 w-3.5" />
+                    Agregar al carrito
+                  </button>
+                )}
               </div>
             </div>
           ))}

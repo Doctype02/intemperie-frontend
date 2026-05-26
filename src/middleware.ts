@@ -52,7 +52,9 @@ export async function middleware(request: NextRequest) {
   const payload = await verifyToken(accessToken);
 
   if (!payload || isTokenExpired(payload)) {
-    const response = NextResponse.redirect(new URL("/login", request.url));
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("redirect", pathname);
+    const response = NextResponse.redirect(loginUrl);
     response.cookies.delete("accessToken");
     response.cookies.delete("userRole");
     return response;

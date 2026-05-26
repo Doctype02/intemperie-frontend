@@ -9,6 +9,7 @@ export interface WishlistItem {
   slug: string;
   basePrice: number;
   unit: ProductUnit;
+  stock?: number;
   imageUrl?: string;
   categoryName?: string;
 }
