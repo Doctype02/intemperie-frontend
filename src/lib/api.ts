@@ -69,11 +69,21 @@ async function request<T>(
   }
 
   async function doFetch(overrideHeaders?: HeadersInit): Promise<Response> {
-    return fetch(`${API_BASE}${endpoint}`, {
-      ...options,
-      headers: overrideHeaders ?? headers,
-      credentials: 'include',
-    });
+    try {
+      return await fetch(`${API_BASE}${endpoint}`, {
+        ...options,
+        headers: overrideHeaders ?? headers,
+        credentials: 'include',
+      });
+    } catch (e) {
+      if (e instanceof TypeError) {
+        throw new ApiError(
+          "No se pudo conectar con el servidor. Verifica tu conexión e intenta de nuevo.",
+          0
+        );
+      }
+      throw e;
+    }
   }
 
   const response = await doFetch();
@@ -153,11 +163,22 @@ async function requestPaginated<T>(
     (headers as Record<string, string>)["Authorization"] = `Bearer ${accessToken}`;
   }
 
-  const response = await fetch(`${API_BASE}${endpoint}`, {
-    ...options,
-    headers,
-    credentials: 'include',
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE}${endpoint}`, {
+      ...options,
+      headers,
+      credentials: 'include',
+    });
+  } catch (e) {
+    if (e instanceof TypeError) {
+      throw new ApiError(
+        "No se pudo conectar con el servidor. Verifica tu conexión e intenta de nuevo.",
+        0
+      );
+    }
+    throw e;
+  }
 
   if (response.status === 401 && refreshToken && !endpoint.includes("/auth/refresh")) {
     try {
