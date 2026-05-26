@@ -224,7 +224,7 @@ async function requestPaginated<T>(
     throw new ApiError("Sesión expirada", 401);
   }
 
-  const envelope = await response.json() as ApiEnvelope<T[]>;
+  const envelope = await response.json() as ApiEnvelope<T[]> & { message?: string };
 
   if (!response.ok || envelope.success === false) {
     throw new ApiError(
