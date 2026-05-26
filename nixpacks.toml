@@ -1,0 +1,2 @@
+[variables]
+NEXT_PUBLIC_API_URL = "https://api-production-400a.up.railway.app"
