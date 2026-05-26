@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { Phone, Mail, MapPin, Package, Truck, CreditCard, MessageCircle } from "lucide-react";
 import { FooterNewsletter } from "./footer-newsletter";
@@ -214,7 +215,9 @@ export function Footer() {
           </div>
 
           {/* Newsletter row */}
-          <FooterNewsletter />
+          <Suspense fallback={<div className="border-t border-gray-800 pt-8 mt-10 h-24" />}>
+            <FooterNewsletter />
+          </Suspense>
 
           {/* Bottom bar */}
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-gray-800 pt-6">

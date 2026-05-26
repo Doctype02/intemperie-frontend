@@ -9,7 +9,7 @@ import PriceFilter from "./price-filter";
 
 async function getCategories() {
   try {
-    const res = await fetch(`${API_BASE}/categories`, { next: { revalidate: 300 } });
+    const res = await fetch(`${API_BASE}/categories`, { next: { revalidate: 300, tags: ["categories"] } });
     if (!res.ok) return [];
     const data = await res.json();
     return data.data || [];
@@ -18,7 +18,7 @@ async function getCategories() {
 
 async function getCollections() {
   try {
-    const res = await fetch(`${API_BASE}/collections`, { next: { revalidate: 300 } });
+    const res = await fetch(`${API_BASE}/collections`, { next: { revalidate: 300, tags: ["categories"] } });
     if (!res.ok) return [];
     const data = await res.json();
     return data.data || [];
@@ -32,7 +32,7 @@ async function getProducts(searchParams: Record<string, string>) {
     if (searchParams.collection) sp.set("collection", searchParams.collection);
     if (searchParams.search)     sp.set("search",     searchParams.search);
     sp.set("limit", "50");
-    const res = await fetch(`${API_BASE}/products?${sp.toString()}`, { next: { revalidate: 300 } });
+    const res = await fetch(`${API_BASE}/products?${sp.toString()}`, { next: { revalidate: 300, tags: ["products"] } });
     if (!res.ok) return [];
     const data = await res.json();
     return data.data || data || [];

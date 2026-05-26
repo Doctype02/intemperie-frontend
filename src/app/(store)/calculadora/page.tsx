@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 async function getProducts() {
   try {
-    const res = await fetch(`${API_BASE}/products?limit=50`, { next: { revalidate: 3600 } });
+    const res = await fetch(`${API_BASE}/products?limit=50`, { next: { revalidate: 3600, tags: ["products"] } });
     if (!res.ok) return [];
     const data = await res.json();
     return data.data || data || [];
