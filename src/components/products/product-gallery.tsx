@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, X, ZoomIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,12 +14,44 @@ interface ProductGalleryProps {
 }
 
 export function ProductGallery({ images, productName }: ProductGalleryProps) {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [lightboxOpen, setLightboxOpen] = useState(false);
+  // visibleIndex = what the user sees; pendingIndex = what we're waiting to load
+  const [visibleIndex,  setVisibleIndex]  = useState(0);
+  const [pendingIndex,  setPendingIndex]  = useState<number | null>(null);
+  const [lightboxOpen,  setLightboxOpen]  = useState(false);
+  const loadedRef = useRef<Set<number>>(new Set([0]));
   const onLoad = useImageOnLoad();
 
-  const prev = () => setActiveIndex((i) => (i === 0 ? images.length - 1 : i - 1));
-  const next = () => setActiveIndex((i) => (i === images.length - 1 ? 0 : i + 1));
+  const goTo = useCallback((i: number) => {
+    if (i === visibleIndex) return;
+    if (loadedRef.current.has(i)) {
+      setVisibleIndex(i);
+      setPendingIndex(null);
+    } else {
+      setPendingIndex(i);
+    }
+  }, [visibleIndex]);
+
+  const prev = useCallback(
+    () => goTo((visibleIndex - 1 + images.length) % images.length),
+    [goTo, visibleIndex, images.length]
+  );
+  const next = useCallback(
+    () => goTo((visibleIndex + 1) % images.length),
+    [goTo, visibleIndex, images.length]
+  );
+
+  const handleImageLoad = useCallback((i: number) => {
+    loadedRef.current.add(i);
+    if (i === 0) onLoad();
+    // If this is the image we were waiting for, switch now
+    setPendingIndex((p) => {
+      if (p === i) {
+        setVisibleIndex(i);
+        return null;
+      }
+      return p;
+    });
+  }, [onLoad]);
 
   useEffect(() => {
     if (lightboxOpen) {
@@ -39,8 +71,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lightboxOpen, images.length]);
+  }, [lightboxOpen, prev, next]);
 
   if (images.length === 0) {
     return (
@@ -55,11 +86,15 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
     );
   }
 
+  const isLoading = pendingIndex !== null;
+
   return (
     <>
       <div className="space-y-3">
-        {/* Main image — all images stacked, opacity controls active one */}
+        {/* Main image */}
         <div className="relative rounded-2xl overflow-hidden border border-gray-100 bg-gray-50 h-56 sm:h-72 lg:h-96 group cursor-zoom-in">
+
+          {/* All images stacked; only visibleIndex is shown */}
           {images.map((img, i) => (
             <Image
               key={img.id || i}
@@ -69,21 +104,28 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
               priority={i === 0}
               loading={i === 0 ? undefined : "eager"}
               sizes="(max-width: 1024px) 100vw, 66vw"
-              className={`object-cover transition-opacity duration-150 ${
-                i === activeIndex ? "opacity-100" : "opacity-0 pointer-events-none"
+              className={`object-cover transition-opacity duration-100 ${
+                i === visibleIndex ? "opacity-100" : "opacity-0 pointer-events-none"
               }`}
               placeholder="blur"
               blurDataURL={BLUR_PLACEHOLDER}
-              onLoad={i === 0 ? onLoad : undefined}
-              onClick={i === activeIndex ? () => setLightboxOpen(true) : undefined}
+              onLoad={() => handleImageLoad(i)}
+              onClick={i === visibleIndex ? () => setLightboxOpen(true) : undefined}
             />
           ))}
+
+          {/* Subtle spinner while waiting for a pending image */}
+          {isLoading && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="h-8 w-8 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+            </div>
+          )}
 
           {/* Zoom hint */}
           <button
             onClick={() => setLightboxOpen(true)}
             aria-label="Ver imagen ampliada"
-            className="absolute top-2.5 right-2.5 bg-white/80 hover:bg-white text-gray-700 rounded-lg p-1.5 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+            className="absolute top-2.5 right-2.5 bg-white/80 hover:bg-white text-gray-700 rounded-lg p-1.5 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm z-10"
           >
             <ZoomIn className="h-4 w-4" />
           </button>
@@ -116,11 +158,11 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
               {images.map((_, i) => (
                 <button
                   key={i}
-                  onClick={() => setActiveIndex(i)}
+                  onClick={() => goTo(i)}
                   aria-label={`Ver imagen ${i + 1} de ${images.length}`}
-                  aria-current={i === activeIndex ? "true" : undefined}
+                  aria-current={i === visibleIndex ? "true" : undefined}
                   className={`w-2 h-2 rounded-full transition-all ${
-                    i === activeIndex ? "bg-white scale-110" : "bg-white/50 hover:bg-white/70"
+                    i === visibleIndex ? "bg-white scale-110" : "bg-white/50 hover:bg-white/70"
                   }`}
                 />
               ))}
@@ -134,11 +176,15 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
             {images.map((img, i) => (
               <button
                 key={img.id || i}
-                onClick={() => setActiveIndex(i)}
+                onClick={() => goTo(i)}
                 aria-label={`Ver imagen ${i + 1} de ${images.length}`}
-                aria-current={i === activeIndex ? "true" : undefined}
+                aria-current={i === visibleIndex ? "true" : undefined}
                 className={`w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border-2 shrink-0 snap-start transition-all relative ${
-                  i === activeIndex ? "border-green-500 ring-2 ring-green-200" : "border-gray-100 hover:border-green-300"
+                  i === visibleIndex
+                    ? "border-green-500 ring-2 ring-green-200"
+                    : i === pendingIndex
+                    ? "border-green-300 opacity-70"
+                    : "border-gray-100 hover:border-green-300"
                 }`}
               >
                 <Image
@@ -149,7 +195,6 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                   className="object-cover"
                   placeholder="blur"
                   blurDataURL={BLUR_PLACEHOLDER}
-                  onLoad={onLoad}
                 />
               </button>
             ))}
@@ -167,7 +212,6 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
           className="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 p-4 sm:p-8"
         >
           <div className="relative w-full max-w-4xl max-h-[90vh] flex flex-col">
-            {/* Close */}
             <button
               onClick={() => setLightboxOpen(false)}
               aria-label="Cerrar imagen"
@@ -176,24 +220,22 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
               <X className="h-7 w-7" />
             </button>
 
-            {/* Image */}
             <div className="relative flex-1 min-h-0 rounded-xl overflow-hidden bg-black" style={{ height: "80vh" }}>
               <Image
-                src={images[activeIndex].url}
-                alt={images[activeIndex].alt || `${productName} — imagen ${activeIndex + 1}`}
+                src={images[visibleIndex].url}
+                alt={images[visibleIndex].alt || `${productName} — imagen ${visibleIndex + 1}`}
                 fill
                 sizes="100vw"
                 className="object-contain"
               />
             </div>
 
-            {/* Lightbox nav */}
             {images.length > 1 && (
               <div className="flex items-center justify-between mt-4">
                 <button onClick={prev} aria-label="Imagen anterior" className="text-white/70 hover:text-white transition-colors">
                   <ChevronLeft className="h-8 w-8" />
                 </button>
-                <p className="text-white/60 text-sm">{activeIndex + 1} / {images.length}</p>
+                <p className="text-white/60 text-sm">{visibleIndex + 1} / {images.length}</p>
                 <button onClick={next} aria-label="Imagen siguiente" className="text-white/70 hover:text-white transition-colors">
                   <ChevronRight className="h-8 w-8" />
                 </button>
