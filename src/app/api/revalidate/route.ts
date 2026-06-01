@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
   }
 
   const tag = request.nextUrl.searchParams.get("tag") ?? "products";
-  revalidateTag(tag);
+  revalidateTag(tag, "max");
 
   return Response.json({ revalidated: true, tag, timestamp: Date.now() });
 }
