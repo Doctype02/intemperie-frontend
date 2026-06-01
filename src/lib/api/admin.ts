@@ -117,3 +117,25 @@ export async function updateContentBlock(id: string, data: Record<string, unknow
     body: JSON.stringify(data),
   });
 }
+
+export async function getProductById(id: string) {
+  return request(`/products/id/${id}`);
+}
+
+export async function addProductImage(productId: string, data: { url: string; alt?: string }) {
+  return request(`/products/${productId}/images`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteProductImage(productId: string, imageId: string) {
+  return request(`/products/${productId}/images/${imageId}`, { method: "DELETE" });
+}
+
+export async function reorderProductImages(productId: string, orders: { id: string; order: number }[]) {
+  return request(`/products/${productId}/images/reorder`, {
+    method: "PATCH",
+    body: JSON.stringify({ orders }),
+  });
+}
