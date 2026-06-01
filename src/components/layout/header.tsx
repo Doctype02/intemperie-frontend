@@ -555,6 +555,10 @@ export function Header() {
               className="flex items-center h-full px-3.5 text-[13px] font-semibold text-gray-600 hover:text-green-700 transition-colors whitespace-nowrap relative after:absolute after:bottom-0 after:left-3.5 after:right-3.5 after:h-[2px] after:bg-green-600 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-200 after:origin-left">
               Instaladores
             </Link>
+            <Link href="/inspecciones"
+              className="flex items-center h-full px-3.5 text-[13px] font-semibold text-gray-600 hover:text-green-700 transition-colors whitespace-nowrap relative after:absolute after:bottom-0 after:left-3.5 after:right-3.5 after:h-[2px] after:bg-green-600 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-200 after:origin-left">
+              Inspecciones
+            </Link>
             <Link href="/nosotros"
               className="flex items-center h-full px-3.5 text-[13px] font-semibold text-gray-600 hover:text-green-700 transition-colors whitespace-nowrap relative after:absolute after:bottom-0 after:left-3.5 after:right-3.5 after:h-[2px] after:bg-green-600 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-200 after:origin-left">
               Nosotros
@@ -674,6 +678,12 @@ export function Header() {
             <Link href="/instaladores" onClick={closeAll}
               className="block px-4 py-3.5 text-sm font-semibold text-gray-800 hover:bg-gray-50 transition-colors">
               Instaladores
+            </Link>
+          </div>
+          <div className="border-b border-gray-100">
+            <Link href="/inspecciones" onClick={closeAll}
+              className="block px-4 py-3.5 text-sm font-semibold text-gray-800 hover:bg-gray-50 transition-colors">
+              Inspecciones
             </Link>
           </div>
           <div className="border-b border-gray-100">
