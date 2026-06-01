@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, X, ZoomIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,20 +16,18 @@ interface ProductGalleryProps {
 export function ProductGallery({ images, productName }: ProductGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
-  const dialogRef = useRef<HTMLDialogElement>(null);
   const onLoad = useImageOnLoad();
 
   const prev = () => setActiveIndex((i) => (i === 0 ? images.length - 1 : i - 1));
   const next = () => setActiveIndex((i) => (i === images.length - 1 ? 0 : i + 1));
 
   useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
     if (lightboxOpen) {
-      dialog.showModal();
+      document.body.style.overflow = "hidden";
     } else {
-      dialog.close();
+      document.body.style.overflow = "";
     }
+    return () => { document.body.style.overflow = ""; };
   }, [lightboxOpen]);
 
   useEffect(() => {
@@ -153,47 +151,51 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
         )}
       </div>
 
-      {/* Lightbox dialog */}
-      <dialog
-        ref={dialogRef}
-        onClick={(e) => { if (e.target === dialogRef.current) setLightboxOpen(false); }}
-        className="fixed inset-0 z-[200] m-0 h-full w-full max-w-none max-h-none bg-transparent backdrop:bg-black/90 p-4 sm:p-8 flex items-center justify-center open:flex"
-      >
-        <div className="relative w-full max-w-4xl max-h-[90vh] flex flex-col">
-          {/* Close */}
-          <button
-            onClick={() => setLightboxOpen(false)}
-            aria-label="Cerrar imagen"
-            className="absolute -top-10 right-0 text-white/80 hover:text-white transition-colors"
-          >
-            <X className="h-7 w-7" />
-          </button>
+      {/* Lightbox */}
+      {lightboxOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Imagen ampliada"
+          onClick={(e) => { if (e.target === e.currentTarget) setLightboxOpen(false); }}
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 p-4 sm:p-8"
+        >
+          <div className="relative w-full max-w-4xl max-h-[90vh] flex flex-col">
+            {/* Close */}
+            <button
+              onClick={() => setLightboxOpen(false)}
+              aria-label="Cerrar imagen"
+              className="absolute -top-10 right-0 text-white/80 hover:text-white transition-colors"
+            >
+              <X className="h-7 w-7" />
+            </button>
 
-          {/* Image */}
-          <div className="relative flex-1 min-h-0 rounded-xl overflow-hidden bg-black" style={{ height: "80vh" }}>
-            <Image
-              src={images[activeIndex].url}
-              alt={images[activeIndex].alt || `${productName} — imagen ${activeIndex + 1}`}
-              fill
-              sizes="100vw"
-              className="object-contain"
-            />
-          </div>
-
-          {/* Lightbox nav */}
-          {images.length > 1 && (
-            <div className="flex items-center justify-between mt-4">
-              <button onClick={prev} aria-label="Imagen anterior" className="text-white/70 hover:text-white transition-colors">
-                <ChevronLeft className="h-8 w-8" />
-              </button>
-              <p className="text-white/60 text-sm">{activeIndex + 1} / {images.length}</p>
-              <button onClick={next} aria-label="Imagen siguiente" className="text-white/70 hover:text-white transition-colors">
-                <ChevronRight className="h-8 w-8" />
-              </button>
+            {/* Image */}
+            <div className="relative flex-1 min-h-0 rounded-xl overflow-hidden bg-black" style={{ height: "80vh" }}>
+              <Image
+                src={images[activeIndex].url}
+                alt={images[activeIndex].alt || `${productName} — imagen ${activeIndex + 1}`}
+                fill
+                sizes="100vw"
+                className="object-contain"
+              />
             </div>
-          )}
+
+            {/* Lightbox nav */}
+            {images.length > 1 && (
+              <div className="flex items-center justify-between mt-4">
+                <button onClick={prev} aria-label="Imagen anterior" className="text-white/70 hover:text-white transition-colors">
+                  <ChevronLeft className="h-8 w-8" />
+                </button>
+                <p className="text-white/60 text-sm">{activeIndex + 1} / {images.length}</p>
+                <button onClick={next} aria-label="Imagen siguiente" className="text-white/70 hover:text-white transition-colors">
+                  <ChevronRight className="h-8 w-8" />
+                </button>
+              </div>
+            )}
+          </div>
         </div>
-      </dialog>
+      )}
     </>
   );
 }
