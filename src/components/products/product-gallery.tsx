@@ -58,20 +58,26 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
   return (
     <>
       <div className="space-y-3">
-        {/* Main image */}
+        {/* Main image — all images stacked, opacity controls active one */}
         <div className="relative rounded-2xl overflow-hidden border border-gray-100 bg-gray-50 h-56 sm:h-72 lg:h-96 group cursor-zoom-in">
-          <Image
-            src={images[activeIndex].url}
-            alt={images[activeIndex].alt || `${productName} — imagen ${activeIndex + 1}`}
-            fill
-            priority
-            sizes="(max-width: 1024px) 100vw, 66vw"
-            className="object-cover"
-            placeholder="blur"
-            blurDataURL={BLUR_PLACEHOLDER}
-            onLoad={onLoad}
-            onClick={() => setLightboxOpen(true)}
-          />
+          {images.map((img, i) => (
+            <Image
+              key={img.id || i}
+              src={img.url}
+              alt={img.alt || `${productName} — imagen ${i + 1}`}
+              fill
+              priority={i === 0}
+              loading={i === 0 ? undefined : "eager"}
+              sizes="(max-width: 1024px) 100vw, 66vw"
+              className={`object-cover transition-opacity duration-150 ${
+                i === activeIndex ? "opacity-100" : "opacity-0 pointer-events-none"
+              }`}
+              placeholder="blur"
+              blurDataURL={BLUR_PLACEHOLDER}
+              onLoad={i === 0 ? onLoad : undefined}
+              onClick={i === activeIndex ? () => setLightboxOpen(true) : undefined}
+            />
+          ))}
 
           {/* Zoom hint */}
           <button
