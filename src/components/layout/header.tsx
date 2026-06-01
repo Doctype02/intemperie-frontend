@@ -547,44 +547,21 @@ export function Header() {
             </SimpleDropdown>
 
             {/* Direct links */}
-            <Link href="/calculadora"
-              className="flex items-center h-full px-3.5 text-[13px] font-semibold text-gray-600 hover:text-green-700 transition-colors whitespace-nowrap relative after:absolute after:bottom-0 after:left-3.5 after:right-3.5 after:h-[2px] after:bg-green-600 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-200 after:origin-left">
-              Calculadora
-            </Link>
-            <Link href="/instaladores"
-              className="flex items-center h-full px-3.5 text-[13px] font-semibold text-gray-600 hover:text-green-700 transition-colors whitespace-nowrap relative after:absolute after:bottom-0 after:left-3.5 after:right-3.5 after:h-[2px] after:bg-green-600 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-200 after:origin-left">
-              Instaladores
-            </Link>
-            <Link href="/inspecciones"
-              className="flex items-center h-full px-3.5 text-[13px] font-semibold text-gray-600 hover:text-green-700 transition-colors whitespace-nowrap relative after:absolute after:bottom-0 after:left-3.5 after:right-3.5 after:h-[2px] after:bg-green-600 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-200 after:origin-left">
-              Inspecciones
-            </Link>
-            <Link href="/nosotros"
-              className="flex items-center h-full px-3.5 text-[13px] font-semibold text-gray-600 hover:text-green-700 transition-colors whitespace-nowrap relative after:absolute after:bottom-0 after:left-3.5 after:right-3.5 after:h-[2px] after:bg-green-600 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-200 after:origin-left">
-              Nosotros
-            </Link>
-            <a href="https://wa.me/50762874042"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center h-full px-3.5 text-[13px] font-semibold text-gray-600 hover:text-green-700 transition-colors whitespace-nowrap relative after:absolute after:bottom-0 after:left-3.5 after:right-3.5 after:h-[2px] after:bg-green-600 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-200 after:origin-left">
+            {[
+              { href: "/calculadora",  label: "Calculadora" },
+              { href: "/instaladores", label: "Instaladores" },
+              { href: "/inspecciones", label: "Inspecciones" },
+              { href: "/nosotros",     label: "Nosotros" },
+            ].map(({ href, label }) => (
+              <Link key={href} href={href}
+                className="flex items-center h-full px-3 text-[13px] font-semibold text-gray-600 hover:text-green-700 transition-colors whitespace-nowrap relative after:absolute after:bottom-0 after:left-3 after:right-3 after:h-[2px] after:bg-green-600 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-200 after:origin-left">
+                {label}
+              </Link>
+            ))}
+            <a href="https://wa.me/50762874042" target="_blank" rel="noopener noreferrer"
+              className="flex items-center h-full px-3 text-[13px] font-semibold text-gray-600 hover:text-green-700 transition-colors whitespace-nowrap relative after:absolute after:bottom-0 after:left-3 after:right-3 after:h-[2px] after:bg-green-600 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-200 after:origin-left">
               Contacto
             </a>
-
-            {/* Right info */}
-            <div className="ml-auto flex items-center gap-3 text-gray-400 text-[12px] shrink-0">
-              <div className="flex items-center gap-1.5">
-                <Clock className="h-3.5 w-3.5 text-green-600 shrink-0" />
-                <span className="text-gray-500 font-medium">Lun–Sáb 8:00–18:00</span>
-              </div>
-              <span className="text-gray-300">|</span>
-              <a
-                href="mailto:ventas@intemperie.com"
-                className="flex items-center gap-1.5 text-gray-500 hover:text-green-700 transition-colors font-medium"
-              >
-                <Mail className="h-3.5 w-3.5 shrink-0" />
-                ventas@intemperie.com
-              </a>
-            </div>
           </div>
         </div>
       </div>
