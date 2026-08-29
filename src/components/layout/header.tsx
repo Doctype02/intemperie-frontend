@@ -93,7 +93,7 @@ function SimpleDropdown({ label, children }: SimpleDropdownProps) {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1 h-full px-3 py-2 text-[13px] font-semibold text-gray-700 hover:text-green-700 hover:bg-gray-100 rounded transition-colors whitespace-nowrap"
+        className="flex items-center gap-1 h-full px-3 py-2 text-[13px] font-semibold text-foreground hover:text-brand-green-deep hover:bg-surface-2 rounded transition-colors whitespace-nowrap"
       >
         {label}
         <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
@@ -101,7 +101,7 @@ function SimpleDropdown({ label, children }: SimpleDropdownProps) {
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={close} />
-          <div className="absolute left-0 top-full z-50 mt-1 min-w-[200px] rounded-xl border border-gray-100 bg-white py-1.5 shadow-xl">
+          <div className="absolute left-0 top-full z-50 mt-1 min-w-[200px] rounded-xl border border-border bg-white py-1.5 shadow-xl">
             {children(close)}
           </div>
         </>
@@ -113,11 +113,11 @@ function SimpleDropdown({ label, children }: SimpleDropdownProps) {
 /* ── Mega dropdown for Cercas PVC ─────────────────────────────────────────── */
 function CercasMegaMenu({ onClose }: { onClose: () => void }) {
   return (
-    <div className="absolute left-0 top-full z-50 mt-1 w-[620px] rounded-xl border border-gray-100 bg-white shadow-2xl">
+    <div className="absolute left-0 top-full z-50 mt-1 w-[620px] rounded-xl border border-border bg-white shadow-2xl">
       <div className="grid grid-cols-3 gap-0 divide-x divide-gray-100">
         {/* Col 1 */}
         <div className="p-4">
-          <p className="mb-2 text-[10px] font-extrabold uppercase tracking-widest text-gray-400">
+          <p className="mb-2 text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
             Línea Residencial
           </p>
           {pvcResidencial.map((p) => (
@@ -125,16 +125,16 @@ function CercasMegaMenu({ onClose }: { onClose: () => void }) {
               key={p.slug}
               href={`/productos/${p.slug}`}
               onClick={onClose}
-              className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-[13px] font-medium text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors group"
+              className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-[13px] font-medium text-foreground hover:bg-brand-green-soft hover:text-brand-green-deep transition-colors group"
             >
-              <ChevronRight className="h-3 w-3 text-gray-300 group-hover:text-green-500 shrink-0" />
+              <ChevronRight className="h-3 w-3 text-muted-foreground group-hover:text-brand-green shrink-0" />
               {p.name}
             </Link>
           ))}
         </div>
         {/* Col 2 */}
         <div className="p-4">
-          <p className="mb-2 text-[10px] font-extrabold uppercase tracking-widest text-gray-400">
+          <p className="mb-2 text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
             Línea Industrial
           </p>
           {pvcIndustrial.map((p) => (
@@ -142,16 +142,16 @@ function CercasMegaMenu({ onClose }: { onClose: () => void }) {
               key={p.slug}
               href={`/productos/${p.slug}`}
               onClick={onClose}
-              className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-[13px] font-medium text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors group"
+              className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-[13px] font-medium text-foreground hover:bg-brand-green-soft hover:text-brand-green-deep transition-colors group"
             >
-              <ChevronRight className="h-3 w-3 text-gray-300 group-hover:text-green-500 shrink-0" />
+              <ChevronRight className="h-3 w-3 text-muted-foreground group-hover:text-brand-green shrink-0" />
               {p.name}
             </Link>
           ))}
         </div>
         {/* Col 3 */}
         <div className="p-4">
-          <p className="mb-2 text-[10px] font-extrabold uppercase tracking-widest text-gray-400">
+          <p className="mb-2 text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
             Zonas Costeras
           </p>
           {pvcCosteras.map((p) => (
@@ -159,20 +159,20 @@ function CercasMegaMenu({ onClose }: { onClose: () => void }) {
               key={p.slug}
               href={`/productos/${p.slug}`}
               onClick={onClose}
-              className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-[13px] font-medium text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors group"
+              className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-[13px] font-medium text-foreground hover:bg-brand-green-soft hover:text-brand-green-deep transition-colors group"
             >
-              <ChevronRight className="h-3 w-3 text-gray-300 group-hover:text-green-500 shrink-0" />
+              <ChevronRight className="h-3 w-3 text-muted-foreground group-hover:text-brand-green shrink-0" />
               {p.name}
             </Link>
           ))}
         </div>
       </div>
       {/* Footer */}
-      <div className="border-t border-gray-100 px-5 py-3">
+      <div className="border-t border-border px-5 py-3">
         <Link
           href="/productos"
           onClick={onClose}
-          className="inline-flex items-center gap-1.5 text-sm font-bold text-green-700 hover:text-green-800 transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm font-bold text-brand-green-deep hover:text-brand-green-deep transition-colors"
         >
           Ver todo el catálogo <ChevronRight className="h-4 w-4" />
         </Link>
@@ -187,13 +187,13 @@ function MobileSection({
 }: { title: string; children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="border-b border-gray-100">
+    <div className="border-b border-border">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between px-4 py-3.5 text-sm font-bold text-gray-800"
+        className="flex w-full items-center justify-between px-4 py-3.5 text-sm font-bold text-foreground"
       >
         {title}
-        <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+        <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
       </button>
       {open && <div className="pb-2 px-2">{children}</div>}
     </div>
@@ -286,13 +286,13 @@ export function Header() {
       {/* Skip to main content — visible on focus for keyboard/screen reader users */}
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:rounded-lg focus:bg-green-700 focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-white"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:rounded-lg focus:bg-brand-green-deep focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-white"
       >
         Saltar al contenido principal
       </a>
 
       {/* ── Tier 1: Announcement bar ──────────────────────────────────────── */}
-      <div className={`bg-green-800 text-white text-xs overflow-hidden transition-[max-height] duration-300 ${scrolled ? "max-h-0" : "max-h-8"}`}>
+      <div className={`bg-brand-navy-deep text-white text-xs overflow-hidden transition-[max-height] duration-300 ${scrolled ? "max-h-0" : "max-h-8"}`}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 flex items-center justify-between h-8">
           <p className="font-semibold truncate text-[11px]">
             🚚&nbsp;Envío gratis en pedidos mayores a $50 — Panamá y provincias
@@ -300,7 +300,7 @@ export function Header() {
           <div className="hidden md:flex items-center gap-4 shrink-0">
             <a
               href="tel:+50762874042"
-              className="flex items-center gap-1.5 text-[11px] font-medium hover:text-green-200 transition-colors"
+              className="flex items-center gap-1.5 text-[11px] font-medium hover:text-on-dark-soft transition-colors"
             >
               <Phone className="h-3 w-3" />
               +507 6287-4042
@@ -321,13 +321,13 @@ export function Header() {
       </div>
 
       {/* ── Tier 2: Main bar (logo + search + actions) ─────────────────────── */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="bg-white border-b border-border">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="flex h-16 items-center gap-3">
 
             {/* Mobile hamburger */}
             <button
-              className="lg:hidden -ml-1 p-2 rounded-md text-gray-600 hover:bg-gray-100 transition-colors"
+              className="lg:hidden -ml-1 p-2 rounded-md text-muted-foreground hover:bg-surface-2 transition-colors"
               onClick={() => setMobileOpen(!mobileOpen)}
               aria-label={mobileOpen ? "Cerrar menú" : "Abrir menú"}
             >
@@ -336,8 +336,8 @@ export function Header() {
 
             {/* Logo */}
             <Link href="/" className="flex shrink-0 items-center" onClick={closeAll}>
-              <span className="text-[22px] font-black tracking-[-0.04em] text-gray-900 leading-none select-none">
-                INTEM<span className="text-green-700">PERIE</span>
+              <span className="text-[22px] font-black tracking-[-0.04em] text-foreground leading-none select-none">
+                INTEM<span className="text-brand-green-deep">PERIE</span>
               </span>
             </Link>
 
@@ -347,10 +347,10 @@ export function Header() {
               className="hidden sm:flex flex-1 mx-4 lg:mx-8"
             >
               <div className="relative w-full">
-                <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
                 <input
                   type="search"
-                  className="h-10 w-full rounded-full border-0 bg-gray-100 pl-10 pr-4 text-sm text-gray-800 placeholder-gray-400 focus:bg-white focus:ring-2 focus:ring-green-500 focus:outline-none transition-all"
+                  className="h-10 w-full rounded-full border-0 bg-surface-2 pl-10 pr-4 text-sm text-foreground placeholder-gray-400 focus:bg-white focus:ring-2 focus:ring-brand-green focus:outline-none transition-all"
                   placeholder="Buscar cercas PVC, mallas electrosoldadas…"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -363,7 +363,7 @@ export function Header() {
               {/* Mobile search toggle */}
               <button
                 onClick={() => setSearchOpen(!searchOpen)}
-                className="sm:hidden p-2 rounded-md text-gray-600 hover:bg-gray-100 transition-colors"
+                className="sm:hidden p-2 rounded-md text-muted-foreground hover:bg-surface-2 transition-colors"
                 aria-label="Buscar"
               >
                 <Search className="h-5 w-5" />
@@ -374,7 +374,7 @@ export function Header() {
                 <div className="relative">
                   <button
                     onClick={() => setUserMenuOpen(!userMenuOpen)}
-                    className="flex items-center gap-1.5 p-2 rounded-md text-gray-600 hover:bg-gray-100 transition-colors"
+                    className="flex items-center gap-1.5 p-2 rounded-md text-muted-foreground hover:bg-surface-2 transition-colors"
                     aria-label="Mi cuenta"
                   >
                     <User className="h-5 w-5" />
@@ -385,10 +385,10 @@ export function Header() {
                   {userMenuOpen && (
                     <>
                       <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
-                      <div className="absolute right-0 top-full mt-2 w-52 rounded-xl border border-gray-100 bg-white p-2 shadow-xl z-50">
-                        <div className="px-3 py-2 border-b border-gray-100 mb-1">
-                          <p className="text-sm font-bold text-gray-900 truncate">{user?.name}</p>
-                          <p className="text-xs text-gray-400 truncate">{user?.email}</p>
+                      <div className="absolute right-0 top-full mt-2 w-52 rounded-xl border border-border bg-white p-2 shadow-xl z-50">
+                        <div className="px-3 py-2 border-b border-border mb-1">
+                          <p className="text-sm font-bold text-foreground truncate">{user?.name}</p>
+                          <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                         </div>
                         {[
                           { label: "Mi cuenta",    href: "/cuenta" },
@@ -401,7 +401,7 @@ export function Header() {
                             key={item.href}
                             href={item.href}
                             onClick={() => setUserMenuOpen(false)}
-                            className="block rounded-lg px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+                            className="block rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-surface-sunk hover:text-foreground transition-colors"
                           >
                             {item.label}
                           </Link>
@@ -419,7 +419,7 @@ export function Header() {
               ) : (
                 <Link
                   href="/login"
-                  className="flex items-center gap-1.5 p-2 rounded-md text-gray-600 hover:bg-gray-100 transition-colors"
+                  className="flex items-center gap-1.5 p-2 rounded-md text-muted-foreground hover:bg-surface-2 transition-colors"
                   aria-label="Ingresar"
                 >
                   <User className="h-5 w-5" />
@@ -431,7 +431,7 @@ export function Header() {
               <Link
                 href="/favoritos"
                 aria-label={`Favoritos${wishlistCount > 0 ? ` (${wishlistCount})` : ""}`}
-                className="relative p-2 rounded-md text-gray-600 hover:bg-gray-100 transition-colors"
+                className="relative p-2 rounded-md text-muted-foreground hover:bg-surface-2 transition-colors"
               >
                 <Heart className="h-5 w-5" />
                 {wishlistCount > 0 && (
@@ -451,14 +451,14 @@ export function Header() {
 
         {/* Mobile search panel */}
         {searchOpen && (
-          <div className="sm:hidden border-t border-gray-100 px-4 py-3">
+          <div className="sm:hidden border-t border-border px-4 py-3">
             <form onSubmit={handleSearch}>
               <div className="relative">
-                <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <input
                   autoFocus
                   type="search"
-                  className="h-10 w-full rounded-full bg-gray-100 pl-10 pr-4 text-sm text-gray-800 placeholder-gray-400 focus:bg-white focus:ring-2 focus:ring-green-500 focus:outline-none transition-all border-0"
+                  className="h-10 w-full rounded-full bg-surface-2 pl-10 pr-4 text-sm text-foreground placeholder-gray-400 focus:bg-white focus:ring-2 focus:ring-brand-green focus:outline-none transition-all border-0"
                   placeholder="Buscar cercas, mallas…"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -470,7 +470,7 @@ export function Header() {
       </div>
 
       {/* ── Tier 3: Navigation bar (desktop) ──────────────────────────────── */}
-      <div className="hidden lg:block bg-white border-b border-gray-200">
+      <div className="hidden lg:block bg-white border-b border-border">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="flex items-center h-11">
 
@@ -487,8 +487,8 @@ export function Header() {
                 aria-haspopup="true"
                 className={`flex items-center gap-1 h-full px-3 text-[13px] font-bold transition-colors ${
                   cercasOpen
-                    ? "text-green-700 bg-green-50"
-                    : "text-gray-700 hover:text-green-700 hover:bg-gray-100"
+                    ? "text-brand-green-deep bg-brand-green-soft"
+                    : "text-foreground hover:text-brand-green-deep hover:bg-surface-2"
                 }`}
               >
                 Cercas PVC
@@ -508,17 +508,17 @@ export function Header() {
                       key={p.slug}
                       href={`/productos/${p.slug}`}
                       onClick={close}
-                      className="flex items-center gap-2 mx-1 rounded-lg px-3 py-2 text-[13px] font-medium text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors group"
+                      className="flex items-center gap-2 mx-1 rounded-lg px-3 py-2 text-[13px] font-medium text-foreground hover:bg-brand-green-soft hover:text-brand-green-deep transition-colors group"
                     >
-                      <ChevronRight className="h-3 w-3 text-gray-300 group-hover:text-green-500 shrink-0" />
+                      <ChevronRight className="h-3 w-3 text-muted-foreground group-hover:text-brand-green shrink-0" />
                       {p.name}
                     </Link>
                   ))}
-                  <div className="mx-1 border-t border-gray-100 mt-1 pt-1">
+                  <div className="mx-1 border-t border-border mt-1 pt-1">
                     <Link
                       href="/productos?category=industrial"
                       onClick={close}
-                      className="block px-3 py-2 text-[13px] font-bold text-green-700 hover:bg-green-50 rounded-lg transition-colors"
+                      className="block px-3 py-2 text-[13px] font-bold text-brand-green-deep hover:bg-brand-green-soft rounded-lg transition-colors"
                     >
                       Ver todos →
                     </Link>
@@ -536,9 +536,9 @@ export function Header() {
                       key={c.slug}
                       href={`/productos?collection=${c.slug}`}
                       onClick={close}
-                      className="flex items-center gap-2 mx-1 rounded-lg px-3 py-2 text-[13px] font-medium text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors group"
+                      className="flex items-center gap-2 mx-1 rounded-lg px-3 py-2 text-[13px] font-medium text-foreground hover:bg-brand-green-soft hover:text-brand-green-deep transition-colors group"
                     >
-                      <ChevronRight className="h-3 w-3 text-gray-300 group-hover:text-green-500 shrink-0" />
+                      <ChevronRight className="h-3 w-3 text-muted-foreground group-hover:text-brand-green shrink-0" />
                       {c.name}
                     </Link>
                   ))}
@@ -554,12 +554,12 @@ export function Header() {
               { href: "/nosotros",     label: "Nosotros" },
             ].map(({ href, label }) => (
               <Link key={href} href={href}
-                className="flex items-center h-full px-3 text-[13px] font-semibold text-gray-600 hover:text-green-700 transition-colors whitespace-nowrap relative after:absolute after:bottom-0 after:left-3 after:right-3 after:h-[2px] after:bg-green-600 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-200 after:origin-left">
+                className="flex items-center h-full px-3 text-[13px] font-semibold text-muted-foreground hover:text-brand-green-deep transition-colors whitespace-nowrap relative after:absolute after:bottom-0 after:left-3 after:right-3 after:h-[2px] after:bg-brand-green after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-200 after:origin-left">
                 {label}
               </Link>
             ))}
             <a href="https://wa.me/50762874042" target="_blank" rel="noopener noreferrer"
-              className="flex items-center h-full px-3 text-[13px] font-semibold text-gray-600 hover:text-green-700 transition-colors whitespace-nowrap relative after:absolute after:bottom-0 after:left-3 after:right-3 after:h-[2px] after:bg-green-600 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-200 after:origin-left">
+              className="flex items-center h-full px-3 text-[13px] font-semibold text-muted-foreground hover:text-brand-green-deep transition-colors whitespace-nowrap relative after:absolute after:bottom-0 after:left-3 after:right-3 after:h-[2px] after:bg-brand-green after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-200 after:origin-left">
               Contacto
             </a>
           </div>
@@ -568,15 +568,15 @@ export function Header() {
 
       {/* ── Mobile full-panel menu ─────────────────────────────────────────── */}
       {mobileOpen && (
-        <div className={`lg:hidden fixed inset-0 z-40 flex flex-col bg-white overflow-y-auto border-t border-gray-200 shadow-2xl ${scrolled ? "top-16" : "top-[calc(2rem+4rem)]"}`}>
+        <div className={`lg:hidden fixed inset-0 z-40 flex flex-col bg-white overflow-y-auto border-t border-border shadow-2xl ${scrolled ? "top-16" : "top-[calc(2rem+4rem)]"}`}>
           {/* Mobile search */}
-          <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
+          <div className="px-4 py-3 bg-surface-sunk border-b border-border">
             <form onSubmit={handleSearch}>
               <div className="relative">
-                <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <input
                   type="search"
-                  className="h-10 w-full rounded-full bg-white border border-gray-200 pl-10 pr-4 text-sm text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:outline-none transition-all"
+                  className="h-10 w-full rounded-full bg-white border border-border pl-10 pr-4 text-sm text-foreground placeholder-gray-400 focus:ring-2 focus:ring-brand-green focus:outline-none transition-all"
                   placeholder="Buscar productos…"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -587,35 +587,35 @@ export function Header() {
 
           {/* Cercas PVC section */}
           <MobileSection title="Cercas PVC">
-            <p className="px-2 pt-2 pb-1 text-[10px] font-extrabold uppercase tracking-widest text-gray-400">
+            <p className="px-2 pt-2 pb-1 text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
               Línea Residencial
             </p>
             {pvcResidencial.map((p) => (
               <Link key={p.slug} href={`/productos/${p.slug}`} onClick={closeAll}
-                className="block rounded-lg px-3 py-2.5 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors">
+                className="block rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-brand-green-soft hover:text-brand-green-deep transition-colors">
                 {p.name}
               </Link>
             ))}
-            <p className="px-2 pt-3 pb-1 text-[10px] font-extrabold uppercase tracking-widest text-gray-400">
+            <p className="px-2 pt-3 pb-1 text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
               Línea Industrial
             </p>
             {pvcIndustrial.map((p) => (
               <Link key={p.slug} href={`/productos/${p.slug}`} onClick={closeAll}
-                className="block rounded-lg px-3 py-2.5 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors">
+                className="block rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-brand-green-soft hover:text-brand-green-deep transition-colors">
                 {p.name}
               </Link>
             ))}
-            <p className="px-2 pt-3 pb-1 text-[10px] font-extrabold uppercase tracking-widest text-gray-400">
+            <p className="px-2 pt-3 pb-1 text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
               Zonas Costeras
             </p>
             {pvcCosteras.map((p) => (
               <Link key={p.slug} href={`/productos/${p.slug}`} onClick={closeAll}
-                className="block rounded-lg px-3 py-2.5 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors">
+                className="block rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-brand-green-soft hover:text-brand-green-deep transition-colors">
                 {p.name}
               </Link>
             ))}
             <Link href="/productos" onClick={closeAll}
-              className="block rounded-lg px-3 py-2.5 text-sm font-bold text-green-700 hover:bg-green-50 transition-colors mt-1">
+              className="block rounded-lg px-3 py-2.5 text-sm font-bold text-brand-green-deep hover:bg-brand-green-soft transition-colors mt-1">
               Ver todo el catálogo →
             </Link>
           </MobileSection>
@@ -624,12 +624,12 @@ export function Header() {
           <MobileSection title="Mallas Electrosoldadas">
             {mallas.map((p) => (
               <Link key={p.slug} href={`/productos/${p.slug}`} onClick={closeAll}
-                className="block rounded-lg px-3 py-2.5 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors">
+                className="block rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-brand-green-soft hover:text-brand-green-deep transition-colors">
                 {p.name}
               </Link>
             ))}
             <Link href="/productos?category=industrial" onClick={closeAll}
-              className="block rounded-lg px-3 py-2.5 text-sm font-bold text-green-700 hover:bg-green-50 transition-colors mt-1">
+              className="block rounded-lg px-3 py-2.5 text-sm font-bold text-brand-green-deep hover:bg-brand-green-soft transition-colors mt-1">
               Ver todos →
             </Link>
           </MobileSection>
@@ -638,60 +638,60 @@ export function Header() {
           <MobileSection title="Colecciones">
             {colecciones.map((c) => (
               <Link key={c.slug} href={`/productos?collection=${c.slug}`} onClick={closeAll}
-                className="block rounded-lg px-3 py-2.5 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors">
+                className="block rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-brand-green-soft hover:text-brand-green-deep transition-colors">
                 {c.name}
               </Link>
             ))}
           </MobileSection>
 
           {/* Direct links */}
-          <div className="border-b border-gray-100">
+          <div className="border-b border-border">
             <Link href="/calculadora" onClick={closeAll}
-              className="block px-4 py-3.5 text-sm font-semibold text-gray-800 hover:bg-gray-50 transition-colors">
+              className="block px-4 py-3.5 text-sm font-semibold text-foreground hover:bg-surface-sunk transition-colors">
               Calculadora
             </Link>
           </div>
-          <div className="border-b border-gray-100">
+          <div className="border-b border-border">
             <Link href="/instaladores" onClick={closeAll}
-              className="block px-4 py-3.5 text-sm font-semibold text-gray-800 hover:bg-gray-50 transition-colors">
+              className="block px-4 py-3.5 text-sm font-semibold text-foreground hover:bg-surface-sunk transition-colors">
               Instaladores
             </Link>
           </div>
-          <div className="border-b border-gray-100">
+          <div className="border-b border-border">
             <Link href="/inspecciones" onClick={closeAll}
-              className="block px-4 py-3.5 text-sm font-semibold text-gray-800 hover:bg-gray-50 transition-colors">
+              className="block px-4 py-3.5 text-sm font-semibold text-foreground hover:bg-surface-sunk transition-colors">
               Inspecciones
             </Link>
           </div>
-          <div className="border-b border-gray-100">
+          <div className="border-b border-border">
             <Link href="/nosotros" onClick={closeAll}
-              className="block px-4 py-3.5 text-sm font-semibold text-gray-800 hover:bg-gray-50 transition-colors">
+              className="block px-4 py-3.5 text-sm font-semibold text-foreground hover:bg-surface-sunk transition-colors">
               Nosotros
             </Link>
           </div>
-          <div className="border-b border-gray-100">
+          <div className="border-b border-border">
             <a href="https://wa.me/50762874042" target="_blank" rel="noopener noreferrer"
               onClick={closeAll}
-              className="block px-4 py-3.5 text-sm font-semibold text-green-700 hover:bg-green-50 transition-colors">
+              className="block px-4 py-3.5 text-sm font-semibold text-brand-green-deep hover:bg-brand-green-soft transition-colors">
               Contacto por WhatsApp
             </a>
           </div>
 
           {/* Contact info bottom */}
-          <div className="px-4 py-5 bg-gray-50 space-y-2 mt-auto">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Clock className="h-4 w-4 text-green-600 shrink-0" />
+          <div className="px-4 py-5 bg-surface-sunk space-y-2 mt-auto">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Clock className="h-4 w-4 text-brand-green shrink-0" />
               <span>Lun–Sáb 8:00–18:00</span>
             </div>
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Phone className="h-4 w-4 text-green-600 shrink-0" />
-              <a href="tel:+50762874042" className="hover:text-green-700 transition-colors">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Phone className="h-4 w-4 text-brand-green shrink-0" />
+              <a href="tel:+50762874042" className="hover:text-brand-green-deep transition-colors">
                 +507 6287-4042
               </a>
             </div>
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Mail className="h-4 w-4 text-green-600 shrink-0" />
-              <a href="mailto:ventas@intemperie.com" className="hover:text-green-700 transition-colors">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Mail className="h-4 w-4 text-brand-green shrink-0" />
+              <a href="mailto:ventas@intemperie.com" className="hover:text-brand-green-deep transition-colors">
                 ventas@intemperie.com
               </a>
             </div>
