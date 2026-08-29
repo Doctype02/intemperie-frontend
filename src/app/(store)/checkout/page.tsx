@@ -6,7 +6,12 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/lib/store/cart-store";
 import { useAuthStore } from "@/lib/store/auth-store";
-import { createOrder, initiateTilopay, getOrderPaymentStatus } from "@/lib/api/orders";
+import {
+  createOrder,
+  initiateTilopay,
+  getOrderPaymentStatus,
+  clearCheckoutToken,
+} from "@/lib/api/orders";
 import { Check, ArrowLeft, ShoppingCart, Lock, Loader2, X } from "lucide-react";
 import type { GuestAddress } from "@/types";
 
@@ -21,6 +26,22 @@ const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "50762874042"
 const POLL_INTERVAL_MS = 3000;
 /** Cuánto esperamos, tras un aviso de éxito, a que el backend lo confirme. */
 const CONFIRM_TIMEOUT_MS = 90_000;
+
+/** Referencia corta que ve el comprador (la misma que en la pantalla de éxito). */
+const orderRef = (orderId: string) => orderId.slice(0, 8).toUpperCase();
+
+/** Mensajes de cierre del pago: siempre accionables y sin invitar a pagar dos veces. */
+const timeoutMessage = (orderId: string) =>
+  "No pudimos confirmar el pago con nuestro servidor. Si el cobro se realizó, no vuelvas a pagar: " +
+  `escríbenos con tu número de pedido (${orderRef(orderId)}) y lo verificamos.`;
+
+/**
+ * 402 del API: la transacción existe pero Tilopay no la da por aprobada. No es un
+ * error de red ni un "inténtalo otra vez": el dinero puede estar retenido.
+ */
+const notApprovedMessage = (orderId: string) =>
+  "El pago aún no aparece aprobado por Tilopay. No vuelvas a pagar: si tu banco te confirmó el cobro, " +
+  `escríbenos con tu número de pedido (${orderRef(orderId)}) y lo verificamos por ti.`;
 
 const FIELD_IDS: Record<FieldName, string> = {
   name: "addr-name",
@@ -97,10 +118,13 @@ export default function CheckoutPage() {
    *  estamos vaciando el carrito para ir a la pantalla de éxito. */
   const leavingToSuccessRef = useRef(false);
 
+  // Cerrar el modal es abandonar este intento de pago: el token de checkout deja
+  // de tener uso, así que no se queda en sessionStorage.
   const closeTilopay = useCallback(() => {
+    if (tilopayFrame) clearCheckoutToken(tilopayFrame.orderId);
     setTilopayFrame(null);
     setVerifying(false);
-  }, []);
+  }, [tilopayFrame]);
 
   // Show error if returning from a failed Tilopay payment
   useEffect(() => {
@@ -109,6 +133,12 @@ export default function CheckoutPage() {
     if (err === "pago_rechazado") {
       setStep("payment");
       setError("El pago fue rechazado. Por favor intenta con otra tarjeta.");
+    } else if (err === "pago_no_aprobado") {
+      setStep("payment");
+      setError(
+        "El pago aún no aparece aprobado por Tilopay. No vuelvas a pagar: si tu banco te confirmó el cobro, " +
+        "escríbenos con tu número de pedido y lo verificamos por ti."
+      );
     } else if (err === "confirmacion_fallida") {
       setStep("payment");
       setError("Error al confirmar el pago. Contacta a soporte.");
@@ -168,6 +198,8 @@ export default function CheckoutPage() {
     let finalized = false;
     let awaitingConfirmation = false;
     let giveUpTimer: ReturnType<typeof setTimeout> | undefined;
+    /** Mensaje que se mostrará si se agota la espera; puede afinarse por el camino. */
+    let giveUpMessage = timeoutMessage(orderId);
 
     const finalize = () => {
       if (finalized) return;
@@ -177,10 +209,25 @@ export default function CheckoutPage() {
       setVerifying(false);
       clearCart();
       try { sessionStorage.removeItem("intemperie-checkout-address"); } catch {}
-      router.push(`/checkout/success?ref=${orderId.slice(0, 8).toUpperCase()}&method=tilopay`);
+      // Pedido confirmado por el backend: el token de checkout ya no hace falta.
+      clearCheckoutToken(orderId);
+      router.push(`/checkout/success?ref=${orderRef(orderId)}&method=tilopay`);
     };
 
-    /** Única fuente de verdad: el estado del pedido según el backend. */
+    /** Cierra el intento con un error definitivo (y libera el token). */
+    const abort = (message: string) => {
+      if (finalized) return;
+      setTilopayFrame(null);
+      setVerifying(false);
+      clearCheckoutToken(orderId);
+      setError(message);
+    };
+
+    /**
+     * Única fuente de verdad: el estado del pedido según el backend.
+     * La consulta lleva el token de checkout; sin él un invitado recibiría 404
+     * en cada intento y el pago parecería fallido aunque estuviera cobrado.
+     */
     const checkOrderStatus = async (): Promise<boolean> => {
       try {
         const { orderStatus } = await getOrderPaymentStatus(orderId);
@@ -192,19 +239,12 @@ export default function CheckoutPage() {
       return false;
     };
 
-    const startConfirmation = () => {
+    const startConfirmation = (message?: string) => {
+      if (message) giveUpMessage = message;
       if (awaitingConfirmation) return;
       awaitingConfirmation = true;
       setVerifying(true);
-      giveUpTimer = setTimeout(() => {
-        if (finalized) return;
-        setTilopayFrame(null);
-        setVerifying(false);
-        setError(
-          "No pudimos confirmar el pago con nuestro servidor. Si el cobro se realizó, no vuelvas a pagar: " +
-          "escríbenos con tu número de pedido y lo verificamos."
-        );
-      }, CONFIRM_TIMEOUT_MS);
+      giveUpTimer = setTimeout(() => abort(giveUpMessage), CONFIRM_TIMEOUT_MS);
     };
 
     // postMessage from the tilopay-return page loaded in the iframe
@@ -226,13 +266,25 @@ export default function CheckoutPage() {
         startConfirmation();
         void checkOrderStatus();
       } else if (data.type === "tilopay-error") {
-        setTilopayFrame(null);
-        setVerifying(false);
         const reason = data.reason;
-        setError(
-          reason === "rejected" ? "El pago fue rechazado. Intenta con otra tarjeta." :
-          reason === "confirm-failed" ? "Error al confirmar el pago. Contacta soporte." :
-          "Ocurrió un error con el pago."
+
+        // 402 sin rechazo definitivo: el API consultó a Tilopay y todavía no hay
+        // pago aprobado. Puede llegar por webhook en segundos, así que seguimos
+        // preguntando al backend en vez de dar el pago por perdido; si se agota
+        // la espera, el mensaje ya no es de "error de red".
+        if (reason === "not-approved") {
+          startConfirmation(notApprovedMessage(orderId));
+          void checkOrderStatus();
+          return;
+        }
+
+        abort(
+          reason === "rejected" || reason === "declined"
+            ? "El pago fue rechazado. Intenta con otra tarjeta."
+            : reason === "confirm-failed"
+              ? "No pudimos comunicarnos con nuestro servidor para confirmar el pago. " +
+                `Si el cobro se realizó, escríbenos con tu número de pedido (${orderRef(orderId)}).`
+              : "Ocurrió un error con el pago."
         );
       }
     };
@@ -403,7 +455,15 @@ export default function CheckoutPage() {
     setError("");
     try {
       const order = await createOrder(buildOrderPayload("TILOPAY"));
-      const { url } = await initiateTilopay(order.id);
+
+      // Sin sesión, el API exige el correo con el que se creó el pedido para
+      // autorizar el inicio del pago. Es el mismo que pidió el formulario.
+      // A cambio devuelve el token de checkout, que la capa de API guarda ligado
+      // al orderId para el retorno de la pasarela (confirm + estado del pedido).
+      const { url } = await initiateTilopay(order.id, {
+        guestEmail: isAuthenticated ? undefined : address.email.trim(),
+      });
+
       setTilopayFrame({ url, orderId: order.id });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al iniciar el pago. Intenta de nuevo.");
