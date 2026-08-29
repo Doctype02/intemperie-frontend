@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertTriangle, CheckCircle2, ClipboardList, Loader2, Send, ShieldCheck } from "lucide-react";
 
@@ -122,12 +122,12 @@ export function Alia2ApplicationForm({
   const abortRef = React.useRef<AbortController | null>(null);
 
   const {
+    control,
     register,
     handleSubmit,
     setValue,
     setError,
     reset,
-    watch,
     formState: { errors, isSubmitted },
   } = useForm<Alia2ApplicationValues>({
     resolver: zodResolver(alia2ApplicationSchema),
@@ -147,7 +147,9 @@ export function Alia2ApplicationForm({
     setValue("requestedLevel", defaultLevel);
   }, [defaultLevel, setValue]);
 
-  const documentFile = watch("document") as File | undefined;
+  // `useWatch` en vez de `watch()`: el compilador de React no puede memoizar
+  // el segundo y renunciaría a optimizar todo el formulario.
+  const documentFile = useWatch({ control, name: "document" }) as File | undefined;
   const isSubmitting = status.kind === "submitting";
 
   /** Campos con error, en el orden en que se ven en pantalla. */
@@ -249,7 +251,16 @@ export function Alia2ApplicationForm({
 
   return (
     <SectionShell>
-      <form noValidate onSubmit={handleSubmit(submitValid, submitInvalid)} aria-busy={isSubmitting}>
+      <form
+        noValidate
+        aria-busy={isSubmitting}
+        // `handleSubmit(...)` se construye al enviar, no durante el render: los
+        // callbacks leen refs (el AbortController del envío en curso) y hacerlo
+        // en render es justo lo que prohíbe el compilador de React.
+        onSubmit={(event) => {
+          void handleSubmit(submitValid, submitInvalid)(event);
+        }}
+      >
         {/* Resumen de errores: orientación rápida en móvil, donde la lista de
             campos no cabe en pantalla. El anuncio lo hace el error del campo
             enfocado, así que aquí no se duplica una región viva. */}
@@ -297,7 +308,10 @@ export function Alia2ApplicationForm({
         ) : null}
 
         <fieldset id={`${fieldId("requestedLevel")}-block`} className="mb-6">
-          <legend className="text-sm font-semibold text-gray-800">
+          <legend
+            id={`${fieldId("requestedLevel")}-legend`}
+            className="text-sm font-semibold text-gray-800"
+          >
             {FORM_COPY.levelLegend}{" "}
             <span aria-hidden="true" className="text-[var(--a2-orange)]">
               *
@@ -308,7 +322,21 @@ export function Alia2ApplicationForm({
             {FORM_COPY.levelHint}
           </p>
 
-          <div className="mt-3 grid gap-2 sm:grid-cols-3">
+          {/* El grupo (no cada radio) es quien lleva el estado y la
+              descripción: `aria-required`/`aria-invalid` no aplican al rol
+              `radio`, sí a `radiogroup`. */}
+          <div
+            role="radiogroup"
+            aria-labelledby={`${fieldId("requestedLevel")}-legend`}
+            aria-required="true"
+            aria-invalid={errors.requestedLevel ? true : undefined}
+            aria-describedby={describedBy(
+              fieldId("requestedLevel"),
+              true,
+              Boolean(errors.requestedLevel),
+            )}
+            className="mt-3 grid gap-2 sm:grid-cols-3"
+          >
             {TIERS.map((tier, index) => (
               <label
                 key={tier.level}
@@ -326,16 +354,6 @@ export function Alia2ApplicationForm({
                   type="radio"
                   value={tier.level}
                   disabled={isSubmitting}
-                  aria-invalid={errors.requestedLevel ? true : undefined}
-                  aria-required="true"
-                  // La ayuda y el error se describen en CADA radio: en un grupo,
-                  // `aria-describedby` sobre el <fieldset> no se anuncia de forma
-                  // fiable en todos los lectores de pantalla.
-                  aria-describedby={describedBy(
-                    fieldId("requestedLevel"),
-                    true,
-                    Boolean(errors.requestedLevel),
-                  )}
                   className="h-5 w-5 shrink-0 accent-[var(--a2-orange)] outline-none"
                   {...register("requestedLevel")}
                 />
