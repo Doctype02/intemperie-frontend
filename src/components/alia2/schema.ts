@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import {
+  ALIA2_LEVEL_IDS,
   ALL_REGIONS,
   DOCUMENT_MAX_BYTES,
   DOCUMENT_MIME_TYPES,
@@ -17,11 +18,13 @@ import {
  */
 
 /**
- * El RUC panameño tiene varias formas históricas (`1234567890-1-2`, `8-123-456`,
- * `155123456-2-2017`). Se acepta un patrón deliberadamente permisivo: rechazar
- * un RUC válido por reglas propias sería peor que dejar que el servidor decida.
+ * El RUC panameño tiene varias formas según el contribuyente (`1234567890-1-2`,
+ * `8-731-1234`, `155646965-2-2015`), pero todas comparten la misma estructura:
+ * tres segmentos alfanuméricos separados por dos guiones. Se valida esa forma
+ * general —la misma que aplica el servidor— y no una gramática por tipo de
+ * contribuyente: rechazar un RUC legítimo sería peor que dejar decidir al API.
  */
-const RUC_PATTERN = /^[0-9A-Za-z]{1,12}(?:-[0-9A-Za-z]{1,6}){1,3}$/;
+const RUC_PATTERN = /^[0-9A-Za-z]{1,15}-[0-9A-Za-z]{1,10}-[0-9A-Za-z]{1,10}$/;
 
 /** Teléfonos de Panamá: 7 dígitos (fijo) u 8 dígitos (móvil), con o sin guiones. */
 const isPanamaPhone = (value: string) => /^\d{7,8}$/.test(value.replace(/\D/g, ""));
@@ -40,6 +43,10 @@ export const documentSchema = z
   );
 
 export const alia2ApplicationSchema = z.object({
+  /** Nivel al que aspira la empresa; el servidor lo exige y luego lo revisa. */
+  requestedLevel: z.enum(ALIA2_LEVEL_IDS, {
+    message: "Selecciona el nivel al que quieres aplicar",
+  }),
   legalName: z
     .string()
     .trim()
@@ -120,6 +127,7 @@ export type Alia2ApplicationValues = z.infer<typeof alia2ApplicationSchema>;
  * resumen de errores.
  */
 export const FIELD_ORDER = [
+  "requestedLevel",
   "legalName",
   "tradeName",
   "ruc",
@@ -137,6 +145,7 @@ export const FIELD_ORDER = [
 ] as const satisfies readonly (keyof Alia2ApplicationValues)[];
 
 export const FIELD_LABELS: Record<keyof Alia2ApplicationValues, string> = {
+  requestedLevel: "Nivel solicitado",
   legalName: "Razón social",
   tradeName: "Nombre comercial",
   ruc: "RUC",
@@ -155,6 +164,7 @@ export const FIELD_LABELS: Record<keyof Alia2ApplicationValues, string> = {
 
 /** Valores iniciales: se conservan intactos si el envío falla. */
 export const EMPTY_APPLICATION: Alia2ApplicationValues = {
+  requestedLevel: "ALIA2",
   legalName: "",
   tradeName: "",
   ruc: "",

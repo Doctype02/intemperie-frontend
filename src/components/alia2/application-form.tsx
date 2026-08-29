@@ -13,10 +13,12 @@ import {
   ECONOMIC_ACTIVITIES,
   FORM_COPY,
   PROVINCES,
+  TIERS,
   YEARS_RANGES,
+  type Alia2LevelId,
 } from "./content";
 import { FileDropzone } from "./file-dropzone";
-import { SelectField, TextField } from "./fields";
+import { describedBy, SelectField, TextField } from "./fields";
 import {
   alia2ApplicationSchema,
   EMPTY_APPLICATION,
@@ -102,9 +104,18 @@ type Status =
 
 interface Alia2ApplicationFormProps {
   onSubmit: Alia2SubmitHandler;
+  /**
+   * Nivel preseleccionado. Llega desde las tarjetas de niveles (enlazan a
+   * `?nivel=pro#solicitud`), de modo que quien pulsa «Solicitar ALIA2 PRO»
+   * encuentra el formulario ya en ese nivel.
+   */
+  defaultLevel?: Alia2LevelId;
 }
 
-export function Alia2ApplicationForm({ onSubmit }: Alia2ApplicationFormProps) {
+export function Alia2ApplicationForm({
+  onSubmit,
+  defaultLevel = "ALIA2",
+}: Alia2ApplicationFormProps) {
   const [status, setStatus] = React.useState<Status>({ kind: "idle" });
   const errorRef = React.useRef<HTMLDivElement | null>(null);
   const successRef = React.useRef<HTMLDivElement | null>(null);
@@ -120,7 +131,7 @@ export function Alia2ApplicationForm({ onSubmit }: Alia2ApplicationFormProps) {
     formState: { errors, isSubmitted },
   } = useForm<Alia2ApplicationValues>({
     resolver: zodResolver(alia2ApplicationSchema),
-    defaultValues: EMPTY_APPLICATION,
+    defaultValues: { ...EMPTY_APPLICATION, requestedLevel: defaultLevel },
     // El foco lo movemos nosotros: react-hook-form no puede enfocar el adjunto
     // ni la casilla de términos de forma fiable porque no van por `register`.
     shouldFocusError: false,
@@ -129,6 +140,12 @@ export function Alia2ApplicationForm({ onSubmit }: Alia2ApplicationFormProps) {
   });
 
   React.useEffect(() => () => abortRef.current?.abort(), []);
+
+  // El nivel puede cambiar sin desmontar el formulario (las tarjetas enlazan a
+  // `?nivel=…` en esta misma página), así que se refleja en el campo.
+  React.useEffect(() => {
+    setValue("requestedLevel", defaultLevel);
+  }, [defaultLevel, setValue]);
 
   const documentFile = watch("document") as File | undefined;
   const isSubmitting = status.kind === "submitting";
@@ -184,7 +201,7 @@ export function Alia2ApplicationForm({ onSubmit }: Alia2ApplicationFormProps) {
   };
 
   const startOver = () => {
-    reset(EMPTY_APPLICATION);
+    reset({ ...EMPTY_APPLICATION, requestedLevel: defaultLevel });
     setStatus({ kind: "idle" });
   };
 
@@ -278,6 +295,65 @@ export function Alia2ApplicationForm({ onSubmit }: Alia2ApplicationFormProps) {
             </div>
           </div>
         ) : null}
+
+        <fieldset id={`${fieldId("requestedLevel")}-block`} className="mb-6">
+          <legend className="text-sm font-semibold text-gray-800">
+            {FORM_COPY.levelLegend}{" "}
+            <span aria-hidden="true" className="text-[var(--a2-orange)]">
+              *
+            </span>
+            <span className="sr-only">(obligatorio)</span>
+          </legend>
+          <p id={`${fieldId("requestedLevel")}-hint`} className="mt-1 text-xs leading-snug text-gray-500">
+            {FORM_COPY.levelHint}
+          </p>
+
+          <div className="mt-3 grid gap-2 sm:grid-cols-3">
+            {TIERS.map((tier, index) => (
+              <label
+                key={tier.level}
+                className={cn(
+                  "flex min-h-11 cursor-pointer items-center gap-2.5 rounded-xl border-2 border-gray-200 px-3 py-2.5 text-sm font-semibold text-gray-700 transition-colors",
+                  "hover:border-gray-300 has-[:checked]:border-[var(--a2-orange)] has-[:checked]:bg-orange-50/60 has-[:checked]:text-[var(--a2-navy)]",
+                  "has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[var(--a2-orange)]",
+                  errors.requestedLevel ? "border-red-400" : undefined,
+                )}
+              >
+                <input
+                  // El primer radio lleva el id del campo: es el destino del
+                  // foco cuando el grupo es el primer error del formulario.
+                  id={index === 0 ? fieldId("requestedLevel") : `${fieldId("requestedLevel")}-${tier.level}`}
+                  type="radio"
+                  value={tier.level}
+                  disabled={isSubmitting}
+                  aria-invalid={errors.requestedLevel ? true : undefined}
+                  aria-required="true"
+                  // La ayuda y el error se describen en CADA radio: en un grupo,
+                  // `aria-describedby` sobre el <fieldset> no se anuncia de forma
+                  // fiable en todos los lectores de pantalla.
+                  aria-describedby={describedBy(
+                    fieldId("requestedLevel"),
+                    true,
+                    Boolean(errors.requestedLevel),
+                  )}
+                  className="h-5 w-5 shrink-0 accent-[var(--a2-orange)] outline-none"
+                  {...register("requestedLevel")}
+                />
+                {tier.name}
+              </label>
+            ))}
+          </div>
+
+          {errors.requestedLevel ? (
+            <p
+              id={`${fieldId("requestedLevel")}-error`}
+              role="alert"
+              className="mt-1.5 text-xs font-semibold text-red-600"
+            >
+              {errors.requestedLevel.message}
+            </p>
+          ) : null}
+        </fieldset>
 
         <div className="grid gap-x-5 gap-y-4 sm:grid-cols-2">
           <TextField
@@ -425,6 +501,7 @@ export function Alia2ApplicationForm({ onSubmit }: Alia2ApplicationFormProps) {
             id={fieldId("projectTypes")}
             label={FIELD_LABELS.projectTypes}
             required
+            hint={FORM_COPY.projectTypesHint}
             placeholder="Ej.: cerramientos perimetrales, mallas y portones"
             disabled={isSubmitting}
             error={errors.projectTypes?.message}

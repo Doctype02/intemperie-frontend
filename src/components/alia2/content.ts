@@ -30,8 +30,19 @@ export const INTRO = {
 
 export type TierAccent = "blue" | "teal" | "orange";
 
+/**
+ * Identificadores de nivel tal y como los espera el API (`requestedLevel`).
+ * Viven aquí para que el esquema zod, las tarjetas y el envío usen la MISMA
+ * lista y no se puedan desincronizar.
+ */
+export const ALIA2_LEVEL_IDS = ["ALIA2", "PRO", "MAX"] as const;
+
+export type Alia2LevelId = (typeof ALIA2_LEVEL_IDS)[number];
+
 export interface Tier {
   id: string;
+  /** Valor que viaja al API. */
+  level: Alia2LevelId;
   name: string;
   tagline: string;
   accent: TierAccent;
@@ -41,6 +52,7 @@ export interface Tier {
 export const TIERS: readonly Tier[] = [
   {
     id: "alia2",
+    level: "ALIA2",
     name: "ALIA2",
     tagline: "Nivel inicial",
     accent: "blue",
@@ -48,6 +60,7 @@ export const TIERS: readonly Tier[] = [
   },
   {
     id: "alia2-pro",
+    level: "PRO",
     name: "ALIA2 PRO",
     tagline: "Mayor ventaja por volumen",
     accent: "teal",
@@ -55,6 +68,7 @@ export const TIERS: readonly Tier[] = [
   },
   {
     id: "alia2-max",
+    level: "MAX",
     name: "ALIA2 MAX",
     tagline: "Beneficios preferenciales",
     accent: "orange",
@@ -148,9 +162,19 @@ export const YEARS_RANGES = [
   "Más de 10 años",
 ] as const;
 
+export const TIERS_COPY = {
+  title: "Elige el nivel que impulsa tu crecimiento",
+  cta: "Solicitar",
+  /** Texto accesible del CTA de cada tarjeta (evita tres "Solicitar" iguales). */
+  ctaLabel: (name: string) => `Solicitar ingreso al nivel ${name}`,
+} as const;
+
 export const FORM_COPY = {
   title: "Formulario de registro para empresas",
   subtitle: "Toda la información será tratada de manera confidencial.",
+  levelLegend: "Nivel al que deseas aplicar",
+  levelHint: "Nuestro equipo confirmará el nivel definitivo tras evaluar tu empresa.",
+  projectTypesHint: "Separa varios servicios con comas.",
   submit: "Enviar solicitud",
   submitting: "Enviando solicitud…",
   disclaimer: "Solicitud sujeta a validación y aprobación de Intemperie.",

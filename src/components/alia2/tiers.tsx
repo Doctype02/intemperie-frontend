@@ -1,12 +1,22 @@
-import { CheckCircle2, ShieldCheck } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, CheckCircle2, ShieldCheck } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { TIERS, type TierAccent } from "./content";
+import { ALIA2_ANCHOR, TIERS, TIERS_COPY, type TierAccent } from "./content";
+import { FOCUS_RING, TAP_TARGET } from "./theme";
 
 /** Clases literales por nivel: Tailwind necesita ver la cadena completa. */
 const ACCENT: Record<
   TierAccent,
-  { header: string; name: string; tagline: string; rule: string; bullet: string; shield: string }
+  {
+    header: string;
+    name: string;
+    tagline: string;
+    rule: string;
+    bullet: string;
+    shield: string;
+    cta: string;
+  }
 > = {
   blue: {
     header: "bg-[var(--a2-navy)]",
@@ -15,6 +25,7 @@ const ACCENT: Record<
     rule: "bg-[var(--a2-blue)]",
     bullet: "text-[var(--a2-blue)]",
     shield: "text-[var(--a2-navy)]",
+    cta: "border-[var(--a2-navy)] text-[var(--a2-navy)] hover:bg-[var(--a2-navy)] hover:text-white",
   },
   teal: {
     header: "bg-[var(--a2-teal)]",
@@ -23,6 +34,7 @@ const ACCENT: Record<
     rule: "bg-[var(--a2-teal)]",
     bullet: "text-[var(--a2-teal)]",
     shield: "text-[var(--a2-teal)]",
+    cta: "border-[var(--a2-teal)] text-[var(--a2-teal)] hover:bg-[var(--a2-teal)] hover:text-white",
   },
   orange: {
     header: "bg-[var(--a2-orange)]",
@@ -31,6 +43,7 @@ const ACCENT: Record<
     rule: "bg-[var(--a2-orange)]",
     bullet: "text-[var(--a2-orange)]",
     shield: "text-[var(--a2-orange-strong)]",
+    cta: "border-[var(--a2-orange)] text-[var(--a2-orange-strong)] hover:bg-[var(--a2-orange)] hover:text-white",
   },
 };
 
@@ -42,7 +55,7 @@ export function Alia2Tiers() {
         id="alia2-niveles-title"
         className="text-center text-2xl font-extrabold tracking-tight text-[var(--a2-navy)] sm:text-3xl"
       >
-        Elige el nivel que impulsa tu crecimiento
+        {TIERS_COPY.title}
       </h2>
 
       <ul className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -77,6 +90,24 @@ export function Alia2Tiers() {
                     </li>
                   ))}
                 </ul>
+
+                {/* Baja al formulario con el nivel ya preseleccionado: la URL
+                    queda compartible (`?nivel=pro#solicitud`). */}
+                <Link
+                  href={`/alia2?nivel=${tier.level.toLowerCase()}#${ALIA2_ANCHOR}`}
+                  data-track="alia2-submit"
+                  data-track-location={`tier-${tier.level.toLowerCase()}`}
+                  aria-label={TIERS_COPY.ctaLabel(tier.name)}
+                  className={cn(
+                    "mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 px-4 text-sm font-bold transition-colors",
+                    TAP_TARGET,
+                    FOCUS_RING,
+                    accent.cta,
+                  )}
+                >
+                  {TIERS_COPY.cta}
+                  <ArrowRight aria-hidden="true" className="h-4 w-4" />
+                </Link>
               </div>
             </li>
           );
