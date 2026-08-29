@@ -10,6 +10,8 @@ export default function SortSelect() {
   const onChange = (value: string) => {
     const sp = new URLSearchParams(searchParams.toString());
     if (value) sp.set("sort", value); else sp.delete("sort");
+    // Reordenar cambia qué cae en cada página: se vuelve a la primera.
+    sp.delete("page");
     router.push(`/productos?${sp.toString()}`);
   };
 

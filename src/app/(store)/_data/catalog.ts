@@ -208,6 +208,36 @@ export async function listProducts(
   };
 }
 
+/**
+ * `listProducts` memoizado por render.
+ *
+ * La página de listado necesita el mismo resultado en dos sitios (el contador
+ * de la cabecera y la parrilla), cada uno bajo su propio `<Suspense>`. React
+ * `cache` memoiza por identidad de argumentos, así que se le pasa una clave
+ * serializada y estable en lugar del objeto de consulta.
+ */
+const productPageByKey = cache(
+  async (key: string): Promise<ProductListResult> => {
+    const { query, limit } = JSON.parse(key) as {
+      query: ProductQuery;
+      limit: number;
+    };
+    return listProducts(query, limit);
+  },
+);
+
+export function loadProductPage(
+  query: ProductQuery,
+  limit: number = PAGE_SIZE,
+): Promise<ProductListResult> {
+  const stable = Object.fromEntries(
+    Object.entries(query)
+      .filter(([, v]) => v !== undefined && v !== "")
+      .sort(([a], [b]) => a.localeCompare(b)),
+  );
+  return productPageByKey(JSON.stringify({ query: stable, limit }));
+}
+
 export const getProductBySlug = cache(
   async (slug: string): Promise<Product | null> => {
     const body = await getJson<Envelope<Product>>(
