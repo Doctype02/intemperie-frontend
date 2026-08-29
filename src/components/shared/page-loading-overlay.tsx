@@ -1,29 +1,17 @@
-"use client";
-
-import { useImageLoad } from "@/lib/image-load-context";
-
+/**
+ * Overlay de carga — desactivado a propósito.
+ *
+ * Este componente pintaba un `fixed inset-0 z-[9999]` opaco sobre toda la página
+ * y no se retiraba hasta que cada `next/image` del documento había cargado, con
+ * un tope de 8 s. En la práctica escondía contenido que el servidor ya había
+ * entregado en ~0.3 s y convertía el LCP en "el momento en que se va el overlay"
+ * en lugar de "el momento en que se ve el producto". Ver la explicación completa
+ * en `src/lib/image-load-context.tsx`.
+ *
+ * Se deja como componente vacío en vez de borrarlo porque el layout raíz
+ * (fuera del alcance de este cambio) todavía lo importa. Al no renderizar nada,
+ * el contenido es visible en cuanto llega el HTML.
+ */
 export function PageLoadingOverlay() {
-  const { allLoaded } = useImageLoad();
-
-  if (allLoaded) return null;
-
-  return (
-    <div className="fixed inset-0 z-[9999] bg-gray-50 flex flex-col items-center justify-center px-4">
-      <div className="flex flex-col items-center gap-4 w-full max-w-sm">
-        <div className="relative">
-          <div className="h-16 w-16 rounded-2xl bg-green-600 flex items-center justify-center animate-pulse">
-            <span className="text-2xl font-black text-white">I</span>
-          </div>
-          <div className="absolute inset-0 rounded-2xl ring-4 ring-green-200 animate-ping opacity-20" />
-        </div>
-        <div className="w-full space-y-3 mt-6">
-          <div className="h-3 bg-gray-200 rounded animate-pulse w-3/4" />
-          <div className="h-3 bg-gray-200 rounded animate-pulse w-1/2" />
-          <div className="h-3 bg-gray-200 rounded animate-pulse w-2/3" />
-          <div className="h-3 bg-gray-200 rounded animate-pulse w-5/6" />
-        </div>
-        <p className="text-sm text-gray-400 font-medium mt-2">Cargando...</p>
-      </div>
-    </div>
-  );
+  return null;
 }

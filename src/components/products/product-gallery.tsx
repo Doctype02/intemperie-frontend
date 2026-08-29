@@ -5,7 +5,6 @@ import Image from "next/image";
 import { ChevronLeft, ChevronRight, X, ZoomIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BLUR_PLACEHOLDER } from "@/lib/image-utils";
-import { useImageOnLoad } from "@/lib/image-load-context";
 import type { ProductImage } from "@/types";
 
 interface ProductGalleryProps {
@@ -19,7 +18,6 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
   const [pendingIndex,  setPendingIndex]  = useState<number | null>(null);
   const [lightboxOpen,  setLightboxOpen]  = useState(false);
   const loadedRef = useRef<Set<number>>(new Set([0]));
-  const onLoad = useImageOnLoad();
 
   const goTo = useCallback((i: number) => {
     if (i === visibleIndex) return;
@@ -42,7 +40,6 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
 
   const handleImageLoad = useCallback((i: number) => {
     loadedRef.current.add(i);
-    if (i === 0) onLoad();
     // If this is the image we were waiting for, switch now
     setPendingIndex((p) => {
       if (p === i) {
@@ -51,7 +48,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
       }
       return p;
     });
-  }, [onLoad]);
+  }, []);
 
   useEffect(() => {
     if (lightboxOpen) {

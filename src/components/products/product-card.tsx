@@ -7,7 +7,6 @@ import { toast } from "sonner";
 import { useCartStore } from "@/lib/store/cart-store";
 import { useWishlist } from "@/lib/hooks/use-wishlist";
 import { BLUR_PLACEHOLDER } from "@/lib/image-utils";
-import { useImageOnLoad } from "@/lib/image-load-context";
 import type { ProductImage, ProductUnit } from "@/types";
 
 interface ProductCardProps {
@@ -22,8 +21,8 @@ interface ProductCardProps {
   reviewCount?: number;
   rating?: number;
   sku?: string;
-  category?: { name: string };
-  collection?: { name: string };
+  category?: { name: string } | null;
+  collection?: { name: string } | null;
   images?: ProductImage[];
   priority?: boolean;
 }
@@ -58,7 +57,6 @@ function Stars({ rating = 5, count = 0 }: { rating?: number; count?: number }) {
 
 export function ProductCard(p: ProductCardProps) {
   const addItem = useCartStore((s) => s.addItem);
-  const onLoad  = useImageOnLoad();
   const { toggle, isWishlisted } = useWishlist();
   const wishlisted = isWishlisted(p.id);
 
@@ -112,7 +110,6 @@ export function ProductCard(p: ProductCardProps) {
               placeholder="blur"
               blurDataURL={BLUR_PLACEHOLDER}
               priority={p.priority}
-              onLoad={onLoad}
             />
           ) : (
             <div className="flex h-full items-center justify-center">
@@ -191,11 +188,13 @@ export function ProductCard(p: ProductCardProps) {
         </Link>
 
         {/* Stars — only if there are actual reviews */}
-        {p.reviewCount && p.reviewCount > 0 && (
+        {/* `p.reviewCount &&` a secas pintaba un "0" suelto: con reviewCount 0
+            la expresion evalua a 0 y React renderiza el cero. */}
+        {p.reviewCount && p.reviewCount > 0 ? (
           <div className="mt-1.5">
             <Stars rating={p.rating} count={p.reviewCount} />
           </div>
-        )}
+        ) : null}
 
         {/* Price */}
         <div className="mt-2.5 flex items-baseline gap-1.5 flex-wrap">

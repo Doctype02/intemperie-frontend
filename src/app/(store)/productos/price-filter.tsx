@@ -19,6 +19,8 @@ export default function PriceFilter() {
     const sp = new URLSearchParams(searchParams.toString());
     if (min) sp.set("minPrice", min); else sp.delete("minPrice");
     if (max) sp.set("maxPrice", max); else sp.delete("maxPrice");
+    // El nuevo filtro tiene menos páginas: quedarse en la 5 daría vacío.
+    sp.delete("page");
     router.push(`/productos?${sp.toString()}`);
   };
 
@@ -26,6 +28,7 @@ export default function PriceFilter() {
     setMin(""); setMax("");
     const sp = new URLSearchParams(searchParams.toString());
     sp.delete("minPrice"); sp.delete("maxPrice");
+    sp.delete("page");
     router.push(`/productos?${sp.toString()}`);
   };
 

@@ -22,9 +22,9 @@ interface ProductData {
   unit?: import("@/types").ProductUnit;
   stock: number;
   sku?: string;
-  collection?: { name: string };
-  category?: { name: string };
-  images?: { id?: string; url: string; alt?: string; order?: number }[];
+  collection?: { name: string } | null;
+  category?: { name: string } | null;
+  images?: { id?: string; url: string; alt?: string | null; order?: number }[];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   attributes?: any;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
