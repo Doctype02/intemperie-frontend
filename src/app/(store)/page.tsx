@@ -66,19 +66,19 @@ function SectionHead({
     <div className="flex items-end justify-between mb-8">
       <div>
         {sub && (
-          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-green-700 mb-2">
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-brand-green-deep mb-2">
             {sub}
           </p>
         )}
-        <h2 className="text-3xl sm:text-4xl font-black text-gray-900 leading-[1.05] tracking-tight">
+        <h2 className="text-3xl sm:text-4xl font-black text-foreground leading-[1.05] tracking-tight">
           {title}
         </h2>
-        <div className="mt-3 h-[3px] w-10 bg-green-600 rounded-full" aria-hidden="true" />
+        <div className="mt-3 h-[3px] w-10 bg-brand-green rounded-full" aria-hidden="true" />
       </div>
       {href && (
         <Link
           href={href}
-          className="hidden sm:flex items-center gap-1.5 text-sm font-bold text-gray-500 hover:text-green-700 transition-colors shrink-0 pb-1 border-b border-transparent hover:border-green-700"
+          className="hidden sm:flex items-center gap-1.5 text-sm font-bold text-muted-foreground hover:text-brand-green-deep transition-colors shrink-0 pb-1 border-b border-transparent hover:border-green-700"
         >
           Ver todo <ChevronRight className="h-4 w-4" />
         </Link>
@@ -118,7 +118,7 @@ function CategoryCards() {
   ];
 
   return (
-    <section className="bg-white py-6 sm:py-8 border-b border-gray-100">
+    <section className="bg-white py-6 sm:py-8 border-b border-border">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <SectionHead title="Explorar por uso" href="/productos" />
         {/* 5 cols desktop, horizontal scroll mobile */}
@@ -168,7 +168,7 @@ function TrustLogosStrip() {
           {items.map((item, i) => (
             <div key={item.label} className="flex items-center gap-2 shrink-0">
               {i > 0 && (
-                <span className="hidden sm:block text-gray-700 text-sm select-none" aria-hidden="true">|</span>
+                <span className="hidden sm:block text-foreground text-sm select-none" aria-hidden="true">|</span>
               )}
               <item.Icon className="h-4 w-4 text-green-400 shrink-0" aria-hidden="true" />
               <span className="text-xs sm:text-sm font-semibold text-gray-300 whitespace-nowrap">
@@ -204,11 +204,11 @@ function StatsSection() {
               <p className="text-5xl sm:text-6xl lg:text-7xl font-black text-white leading-none tracking-tight">
                 {s.value}
               </p>
-              <div className="mt-2 h-[2px] w-7 bg-green-500 rounded-full" />
+              <div className="mt-2 h-[2px] w-7 bg-brand-green-soft0 rounded-full" />
               <p className="mt-2.5 text-sm sm:text-base font-bold text-gray-200 leading-snug">
                 {s.label}
               </p>
-              <p className="mt-0.5 text-xs text-gray-500 leading-snug">{s.sub}</p>
+              <p className="mt-0.5 text-xs text-muted-foreground leading-snug">{s.sub}</p>
             </div>
           ))}
         </div>
@@ -236,7 +236,7 @@ function CalculadoraBanner() {
           </p>
           <Link
             href="/calculadora"
-            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-white text-gray-900 px-6 py-3 text-sm font-extrabold hover:bg-gray-50 transition-colors shadow-lg"
+            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-white text-foreground px-6 py-3 text-sm font-extrabold hover:bg-surface-sunk transition-colors shadow-lg"
           >
             Abrir calculadora <ArrowRight className="h-4 w-4" />
           </Link>
@@ -289,7 +289,7 @@ function FeaturedCollectionsGrid() {
   ];
 
   return (
-    <section className="bg-white py-8 sm:py-12 border-b border-gray-100">
+    <section className="bg-white py-8 sm:py-12 border-b border-border">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <SectionHead
           title="Colecciones destacadas"
@@ -342,9 +342,9 @@ function CollectionsBand() {
   ];
 
   return (
-    <section className="bg-gray-50 border-b border-gray-100 py-6 sm:py-8">
+    <section className="bg-surface-sunk border-b border-border py-6 sm:py-8">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <h2 className="text-base sm:text-lg font-extrabold text-gray-900 mb-4">
+        <h2 className="text-base sm:text-lg font-extrabold text-foreground mb-4">
           Colecciones Destacadas
         </h2>
         <div className="flex gap-2.5 sm:gap-3 overflow-x-auto scrollbar-hide pb-1">
@@ -352,7 +352,7 @@ function CollectionsBand() {
             <Link
               key={chip.label}
               href={chip.href}
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:border-green-400 hover:bg-green-50 hover:text-green-700 transition-all duration-200 shadow-sm"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-white px-4 py-2 text-sm font-semibold text-foreground hover:border-green-400 hover:bg-brand-green-soft hover:text-brand-green-deep transition-all duration-200 shadow-sm"
             >
               {chip.label}
               <ChevronRight className="h-3.5 w-3.5 text-gray-400" aria-hidden="true" />
@@ -365,122 +365,6 @@ function CollectionsBand() {
 }
 
 /* ── Section 12: Blog Section ────────────────────────────────────────────── */
-interface BlogPost {
-  title:    string;
-  img:      string;
-  cat:      string;
-  date:     string;
-  excerpt:  string;
-  href:     string;
-}
-
-const blogPosts: BlogPost[] = [
-  {
-    title:   "5 razones para elegir PVC sobre madera",
-    img:     "/products/cerca-pvc-afrodita-401/6.jpg",
-    cat:     "Guías",
-    date:    "15 May 2026",
-    excerpt: "Descubre por qué el PVC supera a la madera en durabilidad, mantenimiento y costo a largo plazo.",
-    href:    "#",
-  },
-  {
-    title:   "Cómo instalar tu cerca en zona costera",
-    img:     "/products/cerca-pvc-poseidon-502/5.jpg",
-    cat:     "Instalación",
-    date:    "2 Abr 2026",
-    excerpt: "Guía paso a paso para instalar cercas resistentes al salitre y la humedad en ambientes costeros.",
-    href:    "#",
-  },
-  {
-    title:   "Malla electrosoldada vs cerca PVC: ¿cuál elegir?",
-    img:     "/products/cerca-pvc-atenea-303/7.jpg",
-    cat:     "Comparativas",
-    date:    "18 Mar 2026",
-    excerpt: "Analizamos las diferencias clave entre malla electrosoldada y cerca PVC para que tomes la mejor decisión.",
-    href:    "#",
-  },
-];
-
-function BlogSection() {
-  return (
-    <section className="bg-white py-10 sm:py-14 border-b border-gray-100">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        {/* Header */}
-        <div className="flex items-end justify-between mb-7">
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-widest text-green-600 mb-1">
-              Artículos
-            </p>
-            <h2 className="text-xl sm:text-2xl font-extrabold text-gray-900 leading-tight">
-              Blog Intemperie
-            </h2>
-          </div>
-          <Link
-            href="#"
-            className="hidden sm:flex items-center gap-1 text-sm font-bold text-green-600 hover:text-green-700 transition-colors shrink-0"
-          >
-            Ver todos <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
-
-        {/* 3-column grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-          {blogPosts.map((post) => (
-            <article key={post.title} className="group flex flex-col">
-              {/* Image — 3:2 ratio */}
-              <Link href={post.href} className="block relative w-full overflow-hidden rounded-2xl bg-gray-100">
-                <div className="relative" style={{ paddingBottom: "66.666%" }}>
-                  <Image
-                    src={post.img}
-                    alt={post.title}
-                    fill
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                </div>
-              </Link>
-
-              {/* Content */}
-              <div className="flex flex-col flex-1 pt-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-[11px] font-bold text-green-700">
-                    {post.cat}
-                  </span>
-                  <span className="text-xs text-gray-400">{post.date}</span>
-                </div>
-                <Link href={post.href}>
-                  <h3 className="text-base font-extrabold text-gray-900 leading-snug hover:text-green-700 transition-colors line-clamp-2">
-                    {post.title}
-                  </h3>
-                </Link>
-                <p className="mt-1.5 text-sm text-gray-500 leading-relaxed line-clamp-2 flex-1">
-                  {post.excerpt}
-                </p>
-                <div className="mt-3 flex items-center gap-2">
-                  <div className="h-6 w-6 rounded-full bg-green-600 flex items-center justify-center text-white font-black text-[10px] select-none">
-                    I
-                  </div>
-                  <span className="text-xs font-semibold text-gray-600">Intemperie</span>
-                </div>
-              </div>
-            </article>
-          ))}
-        </div>
-
-        {/* Mobile "Ver todos" */}
-        <div className="mt-6 text-center sm:hidden">
-          <Link
-            href="#"
-            className="inline-flex items-center gap-1.5 rounded-full border border-green-300 px-5 py-2 text-sm font-bold text-green-700 hover:bg-green-50 transition-colors"
-          >
-            Ver todos los artículos <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
-        </div>
-      </div>
-    </section>
-  );
-}
-
 /* ── Section 12b: Testimonials ───────────────────────────────────────────── */
 const testimonials = [
   {
@@ -505,12 +389,12 @@ const testimonials = [
 
 function TestimonialsSection() {
   return (
-    <section className="bg-gray-50 py-10 sm:py-14 border-b border-gray-100">
+    <section className="bg-surface-sunk py-10 sm:py-14 border-b border-border">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <SectionHead title="Lo que dicen nuestros clientes" sub="Reseñas verificadas" />
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 sm:gap-6">
           {testimonials.map((t) => (
-            <div key={t.name} className="bg-white rounded-2xl p-6 sm:p-7 shadow-sm border border-gray-100 flex flex-col gap-4 hover:shadow-md transition-shadow duration-200">
+            <div key={t.name} className="bg-white rounded-2xl p-6 sm:p-7 shadow-sm border border-border flex flex-col gap-4 hover:shadow-md transition-shadow duration-200">
               <div className="flex gap-0.5">
                 {[1, 2, 3, 4, 5].map((i) => (
                   <svg key={i} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4 text-amber-400" aria-hidden="true">
@@ -518,16 +402,16 @@ function TestimonialsSection() {
                   </svg>
                 ))}
               </div>
-              <blockquote className="text-sm text-gray-700 leading-relaxed flex-1">
+              <blockquote className="text-sm text-foreground leading-relaxed flex-1">
                 &ldquo;{t.quote}&rdquo;
               </blockquote>
-              <div className="flex items-center gap-3 pt-3 border-t border-gray-100">
-                <div className="h-9 w-9 rounded-full bg-green-600 flex items-center justify-center text-white font-black text-sm select-none shrink-0">
+              <div className="flex items-center gap-3 pt-3 border-t border-border">
+                <div className="h-9 w-9 rounded-full bg-brand-green flex items-center justify-center text-white font-black text-sm select-none shrink-0">
                   {t.name.charAt(0)}
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-gray-900 leading-snug">{t.name}</p>
-                  <p className="text-[11px] text-gray-500 mt-0.5">{t.role} · {t.location}</p>
+                  <p className="text-sm font-bold text-foreground leading-snug">{t.name}</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">{t.role} · {t.location}</p>
                 </div>
               </div>
             </div>
@@ -567,7 +451,7 @@ function WhatsAppBanner() {
             href="https://wa.me/50762874042?text=Hola%2C%20quiero%20cotizar%20una%20cerca%20PVC"
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-green-500 text-white px-6 py-3 text-sm font-extrabold hover:bg-green-400 transition-colors shadow-lg"
+            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-brand-green-soft0 text-white px-6 py-3 text-sm font-extrabold hover:bg-green-400 transition-colors shadow-lg"
           >
             <IconWhatsApp className="h-5 w-5" />
             Chatear ahora
@@ -625,7 +509,7 @@ export default async function HomePage() {
 
         {/* 4 — "Intemperie Picks" — all products */}
         {allProds.length > 0 && (
-          <section className="bg-white border-b border-gray-100">
+          <section className="bg-white border-b border-border">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 pt-10 sm:pt-14">
               <SectionHead
                 title="Intemperie Picks"
@@ -650,7 +534,7 @@ export default async function HomePage() {
 
         {/* 7 — Cercas PVC section */}
         {pvcProds.length > 0 && (
-          <section className="bg-white border-b border-gray-100">
+          <section className="bg-white border-b border-border">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 pt-10 sm:pt-14">
               <SectionHead
                 title="Cercas PVC"
@@ -672,7 +556,7 @@ export default async function HomePage() {
 
         {/* 9 — Mallas Electrosoldadas */}
         {mallasProds.length > 0 && (
-          <section className="bg-white border-b border-gray-100">
+          <section className="bg-white border-b border-border">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 pt-10 sm:pt-14">
               <SectionHead
                 title="Mallas Electrosoldadas"
