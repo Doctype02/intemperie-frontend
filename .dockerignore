@@ -1,13 +1,22 @@
+# Dependencias y artefactos: se reconstruyen dentro de la imagen
 node_modules/
-.git/
-.github/
-.env
-.env.local
-.env.local.example
 .next/
+npm-debug.log*
 *.log
+
+# Git / CI
+.git/
 .gitignore
+.github/
 .dockerignore
+
+# Entorno: NUNCA copiar ficheros .env a la imagen.
+# Next los carga durante `next build` y hornea sus valores en el bundle
+# cliente, pisando los build args (--build-arg NEXT_PUBLIC_*).
+.env*
+
+# Docs
 README.md
 CLAUDE.md
 AGENTS.md
+Dockerfile
