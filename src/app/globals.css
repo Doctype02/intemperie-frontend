@@ -20,9 +20,11 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 @theme inline {
-  /* ── Familias tipográficas ──────────────────────────────────────────────── */
-  --font-sans: var(--font-body), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-heading: var(--font-display), var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  /* ── Familias tipográficas ────────────────────────────────────────────────
+     Dos ranuras (texto y titular) apuntando hoy al mismo archivo variable.
+     Si algún día se añade una display propia, se cambia aquí y sólo aquí. */
+  --font-sans: var(--font-brand), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-heading: var(--font-brand), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
 
   /* ── Escala tipográfica ─────────────────────────────────────────────────────
