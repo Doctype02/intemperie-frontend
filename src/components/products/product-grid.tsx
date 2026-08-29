@@ -1,5 +1,3 @@
-"use client";
-
 import { ProductCard } from "./product-card";
 import type { ProductUnit, ProductImage } from "@/types";
 

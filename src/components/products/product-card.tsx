@@ -1,13 +1,23 @@
-"use client";
-
 import Link from "next/link";
 import Image from "next/image";
-import { ShoppingCart, Star, ArrowRight, Heart } from "lucide-react";
-import { toast } from "sonner";
-import { useCartStore } from "@/lib/store/cart-store";
-import { useWishlist } from "@/lib/hooks/use-wishlist";
+import { Star, ArrowRight } from "lucide-react";
 import { BLUR_PLACEHOLDER } from "@/lib/image-utils";
+import { AddToCartButton } from "./add-to-cart-button";
+import { WishlistButton } from "./wishlist-button";
 import type { ProductImage, ProductUnit } from "@/types";
+
+/**
+ * Tarjeta de producto. Componente de servidor.
+ *
+ * Antes era `"use client"` entera: la maquetación, la imagen, las estrellas,
+ * los badges, el precio y el indicador de stock viajaban al navegador como
+ * JavaScript y se volvían a construir al hidratar, aunque nada de eso cambia
+ * nunca en el cliente. Lo único interactivo son dos botones, y ahora son las
+ * dos únicas islas de cliente: `AddToCartButton` y `WishlistButton`.
+ *
+ * La API pública no cambia, porque `components/home/product-carousel.tsx`
+ * (fuera del alcance de este cambio) monta estas mismas props.
+ */
 
 interface ProductCardProps {
   id: string;
@@ -28,10 +38,10 @@ interface ProductCardProps {
 }
 
 const catColors: Record<string, string> = {
-  Residencial:    "#dcfce7",
-  Industrial:     "#f1f5f9",
-  Gubernamental:  "#dbeafe",
-  Agropecuario:   "#fef3c7",
+  Residencial: "#dcfce7",
+  Industrial: "#f1f5f9",
+  Gubernamental: "#dbeafe",
+  Agropecuario: "#fef3c7",
   "Zonas Costeras": "#cffafe",
 };
 
@@ -56,49 +66,35 @@ function Stars({ rating = 5, count = 0 }: { rating?: number; count?: number }) {
 }
 
 export function ProductCard(p: ProductCardProps) {
-  const addItem = useCartStore((s) => s.addItem);
-  const { toggle, isWishlisted } = useWishlist();
-  const wishlisted = isWishlisted(p.id);
-
   const collectionName = p.collection?.name || p.category?.name || "Intemperie";
-  const catBg          = catColors[p.category?.name || ""] || "#f0fdf4";
-  const unitLabel      = p.unit === "METRO" ? "/m" : p.unit === "PANEL" ? "/panel" : "";
-  const primaryImage   = p.images?.[0]?.url || null;
-  const discount       =
+  const catBg = catColors[p.category?.name || ""] || "#f0fdf4";
+  const unitLabel =
+    p.unit === "METRO" ? "/m" : p.unit === "PANEL" ? "/panel" : "";
+  const primaryImage = p.images?.[0]?.url || null;
+  const discount =
     p.comparePrice && p.comparePrice > p.basePrice
       ? Math.round(((p.comparePrice - p.basePrice) / p.comparePrice) * 100)
       : 0;
 
   const stockDot =
     p.stock === 0
-      ? { dot: "bg-red-400",   text: "text-red-600",   label: "Agotado" }
+      ? { dot: "bg-red-400", text: "text-red-600", label: "Agotado" }
       : p.stock <= 5
-      ? { dot: "bg-amber-400", text: "text-amber-700", label: `¡Solo ${p.stock} disponibles!` }
-      : { dot: "bg-green-500", text: "text-green-700", label: "En stock" };
-
-  const minQty = p.unit === "METRO" ? 10 : 1;
-
-  const handleAddToCart = (e: React.MouseEvent) => {
-    e.preventDefault();
-    addItem(
-      {
-        id: p.id, name: p.name, slug: p.slug,
-        basePrice: p.basePrice, unit: p.unit, stock: p.stock,
-        collection: p.collection, category: p.category, images: p.images,
-      },
-      minQty,
-    );
-    toast.success(`${p.name} agregado`, {
-      description: `${minQty}${p.unit === "METRO" ? "m" : " unid."} · $${(p.basePrice * minQty).toFixed(2)}`,
-      duration: 2500,
-    });
-  };
+        ? {
+            dot: "bg-amber-400",
+            text: "text-amber-700",
+            label: `¡Solo ${p.stock} disponibles!`,
+          }
+        : { dot: "bg-green-500", text: "text-green-700", label: "En stock" };
 
   return (
     <div className="group relative flex flex-col h-full bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-green-400 hover:shadow-xl hover:shadow-green-900/10 transition-all duration-200">
-
       {/* Image */}
-      <Link href={`/productos/${p.slug}`} className="block relative overflow-hidden" style={{ backgroundColor: catBg }}>
+      <Link
+        href={`/productos/${p.slug}`}
+        className="block relative overflow-hidden"
+        style={{ backgroundColor: catBg }}
+      >
         <div className="relative aspect-[4/3]">
           {primaryImage ? (
             <Image
@@ -133,26 +129,19 @@ export function ProductCard(p: ProductCardProps) {
             )}
           </div>
 
-          {/* Wishlist heart */}
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              toggle({
-                id: p.id, name: p.name, slug: p.slug,
-                basePrice: p.basePrice, unit: p.unit, stock: p.stock,
-                imageUrl: primaryImage ?? undefined,
-                categoryName: p.category?.name ?? p.collection?.name,
-              });
-              toast(wishlisted ? "Eliminado de favoritos" : "Guardado en favoritos", {
-                icon: wishlisted ? "🗑️" : "❤️",
-                duration: 1800,
-              });
+          {/* Wishlist heart — isla de cliente */}
+          <WishlistButton
+            item={{
+              id: p.id,
+              name: p.name,
+              slug: p.slug,
+              basePrice: p.basePrice,
+              unit: p.unit,
+              stock: p.stock,
+              imageUrl: primaryImage ?? undefined,
+              categoryName: p.category?.name ?? p.collection?.name,
             }}
-            aria-label={wishlisted ? "Quitar de favoritos" : "Guardar en favoritos"}
-            className="absolute top-2.5 right-2.5 flex h-8 w-8 items-center justify-center rounded-full bg-white/95 backdrop-blur-sm shadow-sm hover:scale-110 transition-all duration-200"
-          >
-            <Heart className={`h-4 w-4 transition-all duration-200 ${wishlisted ? "fill-red-500 text-red-500" : "text-gray-300 hover:text-red-400"}`} />
-          </button>
+          />
 
           {/* Quick-view icon — appears on hover, links to PDP */}
           <Link
@@ -188,11 +177,11 @@ export function ProductCard(p: ProductCardProps) {
         </Link>
 
         {/* Stars — only if there are actual reviews */}
-        {p.reviewCount && p.reviewCount > 0 && (
+        {p.reviewCount && p.reviewCount > 0 ? (
           <div className="mt-1.5">
             <Stars rating={p.rating} count={p.reviewCount} />
           </div>
-        )}
+        ) : null}
 
         {/* Price */}
         <div className="mt-2.5 flex items-baseline gap-1.5 flex-wrap">
@@ -207,27 +196,36 @@ export function ProductCard(p: ProductCardProps) {
           )}
         </div>
         {p.unit === "METRO" && (
-          <p className="text-[10px] text-gray-400 mt-0.5">Mínimo 10m · envío incluido desde $50</p>
+          <p className="text-[10px] text-gray-400 mt-0.5">
+            Mínimo 10m · envío incluido desde $50
+          </p>
         )}
 
         {/* Stock indicator */}
         <div className="mt-2 flex items-center gap-1.5">
-          <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${stockDot.dot}`} />
+          <span
+            className={`h-1.5 w-1.5 rounded-full shrink-0 ${stockDot.dot}`}
+          />
           <span className={`text-[11px] font-semibold ${stockDot.text}`}>
             {stockDot.label}
           </span>
         </div>
 
-        {/* Add to cart button */}
+        {/* Add to cart button — isla de cliente */}
         {p.stock > 0 && (
-          <button
-            onClick={handleAddToCart}
-            aria-label={`Agregar ${p.name} al carrito`}
-            className="mt-auto pt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-green-700 py-2.5 text-[13px] font-bold tracking-wide text-white hover:bg-green-800 active:scale-[0.98] transition-all duration-150 shadow-sm hover:shadow-md"
-          >
-            <ShoppingCart className="h-3.5 w-3.5" />
-            Agregar al carrito
-          </button>
+          <AddToCartButton
+            product={{
+              id: p.id,
+              name: p.name,
+              slug: p.slug,
+              basePrice: p.basePrice,
+              unit: p.unit,
+              stock: p.stock,
+              collection: p.collection,
+              category: p.category,
+              images: p.images,
+            }}
+          />
         )}
       </div>
     </div>
