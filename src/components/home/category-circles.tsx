@@ -16,17 +16,17 @@ export function CategoryCircles() {
         <div className="flex items-center justify-center gap-4 md:gap-8 flex-wrap">
           {categories.map((cat) => (
             <Link key={cat.slug} href={`/categorias/${cat.slug}`} className="group flex flex-col items-center gap-2">
-              <div className="flex h-16 w-16 md:h-18 md:w-18 items-center justify-center rounded-full bg-gray-100 transition-colors group-hover:bg-green-100">
-                <cat.icon className="h-7 w-7 md:h-8 md:w-8 text-gray-500 transition-colors group-hover:text-green-700" />
+              <div className="flex h-16 w-16 md:h-18 md:w-18 items-center justify-center rounded-full bg-surface-2 transition-colors group-hover:bg-brand-green-soft">
+                <cat.icon className="h-7 w-7 md:h-8 md:w-8 text-muted-foreground transition-colors group-hover:text-brand-green-deep" />
               </div>
-              <span className="text-[11px] md:text-xs font-medium text-gray-600 group-hover:text-green-700">{cat.name}</span>
+              <span className="text-[11px] md:text-xs font-medium text-muted-foreground group-hover:text-brand-green-deep">{cat.name}</span>
             </Link>
           ))}
           <Link href="/productos" className="group flex flex-col items-center gap-2">
-            <div className="flex h-16 w-16 md:h-18 md:w-18 items-center justify-center rounded-full bg-green-600 transition-colors group-hover:bg-green-700">
+            <div className="flex h-16 w-16 md:h-18 md:w-18 items-center justify-center rounded-full bg-brand-green transition-colors group-hover:bg-brand-green-deep">
               <Grid3X3 className="h-7 w-7 md:h-8 md:w-8 text-white" />
             </div>
-            <span className="text-[11px] md:text-xs font-medium text-green-700">Ver todo</span>
+            <span className="text-[11px] md:text-xs font-medium text-brand-green-deep">Ver todo</span>
           </Link>
         </div>
       </div>

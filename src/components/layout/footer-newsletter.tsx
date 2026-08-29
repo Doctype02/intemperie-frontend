@@ -15,18 +15,18 @@ export function FooterNewsletter() {
   };
 
   return (
-    <div className="border-t border-gray-800 pt-8 mt-10">
+    <div className="border-t border-on-dark/10 pt-8 mt-10">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
         <div className="min-w-0">
-          <p className="text-sm font-extrabold text-gray-200 leading-tight">
+          <p className="text-sm font-extrabold text-on-dark-soft leading-tight">
             ¡No te pierdas ninguna novedad!
           </p>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             Suscríbete para recibir precios especiales y nuevos modelos
           </p>
         </div>
         {submitted ? (
-          <div className="flex items-center gap-2 text-green-400 text-sm font-semibold shrink-0">
+          <div className="flex items-center gap-2 text-brand-green text-sm font-semibold shrink-0">
             <CheckCircle2 className="h-5 w-5" />
             ¡Gracias! Revisa tu correo.
           </div>
@@ -39,11 +39,11 @@ export function FooterNewsletter() {
               aria-label="Tu correo electrónico"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="flex-1 sm:w-64 h-10 rounded-lg border border-gray-700 bg-gray-800 px-3 text-sm text-white placeholder-gray-500 focus:border-green-500 focus:outline-none transition-colors"
+              className="flex-1 sm:w-64 h-10 rounded-lg border border-on-dark/15 bg-brand-navy px-3 text-sm text-white placeholder-gray-500 focus:border-brand-green focus:outline-none transition-colors"
             />
             <button
               type="submit"
-              className="h-10 px-4 rounded-lg bg-green-600 text-xs font-bold text-white hover:bg-green-500 transition-colors whitespace-nowrap"
+              className="h-10 px-4 rounded-lg bg-brand-green text-xs font-bold text-white hover:bg-brand-green-soft0 transition-colors whitespace-nowrap"
             >
               Suscribirse
             </button>
