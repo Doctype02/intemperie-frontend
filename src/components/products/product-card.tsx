@@ -21,8 +21,8 @@ interface ProductCardProps {
   reviewCount?: number;
   rating?: number;
   sku?: string;
-  category?: { name: string };
-  collection?: { name: string };
+  category?: { name: string } | null;
+  collection?: { name: string } | null;
   images?: ProductImage[];
   priority?: boolean;
 }

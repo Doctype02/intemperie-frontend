@@ -1,27 +1,29 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import { API_BASE } from "@/lib/api";
-import type { Collection } from "@/types";
+import {
+  getAllCollectionSlugs,
+  getCollectionBySlug,
+  listProducts,
+} from "../../_data/catalog";
 import { ProductGrid } from "@/components/products/product-grid";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 
 interface Props {
   params: Promise<{ slug: string }>;
 }
 
-async function getCollectionBySlug(slug: string): Promise<Collection | null> {
-  const res = await fetch(`${API_BASE}/collections/${slug}`, { cache: "no-store" });
-  if (!res.ok) return null;
-  const data = await res.json();
-  return data.data || data || null;
-}
+/**
+ * Colección: estática con revalidación. Antes cada visita disparaba dos `fetch`
+ * con `cache: "no-store"` contra la API, que comparte 2 vCPU con Postgres.
+ */
+// Debe ser un literal: Next analiza la config de segmento estáticamente.
+// Mantener sincronizado con CATALOG_TTL de _data/catalog.ts.
+export const revalidate = 600;
 
-async function getProductsByCollection(slug: string) {
-  const res = await fetch(`${API_BASE}/products?collection=${slug}`, { cache: "no-store" });
-  if (!res.ok) return [];
-  const data = await res.json();
-  return data.data || [];
+export async function generateStaticParams() {
+  const slugs = await getAllCollectionSlugs();
+  return slugs.map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -35,9 +37,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function CollectionPage({ params }: Props) {
   const { slug } = await params;
-  const [collection, products] = await Promise.all([
+  const [collection, { products }] = await Promise.all([
     getCollectionBySlug(slug),
-    getProductsByCollection(slug),
+    listProducts({ collection: slug }, 100),
   ]);
 
   if (!collection) {

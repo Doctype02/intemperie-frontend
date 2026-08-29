@@ -14,8 +14,8 @@ interface Product {
   isNew?: boolean;
   reviewCount?: number;
   rating?: number;
-  category?: { name: string };
-  collection?: { name: string };
+  category?: { name: string } | null;
+  collection?: { name: string } | null;
   images?: ProductImage[];
   isActive?: boolean;
 }

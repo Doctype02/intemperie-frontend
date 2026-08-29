@@ -1,17 +1,26 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { API_BASE } from "@/lib/api";
+import {
+  getAllProductSlugs,
+  getProductBySlug,
+} from "../../_data/catalog";
 import { ProductDetailClient } from "./product-detail-client";
 
-async function getProduct(slug: string) {
-  try {
-    const res = await fetch(`${API_BASE}/products/${slug}`, { next: { revalidate: 60 } });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data.data || data;
-  } catch {
-    return null;
-  }
+/**
+ * Ficha de producto: estática con revalidación.
+ *
+ * Los 15 slugs del catálogo se prerenderizan en el build; los que aparezcan
+ * después se generan bajo demanda en la primera visita y quedan cacheados
+ * (`dynamicParams` por defecto). El TTL es la red de seguridad: el camino
+ * rápido es `POST /api/revalidate?tag=product:<slug>` cuando el admin guarda.
+ */
+// Debe ser un literal: Next analiza la config de segmento estáticamente.
+// Mantener sincronizado con CATALOG_TTL de _data/catalog.ts.
+export const revalidate = 600;
+
+export async function generateStaticParams() {
+  const slugs = await getAllProductSlugs();
+  return slugs.map((slug) => ({ slug }));
 }
 
 const BASE_URL = "https://intemperie.com.pa";
@@ -22,7 +31,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const product = await getProduct(slug);
+  const product = await getProductBySlug(slug);
   if (!product) return { title: "Producto no encontrado" };
 
   const description = product.description?.slice(0, 160) ??
@@ -60,13 +69,13 @@ export default async function ProductDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const product = await getProduct(slug);
+  const product = await getProductBySlug(slug);
 
   if (!product) {
     notFound();
   }
 
-  const price = Number(product.pricePerMeter ?? product.basePrice ?? 0);
+  const price = Number(product.basePrice ?? 0);
   const rawImg: string | undefined = product.images?.[0]?.url;
   const imageUrl = rawImg
     ? rawImg.startsWith("http") ? rawImg : `${BASE_URL}${rawImg}`
@@ -78,7 +87,6 @@ export default async function ProductDetailPage({
     "name": product.name,
     ...(product.description && { "description": product.description }),
     ...(imageUrl && { "image": imageUrl }),
-    ...(product.sku && { "sku": product.sku }),
     "brand": { "@type": "Brand", "name": "Intemperie" },
     "offers": {
       "@type": "Offer",
