@@ -219,6 +219,7 @@
   --border-strong: oklch(0.64 0.015 150);      /* 3.2:1 — bordes de campo */
   --input: oklch(0.64 0.015 150);
   --ring: var(--brand-green);
+  --focus-halo: oklch(1 0 0);
 
   /* Tintes de sombra: derivados de la tinta, nunca negro puro */
   --shadow-tint: oklch(0.24 0.032 245 / 0.1);
@@ -303,6 +304,7 @@
   --border-strong: oklch(0.56 0.028 250);      /* 3.98:1 sobre fondo */
   --input: oklch(0.56 0.028 250);
   --ring: var(--brand-green);
+  --focus-halo: oklch(0.14 0.02 250);
 
   --shadow-tint: oklch(0 0 0 / 0.5);
   --shadow-tint-weak: oklch(0 0 0 / 0.32);
@@ -358,11 +360,15 @@
     text-wrap: pretty;
   }
 
-  /* Foco: un anillo grueso y de alto contraste. Se ve a pleno sol y con
-     guantes puestos. Nunca se elimina, sólo se reserva a :focus-visible. */
+  /* Foco: anillo doble. El halo interior contrasta con superficies oscuras
+     (una banda verde sobre azul marino no se ve) y el anillo exterior verde
+     contrasta con las claras. Juntos son visibles sobre cualquier fondo,
+     incluida una fotografía de obra. Se ve a pleno sol y con guantes.
+     Nunca se elimina; sólo se reserva a :focus-visible. */
   :focus-visible {
     outline: 3px solid var(--ring);
     outline-offset: 2px;
+    box-shadow: 0 0 0 2px var(--focus-halo);
     border-radius: var(--radius-sm);
   }
 

@@ -4,34 +4,68 @@ import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 
+/* Botón — sistema «Perímetro».
+ *
+ * Tres reglas que gobiernan todas las variantes:
+ *
+ * 1. Objetivo táctil. Nada por debajo de 40px de alto y el tamaño por defecto
+ *    es 44px: un contratista con guantes en una obra, no un ratón.
+ * 2. Sólo transition-colors. Nunca transition-all: animar sombra o transform
+ *    en listas de 15 productos obliga a repintar y estos servidores tienen
+ *    2 vCPU. El feedback de pulsación es 1px de desplazamiento, no una escala.
+ * 3. Todo color sale de un token. Ningún literal.
+ */
 const buttonVariants = cva(
-  "group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  [
+    "group/button relative inline-flex shrink-0 items-center justify-center",
+    "rounded-lg border border-transparent bg-clip-padding",
+    "font-heading font-semibold whitespace-nowrap tracking-tight",
+    "transition-colors duration-150 outline-none select-none",
+    "active:not-aria-[haspopup]:translate-y-px",
+    "disabled:pointer-events-none disabled:opacity-45",
+    "aria-invalid:border-destructive",
+    "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-[1.15em]",
+  ],
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground [a]:hover:bg-primary/80",
+        /* Verde = acción. El botón de comprar, cotizar y avanzar. */
+        default:
+          "bg-primary text-primary-foreground hover:bg-brand-green-deep",
+        /* Azul = estructura y autoridad. B2B, institucional, alia2. */
+        navy:
+          "bg-brand-navy text-on-dark hover:bg-brand-navy-deep",
+        /* Ámbar = urgencia. Uno por pantalla, o deja de significar nada. */
+        accent:
+          "bg-brand-amber-deep text-on-dark hover:bg-brand-amber",
+        /* WhatsApp = su canal comercial real. Merece su propia variante. */
+        whatsapp:
+          "bg-whatsapp text-on-dark hover:bg-whatsapp-deep",
         outline:
-          "border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
+          "border-border-strong bg-surface text-foreground hover:border-primary hover:bg-brand-green-soft hover:text-brand-green-deep aria-expanded:border-primary aria-expanded:bg-brand-green-soft",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80 aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
+          "bg-secondary text-secondary-foreground hover:bg-brand-green-soft/70",
         ghost:
-          "hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50",
+          "text-foreground hover:bg-muted aria-expanded:bg-muted",
+        /* Sobre fotografía y secciones oscuras. */
+        onDark:
+          "border-on-dark/45 bg-on-dark/10 text-on-dark hover:bg-on-dark/20",
         destructive:
-          "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
-        link: "text-primary underline-offset-4 hover:underline",
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        link:
+          "h-auto rounded-sm p-0 text-primary underline decoration-primary/35 decoration-2 underline-offset-4 hover:decoration-primary",
       },
       size: {
-        default:
-          "h-8 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
-        xs: "h-6 gap-1 rounded-[min(var(--radius-md),10px)] px-2 text-xs in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
-        sm: "h-7 gap-1 rounded-[min(var(--radius-md),12px)] px-2.5 text-[0.8rem] in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
-        lg: "h-9 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
-        icon: "size-8",
-        "icon-xs":
-          "size-6 rounded-[min(var(--radius-md),10px)] in-data-[slot=button-group]:rounded-lg [&_svg:not([class*='size-'])]:size-3",
-        "icon-sm":
-          "size-7 rounded-[min(var(--radius-md),12px)] in-data-[slot=button-group]:rounded-lg",
-        "icon-lg": "size-9",
+        xs: "h-8 gap-1 rounded-md px-2.5 text-xs",
+        sm: "h-9 gap-1.5 px-3 text-sm",
+        default: "h-11 gap-2 px-4 text-base",
+        lg: "h-13 gap-2 px-6 text-lg",
+        /* Ancho completo en móvil: el patrón de una acción por pantalla. */
+        block: "h-13 w-full gap-2 px-6 text-lg",
+        icon: "size-11",
+        "icon-xs": "size-8 rounded-md",
+        "icon-sm": "size-9",
+        "icon-lg": "size-13",
       },
     },
     defaultVariants: {
