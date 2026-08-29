@@ -32,26 +32,26 @@ export function Testimonials() {
     <section className="py-16 bg-white">
       <div className="mx-auto max-w-7xl px-4">
         <div className="mb-10 text-center">
-          <h2 className="text-3xl font-bold text-gray-900">Nuestros clientes confían en nosotros</h2>
+          <h2 className="text-3xl font-bold text-foreground">Nuestros clientes confían en nosotros</h2>
           <div className="mt-3 flex items-center justify-center gap-1">
             {[1, 2, 3, 4, 5].map((star) => (
-              <Star key={star} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+              <Star key={star} className="h-5 w-5 fill-brand-amber text-brand-amber" />
             ))}
-            <span className="ml-2 text-sm font-medium text-gray-500">4.8 · 17 reseñas en Google</span>
+            <span className="ml-2 text-sm font-medium text-muted-foreground">4.8 · 17 reseñas en Google</span>
           </div>
         </div>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
           {testimonials.map((t) => (
-            <div key={t.name} className="rounded-xl border border-gray-200 p-6 hover:border-green-200 transition-colors">
+            <div key={t.name} className="rounded-xl border border-border p-6 hover:border-brand-green-soft transition-colors">
               <div className="mb-3 flex items-center gap-1">
                 {Array.from({ length: t.rating }).map((_, i) => (
-                  <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                  <Star key={i} className="h-4 w-4 fill-brand-amber text-brand-amber" />
                 ))}
               </div>
-              <p className="text-sm text-gray-600 leading-relaxed">&ldquo;{t.text}&rdquo;</p>
+              <p className="text-sm text-muted-foreground leading-relaxed">&ldquo;{t.text}&rdquo;</p>
               <div className="mt-4 border-t pt-3">
-                <p className="text-sm font-medium text-gray-900">{t.name}</p>
-                <p className="text-xs text-gray-400">{t.date}</p>
+                <p className="text-sm font-medium text-foreground">{t.name}</p>
+                <p className="text-xs text-muted-foreground">{t.date}</p>
               </div>
             </div>
           ))}

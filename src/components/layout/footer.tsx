@@ -55,17 +55,17 @@ const benefitItems = [
 
 function BenefitsBar() {
   return (
-    <div className="bg-white border-t border-gray-200">
+    <div className="bg-white border-t border-border">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="grid grid-cols-2 lg:grid-cols-4 divide-y divide-gray-100 lg:divide-y-0 lg:divide-x divide-x-0">
           {benefitItems.map((item) => (
             <div key={item.title} className="flex items-center gap-3 px-4 sm:px-6 py-5 sm:py-6">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-green-100">
-                <item.Icon className="h-5 w-5 text-green-700" aria-hidden="true" />
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-green-soft">
+                <item.Icon className="h-5 w-5 text-brand-green-deep" aria-hidden="true" />
               </div>
               <div>
-                <p className="text-sm font-extrabold text-gray-900 leading-tight">{item.title}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{item.desc}</p>
+                <p className="text-sm font-extrabold text-foreground leading-tight">{item.title}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{item.desc}</p>
               </div>
             </div>
           ))}
@@ -124,7 +124,7 @@ export function Footer() {
     <>
       <BenefitsBar />
 
-      <footer className="bg-gray-900 text-gray-400">
+      <footer className="bg-brand-navy-deep text-muted-foreground">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 pt-12 pb-8">
 
           {/* Main grid: brand col (2 wide) + 4 link columns */}
@@ -134,30 +134,30 @@ export function Footer() {
             <div className="lg:col-span-2">
               <Link href="/" className="inline-flex items-center mb-5">
                 <span className="text-[20px] font-black tracking-[-0.04em] text-white leading-none select-none">
-                  INTEM<span className="text-green-500">PERIE</span>
+                  INTEM<span className="text-brand-green">PERIE</span>
                 </span>
               </Link>
 
-              <p className="text-sm text-gray-500 leading-relaxed mb-6 max-w-xs">
+              <p className="text-sm text-muted-foreground leading-relaxed mb-6 max-w-xs">
                 Líderes en Panamá en cercas de PVC y malla electrosoldada. Más de 15 años
                 protegiendo hogares, industrias y proyectos en todo el país.
               </p>
 
               <ul className="space-y-3 text-sm">
                 <li className="flex items-center gap-2.5">
-                  <Phone className="h-4 w-4 text-green-500 shrink-0" aria-hidden="true" />
-                  <a href="tel:+50762874042" className="hover:text-green-400 transition-colors">
+                  <Phone className="h-4 w-4 text-brand-green shrink-0" aria-hidden="true" />
+                  <a href="tel:+50762874042" className="hover:text-brand-green transition-colors">
                     +507 6287-4042
                   </a>
                 </li>
                 <li className="flex items-center gap-2.5">
-                  <Mail className="h-4 w-4 text-green-500 shrink-0" aria-hidden="true" />
-                  <a href="mailto:ventas@intemperie.com" className="hover:text-green-400 transition-colors">
+                  <Mail className="h-4 w-4 text-brand-green shrink-0" aria-hidden="true" />
+                  <a href="mailto:ventas@intemperie.com" className="hover:text-brand-green transition-colors">
                     ventas@intemperie.com
                   </a>
                 </li>
                 <li className="flex items-start gap-2.5">
-                  <MapPin className="h-4 w-4 text-green-500 shrink-0 mt-0.5" aria-hidden="true" />
+                  <MapPin className="h-4 w-4 text-brand-green shrink-0 mt-0.5" aria-hidden="true" />
                   <span>La Chorrera, Panamá Oeste, Panamá</span>
                 </li>
               </ul>
@@ -173,7 +173,7 @@ export function Footer() {
                     key={label}
                     aria-label={label}
                     title={`${label} (próximamente)`}
-                    className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-800 text-gray-600 cursor-default"
+                    className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-navy text-muted-foreground cursor-default"
                   >
                     <Icon />
                   </span>
@@ -184,7 +184,7 @@ export function Footer() {
             {/* Link columns */}
             {footerColumns.map((col) => (
               <div key={col.title}>
-                <h3 className="mb-4 text-[11px] font-extrabold uppercase tracking-widest text-gray-300">
+                <h3 className="mb-4 text-[11px] font-extrabold uppercase tracking-widest text-on-dark-soft">
                   {col.title}
                 </h3>
                 <ul className="space-y-2.5">
@@ -195,14 +195,14 @@ export function Footer() {
                           href={link.href}
                           target={link.href.startsWith("http") ? "_blank" : undefined}
                           rel={link.href.startsWith("http") ? "noopener noreferrer" : undefined}
-                          className="text-sm text-gray-500 hover:text-green-400 transition-colors leading-relaxed"
+                          className="text-sm text-muted-foreground hover:text-brand-green transition-colors leading-relaxed"
                         >
                           {link.label}
                         </a>
                       ) : (
                         <Link
                           href={link.href}
-                          className="text-sm text-gray-500 hover:text-green-400 transition-colors leading-relaxed"
+                          className="text-sm text-muted-foreground hover:text-brand-green transition-colors leading-relaxed"
                         >
                           {link.label}
                         </Link>
@@ -215,21 +215,21 @@ export function Footer() {
           </div>
 
           {/* Newsletter row */}
-          <Suspense fallback={<div className="border-t border-gray-800 pt-8 mt-10 h-24" />}>
+          <Suspense fallback={<div className="border-t border-on-dark/10 pt-8 mt-10 h-24" />}>
             <FooterNewsletter />
           </Suspense>
 
           {/* Bottom bar */}
-          <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-gray-800 pt-6">
-            <p className="text-xs text-gray-600 order-2 sm:order-1">
+          <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-on-dark/10 pt-6">
+            <p className="text-xs text-muted-foreground order-2 sm:order-1">
               &copy; {year} INTEMPERIE. Todos los derechos reservados.
             </p>
             <div className="flex flex-wrap items-center gap-2 order-1 sm:order-2">
-              <span className="text-[10px] text-gray-600 mr-1">Métodos de pago:</span>
+              <span className="text-[10px] text-muted-foreground mr-1">Métodos de pago:</span>
               {["Visa", "Mastercard", "Yappy", "Clave"].map((method) => (
                 <span
                   key={method}
-                  className="rounded border border-gray-700 bg-gray-800 px-2.5 py-1 text-[10px] font-semibold text-gray-400"
+                  className="rounded border border-on-dark/15 bg-brand-navy px-2.5 py-1 text-[10px] font-semibold text-muted-foreground"
                 >
                   {method}
                 </span>

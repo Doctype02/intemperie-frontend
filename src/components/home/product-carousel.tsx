@@ -52,12 +52,12 @@ export function ProductCarousel({ title, subtitle, products, viewAllHref = "/pro
         {hasHeader && (
           <div className="mb-5 flex items-end justify-between">
             <div>
-              <h2 className="text-lg sm:text-xl font-extrabold text-gray-900">{title}</h2>
-              {subtitle && <p className="text-xs sm:text-sm text-gray-500 mt-0.5">{subtitle}</p>}
+              <h2 className="text-lg sm:text-xl font-extrabold text-foreground">{title}</h2>
+              {subtitle && <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">{subtitle}</p>}
             </div>
             <Link
               href={viewAllHref}
-              className="hidden sm:flex items-center gap-1 text-sm font-bold text-green-600 hover:text-green-700 transition-colors shrink-0"
+              className="hidden sm:flex items-center gap-1 text-sm font-bold text-brand-green hover:text-brand-green-deep transition-colors shrink-0"
             >
               Ver todos <ArrowRight className="h-4 w-4" />
             </Link>
@@ -69,9 +69,9 @@ export function ProductCarousel({ title, subtitle, products, viewAllHref = "/pro
           <button
             onClick={() => scroll("left")}
             aria-label="Anterior"
-            className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 hidden md:flex h-9 w-9 items-center justify-center rounded-full bg-white border border-gray-200 shadow hover:shadow-md transition-shadow"
+            className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 hidden md:flex h-9 w-9 items-center justify-center rounded-full bg-white border border-border shadow hover:shadow-md transition-shadow"
           >
-            <ChevronLeft className="h-4 w-4 text-gray-600" />
+            <ChevronLeft className="h-4 w-4 text-muted-foreground" />
           </button>
 
           <div
@@ -88,9 +88,9 @@ export function ProductCarousel({ title, subtitle, products, viewAllHref = "/pro
           <button
             onClick={() => scroll("right")}
             aria-label="Siguiente"
-            className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 hidden md:flex h-9 w-9 items-center justify-center rounded-full bg-white border border-gray-200 shadow hover:shadow-md transition-shadow"
+            className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 hidden md:flex h-9 w-9 items-center justify-center rounded-full bg-white border border-border shadow hover:shadow-md transition-shadow"
           >
-            <ChevronRight className="h-4 w-4 text-gray-600" />
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
           </button>
         </div>
 
@@ -99,7 +99,7 @@ export function ProductCarousel({ title, subtitle, products, viewAllHref = "/pro
           <div className="mt-4 text-center sm:hidden">
             <Link
               href={viewAllHref}
-              className="inline-flex items-center gap-1.5 rounded-full border border-green-300 px-5 py-2 text-sm font-bold text-green-700 hover:bg-green-50 transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-full border border-brand-green-soft px-5 py-2 text-sm font-bold text-brand-green-deep hover:bg-brand-green-soft transition-colors"
             >
               Ver todos <ArrowRight className="h-3.5 w-3.5" />
             </Link>

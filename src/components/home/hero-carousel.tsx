@@ -61,7 +61,7 @@ export function HeroCarousel() {
 
   return (
     <section
-      className="relative overflow-hidden bg-gray-900 h-[300px] sm:h-[420px] lg:h-[540px] xl:h-[600px]"
+      className="relative overflow-hidden bg-brand-navy-deep h-[300px] sm:h-[420px] lg:h-[540px] xl:h-[600px]"
       aria-label="Productos destacados"
       aria-roledescription="carrusel"
       onMouseEnter={() => setAutoplay(false)}
@@ -95,7 +95,7 @@ export function HeroCarousel() {
       <div className="relative z-10 h-full flex items-center">
         <div className="mx-auto max-w-7xl w-full px-6 sm:px-10">
           <div className="max-w-lg sm:max-w-xl">
-            <span className="inline-block rounded-full bg-green-600 px-3 py-0.5 text-[11px] font-bold uppercase tracking-widest text-white mb-3 sm:mb-4">
+            <span className="inline-block rounded-full bg-brand-green px-3 py-0.5 text-[11px] font-bold uppercase tracking-widest text-white mb-3 sm:mb-4">
               {slides[cur].badge}
             </span>
             <h1 className="text-2xl sm:text-4xl lg:text-5xl xl:text-6xl font-black leading-[1.05] tracking-tight text-white">
@@ -109,14 +109,14 @@ export function HeroCarousel() {
               <span className="text-xl sm:text-2xl font-black text-white">
                 {slides[cur].price}
               </span>
-              <span className="text-xs sm:text-sm font-semibold text-green-300 border-l border-white/20 pl-3">
+              <span className="text-xs sm:text-sm font-semibold text-on-dark-soft border-l border-white/20 pl-3">
                 {slides[cur].guarantee}
               </span>
             </div>
             <div className="mt-5 sm:mt-7 flex flex-wrap gap-3">
               <Link
                 href={slides[cur].href}
-                className="inline-flex items-center gap-2 rounded-xl bg-white px-5 sm:px-7 py-3 sm:py-3.5 text-sm sm:text-base font-extrabold text-gray-900 hover:bg-gray-100 transition-colors shadow-xl"
+                className="inline-flex items-center gap-2 rounded-xl bg-white px-5 sm:px-7 py-3 sm:py-3.5 text-sm sm:text-base font-extrabold text-foreground hover:bg-surface-2 transition-colors shadow-xl"
               >
                 Ver producto <ArrowRight className="h-4 w-4" />
               </Link>

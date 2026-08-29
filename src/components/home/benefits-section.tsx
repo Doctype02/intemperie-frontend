@@ -25,20 +25,20 @@ const benefits = [
 
 export function BenefitsSection() {
   return (
-    <section className="py-16 bg-gray-50">
+    <section className="py-16 bg-surface-sunk">
       <div className="mx-auto max-w-7xl px-4">
         <div className="mb-10 text-center">
-          <h2 className="text-3xl font-bold text-gray-900">¿Por qué elegir Intemperie?</h2>
-          <p className="mt-3 text-gray-500">Beneficios que nos diferencian del resto</p>
+          <h2 className="text-3xl font-bold text-foreground">¿Por qué elegir Intemperie?</h2>
+          <p className="mt-3 text-muted-foreground">Beneficios que nos diferencian del resto</p>
         </div>
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {benefits.map((b) => (
-            <div key={b.title} className="rounded-xl bg-white p-6 text-center shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-green-50">
-                <b.icon className="h-7 w-7 text-green-600" />
+            <div key={b.title} className="rounded-xl bg-white p-6 text-center shadow-sm border border-border hover:shadow-md transition-shadow">
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-brand-green-soft">
+                <b.icon className="h-7 w-7 text-brand-green" />
               </div>
-              <h3 className="font-semibold text-gray-900">{b.title}</h3>
-              <p className="mt-2 text-sm text-gray-500">{b.desc}</p>
+              <h3 className="font-semibold text-foreground">{b.title}</h3>
+              <p className="mt-2 text-sm text-muted-foreground">{b.desc}</p>
             </div>
           ))}
         </div>

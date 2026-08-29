@@ -14,22 +14,22 @@ export function CategoriesGrid() {
     <section className="py-16 bg-white">
       <div className="mx-auto max-w-7xl px-4">
         <div className="mb-10 text-center">
-          <h2 className="text-3xl font-bold text-gray-900">Soluciones para cada necesidad</h2>
-          <p className="mt-3 text-gray-500">Encuentra la cerca perfecta según tu tipo de proyecto</p>
+          <h2 className="text-3xl font-bold text-foreground">Soluciones para cada necesidad</h2>
+          <p className="mt-3 text-muted-foreground">Encuentra la cerca perfecta según tu tipo de proyecto</p>
         </div>
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
           {categories.map((cat) => (
             <Link
               key={cat.slug}
               href={`/categorias/${cat.slug}`}
-              className="group flex flex-col items-center rounded-xl border border-gray-200 p-6 text-center transition-all hover:border-green-300 hover:shadow-lg hover:shadow-green-50"
+              className="group flex flex-col items-center rounded-xl border border-border p-6 text-center transition-all hover:border-brand-green-soft hover:shadow-lg hover:shadow-green-50"
             >
-              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-green-50 text-green-700 group-hover:bg-green-600 group-hover:text-white transition-colors">
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-green-soft text-brand-green-deep group-hover:bg-brand-green group-hover:text-white transition-colors">
                 <cat.icon className="h-8 w-8" />
               </div>
-              <h3 className="font-semibold text-gray-900">{cat.name}</h3>
-              <p className="mt-1 text-sm text-gray-500">{cat.desc}</p>
-              <p className="mt-2 text-xs text-green-600 font-medium">{cat.count}</p>
+              <h3 className="font-semibold text-foreground">{cat.name}</h3>
+              <p className="mt-1 text-sm text-muted-foreground">{cat.desc}</p>
+              <p className="mt-2 text-xs text-brand-green font-medium">{cat.count}</p>
             </Link>
           ))}
         </div>
