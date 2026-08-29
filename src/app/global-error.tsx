@@ -1,5 +1,9 @@
 "use client";
 
+// Reemplaza al layout raiz cuando el error ocurre en el, por eso debe
+// renderizar html/body y cargar sus propios estilos.
+import "./globals.css";
+
 export default function GlobalError({
   error,
   reset,
@@ -8,7 +12,7 @@ export default function GlobalError({
   reset: () => void;
 }) {
   return (
-    <html>
+    <html lang="es">
       <body>
         <main className="flex min-h-screen flex-col items-center justify-center bg-white px-4">
           <div className="text-center max-w-md">
