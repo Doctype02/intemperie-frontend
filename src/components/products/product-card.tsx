@@ -7,7 +7,6 @@ import { toast } from "sonner";
 import { useCartStore } from "@/lib/store/cart-store";
 import { useWishlist } from "@/lib/hooks/use-wishlist";
 import { BLUR_PLACEHOLDER } from "@/lib/image-utils";
-import { useImageOnLoad } from "@/lib/image-load-context";
 import type { ProductImage, ProductUnit } from "@/types";
 
 interface ProductCardProps {
@@ -58,7 +57,6 @@ function Stars({ rating = 5, count = 0 }: { rating?: number; count?: number }) {
 
 export function ProductCard(p: ProductCardProps) {
   const addItem = useCartStore((s) => s.addItem);
-  const onLoad  = useImageOnLoad();
   const { toggle, isWishlisted } = useWishlist();
   const wishlisted = isWishlisted(p.id);
 
@@ -112,7 +110,6 @@ export function ProductCard(p: ProductCardProps) {
               placeholder="blur"
               blurDataURL={BLUR_PLACEHOLDER}
               priority={p.priority}
-              onLoad={onLoad}
             />
           ) : (
             <div className="flex h-full items-center justify-center">

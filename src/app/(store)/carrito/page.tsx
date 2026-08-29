@@ -5,7 +5,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { useCartStore } from "@/lib/store/cart-store";
 import { BLUR_PLACEHOLDER } from "@/lib/image-utils";
-import { useImageOnLoad } from "@/lib/image-load-context";
 import { Button } from "@/components/ui/button";
 import { Minus, Plus, Trash2, ArrowLeft, ShoppingCart } from "lucide-react";
 
@@ -16,7 +15,6 @@ export default function CartPage() {
   const removeItem = useCartStore((s) => s.removeItem);
   const subtotal = useCartStore((s) => s.subtotal);
   const itemCount = useCartStore((s) => s.itemCount);
-  const onLoad = useImageOnLoad();
 
   useEffect(() => { setReady(true); }, []);
 
@@ -109,7 +107,6 @@ export default function CartPage() {
                           className="object-cover"
                           placeholder="blur"
                           blurDataURL={BLUR_PLACEHOLDER}
-                          onLoad={onLoad}
                         />
                       ) : (
                         <div className="flex h-full w-full items-center justify-center bg-green-50 text-lg font-bold text-green-600">
