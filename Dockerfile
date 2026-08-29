@@ -54,7 +54,11 @@ ENV NODE_ENV=production \
 RUN addgroup --system --gid 1001 nodejs \
     && adduser --system --uid 1001 --ingroup nodejs nextjs
 
-COPY --from=builder /app/public ./public
+# --chown es imprescindible: sin el, public/ queda como root y el usuario
+# nextjs no puede leerlo. El contenedor arranca igualmente ("Ready in 0ms")
+# pero revienta al servir con EACCES scandir '/app/public/products', y el
+# healthcheck lo marca unhealthy sin explicar por que.
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 # El servidor standalone escribe el cache de ISR/imagenes en .next/cache
 RUN mkdir -p .next/cache && chown -R nextjs:nodejs .next
 
