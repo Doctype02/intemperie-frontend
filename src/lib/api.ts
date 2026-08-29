@@ -30,111 +30,179 @@ interface ApiEnvelope<T> {
   };
 }
 
+/**
+ * Extra options on top of `RequestInit`.
+ *
+ * `skipAuthRedirect` is used by calls that probe the session (e.g. `/auth/me`
+ * during hydration): a 401 there is a legitimate answer ("no hay sesión"), not
+ * a reason to kick the visitor to the login screen.
+ */
+export interface RequestOptions extends RequestInit {
+  skipAuthRedirect?: boolean;
+}
+
+/**
+ * Tokens are kept in memory ONLY, and never persisted.
+ *
+ * The source of truth for the session is the pair of httpOnly cookies issued by
+ * the API (`accessToken` / `refreshToken`), which the browser attaches on every
+ * request thanks to `credentials: "include"`. The in-memory copies are just a
+ * convenience for the tab that performed the login, so an `Authorization`
+ * header can also be sent. Because they are in memory, they disappear on
+ * reload — which is exactly why the refresh flow below must NOT depend on them.
+ */
 let memoryTokens: { accessToken: string | null; refreshToken: string | null } = {
   accessToken: null,
   refreshToken: null,
 };
 
-export function setMemoryTokens(accessToken: string, refreshToken: string) {
-  memoryTokens = { accessToken, refreshToken };
+export function setMemoryTokens(accessToken: string | null, refreshToken?: string | null) {
+  memoryTokens = {
+    accessToken: accessToken ?? null,
+    refreshToken: refreshToken ?? null,
+  };
 }
 
 export function clearMemoryTokens() {
   memoryTokens = { accessToken: null, refreshToken: null };
 }
 
-async function getTokens(): Promise<{ accessToken: string | null; refreshToken: string | null }> {
-  if (typeof window === "undefined") return { accessToken: null, refreshToken: null };
-  return memoryTokens;
+/**
+ * Lets the auth store know that the session is definitively gone (the refresh
+ * attempt failed), so it can drop the cached user instead of keeping a UI that
+ * pretends to be logged in.
+ */
+type SessionExpiredListener = () => void;
+let sessionExpiredListener: SessionExpiredListener | null = null;
+
+export function onSessionExpired(listener: SessionExpiredListener): () => void {
+  sessionExpiredListener = listener;
+  return () => {
+    if (sessionExpiredListener === listener) sessionExpiredListener = null;
+  };
+}
+
+/** Endpoints that must never trigger a refresh round-trip (avoids loops). */
+const NO_REFRESH_ENDPOINTS = ["/auth/login", "/auth/register", "/auth/refresh", "/auth/logout"];
+
+function canAttemptRefresh(endpoint: string): boolean {
+  if (typeof window === "undefined") return false;
+  return !NO_REFRESH_ENDPOINTS.some((path) => endpoint.startsWith(path));
 }
 
 function redirectToLogin(): void {
   if (typeof window === "undefined") return;
+  if (window.location.pathname === "/login") return;
   window.location.href = "/login";
 }
 
-async function request<T>(
-  endpoint: string,
-  options: RequestInit = {}
-): Promise<T> {
-  const { accessToken, refreshToken } = await getTokens();
+/** Single-flight refresh: concurrent 401s share one refresh request. */
+let refreshInFlight: Promise<boolean> | null = null;
 
-  const headers: HeadersInit = {
+async function performRefresh(): Promise<boolean> {
+  try {
+    const response = await fetch(`${API_BASE}/auth/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      // The refresh token normally travels as an httpOnly cookie. We only add it
+      // to the body when this very tab still holds it in memory (right after a
+      // login), so the call keeps working on both transports.
+      body: JSON.stringify(memoryTokens.refreshToken ? { refreshToken: memoryTokens.refreshToken } : {}),
+      credentials: "include",
+    });
+
+    if (!response.ok) return false;
+
+    const envelope = (await response
+      .json()
+      .catch(() => null)) as ApiEnvelope<{ accessToken?: string; refreshToken?: string }> | null;
+
+    if (envelope?.success === false) return false;
+
+    // The API also re-sets the httpOnly cookies here; the body tokens are optional.
+    if (envelope?.data?.accessToken) {
+      setMemoryTokens(envelope.data.accessToken, envelope.data.refreshToken ?? memoryTokens.refreshToken);
+    }
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function refreshSession(): Promise<boolean> {
+  if (!refreshInFlight) {
+    refreshInFlight = performRefresh().finally(() => {
+      refreshInFlight = null;
+    });
+  }
+  return refreshInFlight;
+}
+
+function buildHeaders(options: RequestOptions): Record<string, string> {
+  const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    ...options.headers,
+    ...(options.headers as Record<string, string> | undefined),
   };
 
-  if (accessToken) {
-    (headers as Record<string, string>)["Authorization"] = `Bearer ${accessToken}`;
+  if (memoryTokens.accessToken) {
+    headers["Authorization"] = `Bearer ${memoryTokens.accessToken}`;
   }
 
-  async function doFetch(overrideHeaders?: HeadersInit): Promise<Response> {
-    try {
-      return await fetch(`${API_BASE}${endpoint}`, {
-        ...options,
-        headers: overrideHeaders ?? headers,
-        credentials: 'include',
-      });
-    } catch (e) {
-      if (e instanceof TypeError) {
-        throw new ApiError(
-          "No se pudo conectar con el servidor. Verifica tu conexión e intenta de nuevo.",
-          0
-        );
-      }
-      throw e;
+  return headers;
+}
+
+async function rawFetch(endpoint: string, init: RequestInit, headers: Record<string, string>): Promise<Response> {
+  try {
+    return await fetch(`${API_BASE}${endpoint}`, {
+      ...init,
+      headers,
+      credentials: "include",
+    });
+  } catch (e) {
+    if (e instanceof TypeError) {
+      throw new ApiError(
+        "No se pudo conectar con el servidor. Verifica tu conexión e intenta de nuevo.",
+        0
+      );
     }
+    throw e;
+  }
+}
+
+/**
+ * Performs the request and, on a 401, tries to renew the session once before
+ * retrying. The renewal no longer requires an in-memory refresh token: after a
+ * page reload the only thing left is the httpOnly cookie, and that is enough.
+ */
+async function fetchWithAuth(endpoint: string, options: RequestOptions = {}): Promise<Response> {
+  const { skipAuthRedirect = false, ...init } = options;
+
+  const response = await rawFetch(endpoint, init, buildHeaders(options));
+
+  if (response.status !== 401 || !canAttemptRefresh(endpoint)) return response;
+
+  // Only bounce to /login when this tab believed it had a live session.
+  const hadLiveSession = Boolean(memoryTokens.accessToken);
+
+  const refreshed = await refreshSession();
+
+  if (refreshed) {
+    return rawFetch(endpoint, init, buildHeaders(options));
   }
 
-  const response = await doFetch();
+  clearMemoryTokens();
+  sessionExpiredListener?.();
 
-  if (response.status === 401 && refreshToken && !endpoint.includes("/auth/refresh")) {
-    try {
-      const refreshResponse = await fetch(`${API_BASE}/auth/refresh`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ refreshToken }),
-        credentials: 'include',
-      });
+  if (!skipAuthRedirect && hadLiveSession) redirectToLogin();
 
-      if (refreshResponse.ok) {
-        const envelope = await refreshResponse.json() as ApiEnvelope<{ accessToken: string; refreshToken: string }>;
-        const tokens = envelope.data;
+  throw new ApiError("Sesión expirada. Por favor inicie sesión nuevamente.", 401);
+}
 
-        setMemoryTokens(tokens.accessToken, tokens.refreshToken);
+async function request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
+  const response = await fetchWithAuth(endpoint, options);
 
-        const retryHeaders: HeadersInit = {
-          "Content-Type": "application/json",
-          ...options.headers,
-          Authorization: `Bearer ${tokens.accessToken}`,
-        };
-
-        const retryResponse = await doFetch(retryHeaders);
-
-        if (!retryResponse.ok) {
-          const errorEnvelope = await retryResponse.json().catch(() => ({}));
-          throw new ApiError(
-            errorEnvelope.error?.message || "Error en la solicitud",
-            retryResponse.status,
-            errorEnvelope.error?.code,
-            errorEnvelope.error?.errors,
-          );
-        }
-
-        const retryEnvelope = await retryResponse.json() as ApiEnvelope<T>;
-        return retryEnvelope.data;
-      }
-    } catch (e) {
-      if (e instanceof ApiError) throw e;
-      // refresh failed, fall through to redirect
-    }
-
-    clearMemoryTokens();
-    redirectToLogin();
-    throw new ApiError("Sesión expirada. Por favor inicie sesión nuevamente.", 401);
-  }
-
-  const envelope = await response.json().catch(() => ({}));
+  const envelope = (await response.json().catch(() => ({}))) as Partial<ApiEnvelope<T>> & { message?: string };
 
   if (!response.ok || envelope.success === false) {
     throw new ApiError(
@@ -150,81 +218,11 @@ async function request<T>(
 
 async function requestPaginated<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestOptions = {}
 ): Promise<{ data: T[]; pagination: ApiEnvelope<T>["pagination"] }> {
-  const { accessToken, refreshToken } = await getTokens();
+  const response = await fetchWithAuth(endpoint, options);
 
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-    ...options.headers,
-  };
-
-  if (accessToken) {
-    (headers as Record<string, string>)["Authorization"] = `Bearer ${accessToken}`;
-  }
-
-  let response: Response;
-  try {
-    response = await fetch(`${API_BASE}${endpoint}`, {
-      ...options,
-      headers,
-      credentials: 'include',
-    });
-  } catch (e) {
-    if (e instanceof TypeError) {
-      throw new ApiError(
-        "No se pudo conectar con el servidor. Verifica tu conexión e intenta de nuevo.",
-        0
-      );
-    }
-    throw e;
-  }
-
-  if (response.status === 401 && refreshToken && !endpoint.includes("/auth/refresh")) {
-    try {
-      const refreshResponse = await fetch(`${API_BASE}/auth/refresh`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ refreshToken }),
-        credentials: 'include',
-      });
-
-      if (refreshResponse.ok) {
-        const envelope = await refreshResponse.json() as ApiEnvelope<{ accessToken: string; refreshToken: string }>;
-        const tokens = envelope.data;
-
-        setMemoryTokens(tokens.accessToken, tokens.refreshToken);
-
-        (headers as Record<string, string>)["Authorization"] = `Bearer ${tokens.accessToken}`;
-        const retryResponse = await fetch(`${API_BASE}${endpoint}`, {
-          ...options,
-          headers,
-          credentials: 'include',
-        });
-
-        if (!retryResponse.ok) {
-          const errorEnvelope = await retryResponse.json().catch(() => ({}));
-          throw new ApiError(
-            errorEnvelope.error?.message || "Error en la solicitud",
-            retryResponse.status,
-            errorEnvelope.error?.code,
-            errorEnvelope.error?.errors,
-          );
-        }
-
-        const retryEnvelope = await retryResponse.json() as ApiEnvelope<T[]>;
-        return { data: retryEnvelope.data, pagination: retryEnvelope.pagination };
-      }
-    } catch (e) {
-      if (e instanceof ApiError) throw e;
-    }
-
-    clearMemoryTokens();
-    redirectToLogin();
-    throw new ApiError("Sesión expirada", 401);
-  }
-
-  const envelope = await response.json() as ApiEnvelope<T[]> & { message?: string };
+  const envelope = (await response.json().catch(() => ({}))) as Partial<ApiEnvelope<T[]>> & { message?: string };
 
   if (!response.ok || envelope.success === false) {
     throw new ApiError(
@@ -235,7 +233,7 @@ async function requestPaginated<T>(
     );
   }
 
-  return { data: envelope.data, pagination: envelope.pagination };
+  return { data: (envelope.data ?? []) as T[], pagination: envelope.pagination };
 }
 
 export { request, requestPaginated, ApiError, API_BASE };
