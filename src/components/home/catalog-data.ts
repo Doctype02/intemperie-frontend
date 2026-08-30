@@ -166,8 +166,10 @@ export function maxWarrantyYears(list: HomeProduct[]): number | null {
    su finca. Los `slug` son los de la API (`/categories`), así que el enlace
    «Ver todo» cae en un listado que existe y trae resultados.
 
-   La foto es la que la propia API asigna a la categoría, que apunta a un
-   fichero real de `/public/products`. No hay foto inventada ni de banco.
+   No lleva fotografía: la que la API asigna a cada categoría es la foto de uno
+   de los cinco productos que sí tienen fotógrafo, y acaba ilustrando
+   «Agropecuario» con una cerca residencial blanca. La portada dibuja el alzado
+   del sistema en su lugar (ver .diagram en globals.css).
 
    `who` y `promise` son texto editorial —no dato— y están aquí para que la
    portada y la navegación no se contradigan entre sí. */
@@ -176,7 +178,6 @@ export interface Segment {
   name: string
   who: string
   promise: string
-  image: string | null
 }
 
 export const SEGMENTS: Segment[] = [
@@ -185,35 +186,30 @@ export const SEGMENTS: Segment[] = [
     name: "Residencial",
     who: "Casas, quintas y urbanizaciones",
     promise: "Cerrar el frente sin volver a pintar",
-    image: "/products/cerca-pvc-afrodita-401/1-imagen-principal.jpg",
   },
   {
     slug: "industrial",
     name: "Industrial",
     who: "Naves, depósitos y obra",
     promise: "Altura y calibre para perímetro pesado",
-    image: "/products/cerca-pvc-vesta-601/1-foto-de-portada.jpg",
   },
   {
     slug: "zonas-costeras",
     name: "Zonas costeras",
     who: "Frente al mar y al salitre",
     promise: "PVC marino: ni óxido ni decoloración",
-    image: "/products/cerca-pvc-poseidon-502/1-pagina-principal.jpg",
   },
   {
     slug: "gubernamental",
     name: "Gubernamental",
     who: "Escuelas, entidades y espacio público",
     promise: "Malla anti-escalable de 3 m",
-    image: "/products/cerca-pvc-atenea-305/2.jpg",
   },
   {
     slug: "agropecuario",
     name: "Agropecuario",
     who: "Fincas, potreros y haciendas",
     promise: "Tramos largos a coste por metro",
-    image: null,
   },
 ]
 
