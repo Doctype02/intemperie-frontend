@@ -1,79 +1,91 @@
-"use client";
+import { FACET_KEYS } from "@/components/products/product-filters"
 
-import { useState, useEffect } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+/* Rango de precio a medida — sistema «Perímetro».
+ *
+ * Era un componente de cliente: `useState` por campo, `useEffect` para
+ * resincronizar con la URL, `useSearchParams` (que obliga a `<Suspense>` en el
+ * padre) y `router.push`. Sesenta líneas de JavaScript, un bundle de cliente y
+ * una hidratación para lo que el navegador hace solo desde 1995: un formulario
+ * `GET` con dos campos numéricos.
+ *
+ * Ahora es HTML de servidor. El navegador construye
+ * `/productos?minPrice=20&maxPrice=30` con los `name` de los campos, y los
+ * `<input type="hidden">` arrastran las demás facetas para que ajustar el
+ * precio no borre el uso ni la altura elegidos. `page` no se arrastra a
+ * propósito: un rango nuevo tiene menos páginas y quedarse en la 3 daría un
+ * vacío que parece un error del sitio.
+ *
+ * Los tramos de un toque («Hasta $20», «$20 – $30»…) están arriba, en el panel
+ * de facetas, y cubren el caso normal. Esto es la salida para quien tiene un
+ * presupuesto exacto por metro, que en obra y en licitación es lo habitual.
+ */
+export default function PriceFilter({
+  params,
+}: {
+  params: Record<string, string | undefined>
+}) {
+  /* Todo lo que no sea precio ni página viaja escondido en el formulario. */
+  const carried = FACET_KEYS.filter(
+    (k) => k !== "minPrice" && k !== "maxPrice" && k !== "page",
+  ).filter((k) => params[k])
 
-export default function PriceFilter() {
-  const searchParams = useSearchParams();
-  const router       = useRouter();
-
-  const [min, setMin] = useState(searchParams.get("minPrice") ?? "");
-  const [max, setMax] = useState(searchParams.get("maxPrice") ?? "");
-
-  useEffect(() => {
-    setMin(searchParams.get("minPrice") ?? "");
-    setMax(searchParams.get("maxPrice") ?? "");
-  }, [searchParams]);
-
-  const apply = () => {
-    const sp = new URLSearchParams(searchParams.toString());
-    if (min) sp.set("minPrice", min); else sp.delete("minPrice");
-    if (max) sp.set("maxPrice", max); else sp.delete("maxPrice");
-    // El nuevo filtro tiene menos páginas: quedarse en la 5 daría vacío.
-    sp.delete("page");
-    router.push(`/productos?${sp.toString()}`);
-  };
-
-  const clear = () => {
-    setMin(""); setMax("");
-    const sp = new URLSearchParams(searchParams.toString());
-    sp.delete("minPrice"); sp.delete("maxPrice");
-    sp.delete("page");
-    router.push(`/productos?${sp.toString()}`);
-  };
-
-  const hasFilter = !!searchParams.get("minPrice") || !!searchParams.get("maxPrice");
+  const field =
+    "tabular h-11 w-full rounded-md border border-border-strong bg-surface px-2.5 text-sm text-foreground placeholder:text-muted-foreground"
 
   return (
-    <div className="px-4 py-3 border-t border-gray-100">
-      <h3 className="text-xs font-black uppercase tracking-widest text-gray-500 mb-3">Precio por metro</h3>
-      <div className="flex items-center gap-2">
-        <input
-          type="number"
-          placeholder="Min $"
-          min={0}
-          value={min}
-          onChange={(e) => setMin(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && apply()}
-          className="w-full h-8 text-sm border border-gray-200 rounded-lg px-2 focus:ring-1 focus:ring-green-500 focus:outline-none"
-        />
-        <span className="text-gray-400 text-sm shrink-0">—</span>
-        <input
-          type="number"
-          placeholder="Max $"
-          min={0}
-          value={max}
-          onChange={(e) => setMax(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && apply()}
-          className="w-full h-8 text-sm border border-gray-200 rounded-lg px-2 focus:ring-1 focus:ring-green-500 focus:outline-none"
-        />
-      </div>
-      <div className="mt-2 flex gap-2">
+    <form action="/productos" method="get" className="mt-3">
+      {carried.map((k) => (
+        <input key={k} type="hidden" name={k} value={params[k]} />
+      ))}
+
+      <fieldset className="flex items-end gap-2">
+        <legend className="sr-only">Rango de precio por metro, en dólares</legend>
+
+        <p className="min-w-0 flex-1">
+          <label htmlFor="minPrice" className="mb-1 block text-2xs text-muted-foreground">
+            Desde $
+          </label>
+          <input
+            id="minPrice"
+            name="minPrice"
+            type="number"
+            inputMode="decimal"
+            min={0}
+            step="0.5"
+            placeholder="8.50"
+            defaultValue={params.minPrice ?? ""}
+            className={field}
+          />
+        </p>
+
+        <p className="min-w-0 flex-1">
+          <label htmlFor="maxPrice" className="mb-1 block text-2xs text-muted-foreground">
+            Hasta $
+          </label>
+          <input
+            id="maxPrice"
+            name="maxPrice"
+            type="number"
+            inputMode="decimal"
+            min={0}
+            step="0.5"
+            placeholder="45.00"
+            defaultValue={params.maxPrice ?? ""}
+            className={field}
+          />
+        </p>
+
+        {/* `primary`/`primary-foreground` y no `brand-green`/`on-dark`: en modo
+            oscuro el verde sube de luminosidad y un texto casi blanco encima se
+            cae del AA. El par de roles se invierte solo. Es el mismo botón que
+            cierra la portada. */}
         <button
-          onClick={apply}
-          className="flex-1 h-7 rounded-lg bg-green-600 text-white text-xs font-bold hover:bg-green-700 transition-colors"
+          type="submit"
+          className="h-11 shrink-0 rounded-md bg-primary px-3.5 text-sm font-bold text-primary-foreground transition-colors hover:bg-brand-green-deep"
         >
           Aplicar
         </button>
-        {hasFilter && (
-          <button
-            onClick={clear}
-            className="h-7 px-3 rounded-lg border border-gray-200 text-xs font-medium text-gray-500 hover:bg-gray-50 transition-colors"
-          >
-            Limpiar
-          </button>
-        )}
-      </div>
-    </div>
-  );
+      </fieldset>
+    </form>
+  )
 }
