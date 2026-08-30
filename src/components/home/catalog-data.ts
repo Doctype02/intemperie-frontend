@@ -26,6 +26,10 @@ export interface HomeProduct {
     colors?: string[]
     material?: string
     warranty?: string
+    /* Sólo en malla electrosoldada; el resto del catálogo los trae vacíos. */
+    meshSize?: string
+    wireGauge?: string
+    antiClimbing?: boolean
   } | null
   category?: { name: string; slug: string } | null
   collection?: { name: string; slug: string } | null
