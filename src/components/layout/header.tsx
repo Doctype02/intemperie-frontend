@@ -1,703 +1,103 @@
-"use client";
+import Link from "next/link"
+import { Search } from "lucide-react"
 
-import { useState, useEffect, useRef } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import {
-  Search, User, Menu, X, ChevronDown, ChevronRight,
-  Phone, Clock, Mail, Heart,
-} from "lucide-react";
-import { useAuthStore } from "@/lib/store/auth-store";
-import { useCartStore } from "@/lib/store/cart-store";
-import { useWishlist } from "@/lib/hooks/use-wishlist";
-import { CartSheet } from "@/components/cart/cart-sheet";
+import { CommercialBand } from "./commercial-band"
+import { MobileNavTrigger } from "./mobile-nav-trigger"
+import { PrimaryNav } from "./primary-nav"
+import { HeaderAccount, HeaderWishlist } from "./header-user"
+import { CartSheet } from "@/components/cart/cart-sheet"
 
-/* ── Inline SVG social icons (lucide-react v1.14 doesn't ship these) ─────── */
-function IconFacebook() {
-  return (
-    <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
-    </svg>
-  );
-}
-function IconInstagram() {
-  return (
-    <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-      <circle cx="12" cy="12" r="4" />
-      <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
-    </svg>
-  );
-}
-function IconYoutube() {
-  return (
-    <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 0 0-1.95 1.96A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58A2.78 2.78 0 0 0 3.41 19.54C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z" />
-      <polygon fill="white" points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" />
-    </svg>
-  );
-}
-
-/* ── Nav data ─────────────────────────────────────────────────────────────── */
-const pvcResidencial = [
-  { name: "Oceanides 101",       slug: "cerca-pvc-oceanides-101" },
-  { name: "Super Oceanides 103", slug: "cerca-pvc-super-oceanides-103" },
-  { name: "Pandora 201",         slug: "cerca-pvc-pandora-201" },
-  { name: "Pandora 204",         slug: "cerca-pvc-pandora-204" },
-  { name: "Afrodita 401",        slug: "cerca-pvc-afrodita-401" },
-];
-const pvcIndustrial = [
-  { name: "Atlas",      slug: "cerca-pvc-atlas" },
-  { name: "Atenea 303", slug: "cerca-pvc-atenea-303" },
-  { name: "Atenea 305", slug: "cerca-pvc-atenea-305" },
-  { name: "Vesta 601",  slug: "cerca-pvc-vesta-601" },
-];
-const pvcCosteras = [
-  { name: "Poseidón 502", slug: "cerca-pvc-poseidon-502" },
-  { name: "Selene 701",   slug: "cerca-pvc-selene-701" },
-];
-const mallas = [
-  { name: "Mini Titan",  slug: "malla-electrosoldada-mini-titan" },
-  { name: "Titan",       slug: "malla-electrosoldada-titan" },
-  { name: "Super Titan", slug: "malla-electrosoldada-super-titan" },
-  { name: "Maximus",     slug: "malla-electrosoldada-maximus" },
-];
-const colecciones = [
-  { name: "Residencial",    slug: "residencial" },
-  { name: "Industrial",     slug: "industrial" },
-  { name: "Zonas Costeras", slug: "zonas-costeras" },
-  { name: "Gubernamental",  slug: "gubernamental" },
-  { name: "Agropecuario",   slug: "agropecuario" },
-];
-
-/* ── Small dropdown wrapper ───────────────────────────────────────────────── */
-interface SimpleDropdownProps {
-  label: string;
-  children: (close: () => void) => React.ReactNode;
-}
-function SimpleDropdown({ label, children }: SimpleDropdownProps) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  const close = () => setOpen(false);
-
-  useEffect(() => {
-    if (!open) return;
-    function handler(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [open]);
-
-  return (
-    <div ref={ref} className="relative">
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1 h-full px-3 py-2 text-[13px] font-semibold text-foreground hover:text-brand-green-deep hover:bg-surface-2 rounded transition-colors whitespace-nowrap"
-      >
-        {label}
-        <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
-      </button>
-      {open && (
-        <>
-          <div className="fixed inset-0 z-40" onClick={close} />
-          <div className="absolute left-0 top-full z-50 mt-1 min-w-[200px] rounded-xl border border-border bg-white py-1.5 shadow-xl">
-            {children(close)}
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
-/* ── Mega dropdown for Cercas PVC ─────────────────────────────────────────── */
-function CercasMegaMenu({ onClose }: { onClose: () => void }) {
-  return (
-    <div className="absolute left-0 top-full z-50 mt-1 w-[620px] rounded-xl border border-border bg-white shadow-2xl">
-      <div className="grid grid-cols-3 gap-0 divide-x divide-gray-100">
-        {/* Col 1 */}
-        <div className="p-4">
-          <p className="mb-2 text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
-            Línea Residencial
-          </p>
-          {pvcResidencial.map((p) => (
-            <Link
-              key={p.slug}
-              href={`/productos/${p.slug}`}
-              onClick={onClose}
-              className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-[13px] font-medium text-foreground hover:bg-brand-green-soft hover:text-brand-green-deep transition-colors group"
-            >
-              <ChevronRight className="h-3 w-3 text-muted-foreground group-hover:text-brand-green shrink-0" />
-              {p.name}
-            </Link>
-          ))}
-        </div>
-        {/* Col 2 */}
-        <div className="p-4">
-          <p className="mb-2 text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
-            Línea Industrial
-          </p>
-          {pvcIndustrial.map((p) => (
-            <Link
-              key={p.slug}
-              href={`/productos/${p.slug}`}
-              onClick={onClose}
-              className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-[13px] font-medium text-foreground hover:bg-brand-green-soft hover:text-brand-green-deep transition-colors group"
-            >
-              <ChevronRight className="h-3 w-3 text-muted-foreground group-hover:text-brand-green shrink-0" />
-              {p.name}
-            </Link>
-          ))}
-        </div>
-        {/* Col 3 */}
-        <div className="p-4">
-          <p className="mb-2 text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
-            Zonas Costeras
-          </p>
-          {pvcCosteras.map((p) => (
-            <Link
-              key={p.slug}
-              href={`/productos/${p.slug}`}
-              onClick={onClose}
-              className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-[13px] font-medium text-foreground hover:bg-brand-green-soft hover:text-brand-green-deep transition-colors group"
-            >
-              <ChevronRight className="h-3 w-3 text-muted-foreground group-hover:text-brand-green shrink-0" />
-              {p.name}
-            </Link>
-          ))}
-        </div>
-      </div>
-      {/* Footer */}
-      <div className="border-t border-border px-5 py-3">
-        <Link
-          href="/productos"
-          onClick={onClose}
-          className="inline-flex items-center gap-1.5 text-sm font-bold text-brand-green-deep hover:text-brand-green-deep transition-colors"
-        >
-          Ver todo el catálogo <ChevronRight className="h-4 w-4" />
-        </Link>
-      </div>
-    </div>
-  );
-}
-
-/* ── Mobile accordion section ─────────────────────────────────────────────── */
-function MobileSection({
-  title, children,
-}: { title: string; children: React.ReactNode }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="border-b border-border">
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between px-4 py-3.5 text-sm font-bold text-foreground"
-      >
-        {title}
-        <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
-      </button>
-      {open && <div className="pb-2 px-2">{children}</div>}
-    </div>
-  );
-}
-
-/* ── Main Header ──────────────────────────────────────────────────────────── */
+/* Cabecera — sistema «Perímetro».
+ *
+ * Era un componente de cliente de 703 líneas con siete `useState`, tres
+ * `useEffect`, un listener de scroll y el panel móvil completo montado en el
+ * árbol aunque estuviera cerrado. Se hidrataba en todas las páginas de la
+ * tienda, y medido con Playwright a 4× de estrangulamiento de CPU costaba la
+ * mayor parte del bloqueo del hilo principal de la portada.
+ *
+ * Ahora es HTML de servidor con cuatro islas: menú móvil, sesión, favoritos y
+ * carrito. Lo demás no se hidrata porque no lo necesita.
+ *
+ * El buscador es un `<form method="get" action="/productos">`. La página de
+ * catálogo ya lee `searchParams.search`, así que el navegador puede hacer la
+ * búsqueda él solo: no hace falta `useState`, ni `useRouter`, ni que el
+ * buscador sea un componente de cliente. Funciona antes de que cargue el
+ * JavaScript, que en una conexión móvil panameña son varios segundos.
+ *
+ * La sombra al hacer scroll también desaparece: costaba un listener y un
+ * re-render por cruce de umbral para dibujar 1 px. La cabecera lleva su borde
+ * inferior siempre.
+ */
 export function Header() {
-  const [scrolled,     setScrolled]     = useState(false);
-  const [mobileOpen,   setMobileOpen]   = useState(false);
-  const [cercasOpen,   setCercasOpen]   = useState(false);
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [searchOpen,   setSearchOpen]   = useState(false);
-  const [search,       setSearch]       = useState("");
-  const [cartBounce,   setCartBounce]   = useState(false);
-
-  const cercasRef      = useRef<HTMLDivElement>(null);
-  const hoverTimer     = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const cartMounted    = useRef(false);
-  const router         = useRouter();
-
-  const { user, isAuthenticated, logout } = useAuthStore();
-  const cartItems = useCartStore((s) => s.items);
-  const cartCount = cartItems.reduce((s, i) => s + i.quantity, 0);
-  const { count: wishlistCount } = useWishlist();
-
-  /* Scroll shadow — only triggers re-render on threshold cross (not every pixel) */
-  useEffect(() => {
-    const fn = () => {
-      const next = window.scrollY > 8;
-      setScrolled((prev) => (prev === next ? prev : next));
-    };
-    window.addEventListener("scroll", fn, { passive: true });
-    return () => window.removeEventListener("scroll", fn);
-  }, []);
-
-  /* Cart bounce — skip first render (Zustand rehydration from localStorage) */
-  useEffect(() => {
-    if (!cartMounted.current) { cartMounted.current = true; return; }
-    if (cartCount > 0) {
-      setCartBounce(true);
-      setTimeout(() => setCartBounce(false), 400);
-    }
-  }, [cartCount]);
-
-  /* Close Cercas mega on outside click */
-  useEffect(() => {
-    if (!cercasOpen) return;
-    function handler(e: MouseEvent) {
-      if (cercasRef.current && !cercasRef.current.contains(e.target as Node)) {
-        setCercasOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [cercasOpen]);
-
-  /* Lock body scroll when mobile menu is open */
-  useEffect(() => {
-    document.body.style.overflow = mobileOpen ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
-  }, [mobileOpen]);
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (search.trim()) {
-      router.push(`/productos?search=${encodeURIComponent(search.trim())}`);
-      setSearch("");
-      setSearchOpen(false);
-      setMobileOpen(false);
-    }
-  };
-
-  const closeAll = () => {
-    setMobileOpen(false);
-    setCercasOpen(false);
-    setUserMenuOpen(false);
-  };
-
-  const handleCercasEnter = () => {
-    if (hoverTimer.current) clearTimeout(hoverTimer.current);
-    setCercasOpen(true);
-  };
-  const handleCercasLeave = () => {
-    hoverTimer.current = setTimeout(() => setCercasOpen(false), 150);
-  };
-
   return (
-    <header className={`sticky top-0 z-50 transition-shadow duration-200 ${scrolled ? "shadow-md" : ""}`}>
-      {/* Skip to main content — visible on focus for keyboard/screen reader users */}
+    <header className="sticky top-0 z-50">
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:rounded-lg focus:bg-brand-green-deep focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-white"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-100 focus:rounded-lg focus:bg-brand-green-deep focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-on-dark"
       >
         Saltar al contenido principal
       </a>
 
-      {/* ── Tier 1: Announcement bar ──────────────────────────────────────── */}
-      <div className={`bg-brand-navy-deep text-white text-xs overflow-hidden transition-[max-height] duration-300 ${scrolled ? "max-h-0" : "max-h-8"}`}>
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 flex items-center justify-between h-8">
-          <p className="font-semibold truncate text-[11px]">
-            🚚&nbsp;Envío gratis en pedidos mayores a $50 — Panamá y provincias
-          </p>
-          <div className="hidden md:flex items-center gap-4 shrink-0">
-            <a
-              href="tel:+50762874042"
-              className="flex items-center gap-1.5 text-[11px] font-medium hover:text-on-dark-soft transition-colors"
-            >
-              <Phone className="h-3 w-3" />
-              +507 6287-4042
-            </a>
-            <div className="flex items-center gap-2.5">
-              <span title="Próximamente" aria-label="Facebook (próximamente)" className="cursor-default text-white/40">
-                <IconFacebook />
-              </span>
-              <span title="Próximamente" aria-label="Instagram (próximamente)" className="cursor-default text-white/40">
-                <IconInstagram />
-              </span>
-              <span title="Próximamente" aria-label="YouTube (próximamente)" className="cursor-default text-white/40">
-                <IconYoutube />
-              </span>
+      <CommercialBand />
+
+      <div className="border-b border-border bg-surface shadow-xs">
+        <div className="shell flex h-14 items-center gap-2 lg:h-16 lg:gap-3">
+          <MobileNavTrigger />
+
+          <Link
+            href="/"
+            aria-label="Intemperie — inicio"
+            className="flex shrink-0 items-center rounded-sm"
+          >
+            <span className="font-heading text-xl leading-none font-bold tracking-[-0.04em] text-foreground select-none lg:text-2xl">
+              INTEM<span className="text-brand-green-deep">PERIE</span>
+            </span>
+          </Link>
+
+          {/* Escritorio: buscador de verdad, sin JavaScript. */}
+          <form
+            action="/productos"
+            method="get"
+            role="search"
+            className="mx-4 hidden flex-1 sm:flex lg:mx-8"
+          >
+            <label htmlFor="site-search" className="sr-only">
+              Buscar en el catálogo
+            </label>
+            <div className="relative w-full">
+              <Search
+                className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground"
+                aria-hidden="true"
+              />
+              <input
+                id="site-search"
+                type="search"
+                name="search"
+                enterKeyHint="search"
+                className="h-10 w-full rounded-full border border-transparent bg-surface-2 pr-4 pl-10 text-sm text-foreground transition-colors placeholder:text-muted-foreground focus:border-primary focus:bg-surface"
+                placeholder="Buscar cerca de PVC, malla, altura…"
+              />
             </div>
+          </form>
+
+          <div className="ml-auto flex items-center">
+            {/* Móvil: el buscador completo vive en el panel de menú y en la
+                portada. Aquí sólo el atajo al catálogo, que es un enlace. */}
+            <Link
+              href="/productos"
+              aria-label="Buscar en el catálogo"
+              className="flex size-11 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-muted sm:hidden"
+            >
+              <Search className="size-5" aria-hidden="true" />
+            </Link>
+            <HeaderAccount />
+            <HeaderWishlist />
+            <CartSheet />
           </div>
         </div>
       </div>
 
-      {/* ── Tier 2: Main bar (logo + search + actions) ─────────────────────── */}
-      <div className="bg-white border-b border-border">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <div className="flex h-16 items-center gap-3">
-
-            {/* Mobile hamburger */}
-            <button
-              className="lg:hidden -ml-1 p-2 rounded-md text-muted-foreground hover:bg-surface-2 transition-colors"
-              onClick={() => setMobileOpen(!mobileOpen)}
-              aria-label={mobileOpen ? "Cerrar menú" : "Abrir menú"}
-            >
-              {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </button>
-
-            {/* Logo */}
-            <Link href="/" className="flex shrink-0 items-center" onClick={closeAll}>
-              <span className="text-[22px] font-black tracking-[-0.04em] text-foreground leading-none select-none">
-                INTEM<span className="text-brand-green-deep">PERIE</span>
-              </span>
-            </Link>
-
-            {/* Search — desktop */}
-            <form
-              onSubmit={handleSearch}
-              className="hidden sm:flex flex-1 mx-4 lg:mx-8"
-            >
-              <div className="relative w-full">
-                <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-                <input
-                  type="search"
-                  className="h-10 w-full rounded-full border-0 bg-surface-2 pl-10 pr-4 text-sm text-foreground placeholder-gray-400 focus:bg-white focus:ring-2 focus:ring-brand-green focus:outline-none transition-all"
-                  placeholder="Buscar cercas PVC, mallas electrosoldadas…"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
-              </div>
-            </form>
-
-            {/* Right actions */}
-            <div className="ml-auto flex items-center gap-1">
-              {/* Mobile search toggle */}
-              <button
-                onClick={() => setSearchOpen(!searchOpen)}
-                className="sm:hidden p-2 rounded-md text-muted-foreground hover:bg-surface-2 transition-colors"
-                aria-label="Buscar"
-              >
-                <Search className="h-5 w-5" />
-              </button>
-
-              {/* Account */}
-              {isAuthenticated ? (
-                <div className="relative">
-                  <button
-                    onClick={() => setUserMenuOpen(!userMenuOpen)}
-                    className="flex items-center gap-1.5 p-2 rounded-md text-muted-foreground hover:bg-surface-2 transition-colors"
-                    aria-label="Mi cuenta"
-                  >
-                    <User className="h-5 w-5" />
-                    <span className="hidden lg:block text-xs font-semibold max-w-[80px] truncate">
-                      {user?.name?.split(" ")[0]}
-                    </span>
-                  </button>
-                  {userMenuOpen && (
-                    <>
-                      <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
-                      <div className="absolute right-0 top-full mt-2 w-52 rounded-xl border border-border bg-white p-2 shadow-xl z-50">
-                        <div className="px-3 py-2 border-b border-border mb-1">
-                          <p className="text-sm font-bold text-foreground truncate">{user?.name}</p>
-                          <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
-                        </div>
-                        {[
-                          { label: "Mi cuenta",    href: "/cuenta" },
-                          { label: "Mis pedidos",  href: "/cuenta/pedidos" },
-                          ...(user?.role === "ADMIN"
-                            ? [{ label: "Panel Admin", href: "/admin" }]
-                            : []),
-                        ].map((item) => (
-                          <Link
-                            key={item.href}
-                            href={item.href}
-                            onClick={() => setUserMenuOpen(false)}
-                            className="block rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-surface-sunk hover:text-foreground transition-colors"
-                          >
-                            {item.label}
-                          </Link>
-                        ))}
-                        <button
-                          onClick={() => { setUserMenuOpen(false); logout(); }}
-                          className="mt-1 w-full text-left rounded-lg px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                        >
-                          Cerrar sesión
-                        </button>
-                      </div>
-                    </>
-                  )}
-                </div>
-              ) : (
-                <Link
-                  href="/login"
-                  className="flex items-center gap-1.5 p-2 rounded-md text-muted-foreground hover:bg-surface-2 transition-colors"
-                  aria-label="Ingresar"
-                >
-                  <User className="h-5 w-5" />
-                  <span className="hidden lg:block text-xs font-semibold">Ingresar</span>
-                </Link>
-              )}
-
-              {/* Wishlist */}
-              <Link
-                href="/favoritos"
-                aria-label={`Favoritos${wishlistCount > 0 ? ` (${wishlistCount})` : ""}`}
-                className="relative p-2 rounded-md text-muted-foreground hover:bg-surface-2 transition-colors"
-              >
-                <Heart className="h-5 w-5" />
-                {wishlistCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-black text-white leading-none">
-                    {wishlistCount > 9 ? "9+" : wishlistCount}
-                  </span>
-                )}
-              </Link>
-
-              {/* Cart — mini-drawer */}
-              <div className={`transition-transform ${cartBounce ? "scale-110" : "scale-100"}`}>
-                <CartSheet />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Mobile search panel */}
-        {searchOpen && (
-          <div className="sm:hidden border-t border-border px-4 py-3">
-            <form onSubmit={handleSearch}>
-              <div className="relative">
-                <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <input
-                  autoFocus
-                  type="search"
-                  className="h-10 w-full rounded-full bg-surface-2 pl-10 pr-4 text-sm text-foreground placeholder-gray-400 focus:bg-white focus:ring-2 focus:ring-brand-green focus:outline-none transition-all border-0"
-                  placeholder="Buscar cercas, mallas…"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
-              </div>
-            </form>
-          </div>
-        )}
-      </div>
-
-      {/* ── Tier 3: Navigation bar (desktop) ──────────────────────────────── */}
-      <div className="hidden lg:block bg-white border-b border-border">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <div className="flex items-center h-11">
-
-            {/* Cercas PVC mega dropdown — opens on hover OR click */}
-            <div
-              ref={cercasRef}
-              className="relative h-full flex items-center"
-              onMouseEnter={handleCercasEnter}
-              onMouseLeave={handleCercasLeave}
-            >
-              <button
-                onClick={() => setCercasOpen((v) => !v)}
-                aria-expanded={cercasOpen}
-                aria-haspopup="true"
-                className={`flex items-center gap-1 h-full px-3 text-[13px] font-bold transition-colors ${
-                  cercasOpen
-                    ? "text-brand-green-deep bg-brand-green-soft"
-                    : "text-foreground hover:text-brand-green-deep hover:bg-surface-2"
-                }`}
-              >
-                Cercas PVC
-                <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${cercasOpen ? "rotate-180" : ""}`} />
-              </button>
-              {cercasOpen && (
-                <CercasMegaMenu onClose={() => setCercasOpen(false)} />
-              )}
-            </div>
-
-            {/* Mallas dropdown */}
-            <SimpleDropdown label="Mallas Electrosoldadas">
-              {(close) => (
-                <>
-                  {mallas.map((p) => (
-                    <Link
-                      key={p.slug}
-                      href={`/productos/${p.slug}`}
-                      onClick={close}
-                      className="flex items-center gap-2 mx-1 rounded-lg px-3 py-2 text-[13px] font-medium text-foreground hover:bg-brand-green-soft hover:text-brand-green-deep transition-colors group"
-                    >
-                      <ChevronRight className="h-3 w-3 text-muted-foreground group-hover:text-brand-green shrink-0" />
-                      {p.name}
-                    </Link>
-                  ))}
-                  <div className="mx-1 border-t border-border mt-1 pt-1">
-                    <Link
-                      href="/productos?category=industrial"
-                      onClick={close}
-                      className="block px-3 py-2 text-[13px] font-bold text-brand-green-deep hover:bg-brand-green-soft rounded-lg transition-colors"
-                    >
-                      Ver todos →
-                    </Link>
-                  </div>
-                </>
-              )}
-            </SimpleDropdown>
-
-            {/* Colecciones dropdown */}
-            <SimpleDropdown label="Colecciones">
-              {(close) => (
-                <>
-                  {colecciones.map((c) => (
-                    <Link
-                      key={c.slug}
-                      href={`/productos?collection=${c.slug}`}
-                      onClick={close}
-                      className="flex items-center gap-2 mx-1 rounded-lg px-3 py-2 text-[13px] font-medium text-foreground hover:bg-brand-green-soft hover:text-brand-green-deep transition-colors group"
-                    >
-                      <ChevronRight className="h-3 w-3 text-muted-foreground group-hover:text-brand-green shrink-0" />
-                      {c.name}
-                    </Link>
-                  ))}
-                </>
-              )}
-            </SimpleDropdown>
-
-            {/* Direct links */}
-            {[
-              { href: "/calculadora",  label: "Calculadora" },
-              { href: "/instaladores", label: "Instaladores" },
-              { href: "/inspecciones", label: "Inspecciones" },
-              { href: "/nosotros",     label: "Nosotros" },
-            ].map(({ href, label }) => (
-              <Link key={href} href={href}
-                className="flex items-center h-full px-3 text-[13px] font-semibold text-muted-foreground hover:text-brand-green-deep transition-colors whitespace-nowrap relative after:absolute after:bottom-0 after:left-3 after:right-3 after:h-[2px] after:bg-brand-green after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-200 after:origin-left">
-                {label}
-              </Link>
-            ))}
-            <a href="https://wa.me/50762874042" target="_blank" rel="noopener noreferrer"
-              className="flex items-center h-full px-3 text-[13px] font-semibold text-muted-foreground hover:text-brand-green-deep transition-colors whitespace-nowrap relative after:absolute after:bottom-0 after:left-3 after:right-3 after:h-[2px] after:bg-brand-green after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-200 after:origin-left">
-              Contacto
-            </a>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Mobile full-panel menu ─────────────────────────────────────────── */}
-      {mobileOpen && (
-        <div className={`lg:hidden fixed inset-0 z-40 flex flex-col bg-white overflow-y-auto border-t border-border shadow-2xl ${scrolled ? "top-16" : "top-[calc(2rem+4rem)]"}`}>
-          {/* Mobile search */}
-          <div className="px-4 py-3 bg-surface-sunk border-b border-border">
-            <form onSubmit={handleSearch}>
-              <div className="relative">
-                <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <input
-                  type="search"
-                  className="h-10 w-full rounded-full bg-white border border-border pl-10 pr-4 text-sm text-foreground placeholder-gray-400 focus:ring-2 focus:ring-brand-green focus:outline-none transition-all"
-                  placeholder="Buscar productos…"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
-              </div>
-            </form>
-          </div>
-
-          {/* Cercas PVC section */}
-          <MobileSection title="Cercas PVC">
-            <p className="px-2 pt-2 pb-1 text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
-              Línea Residencial
-            </p>
-            {pvcResidencial.map((p) => (
-              <Link key={p.slug} href={`/productos/${p.slug}`} onClick={closeAll}
-                className="block rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-brand-green-soft hover:text-brand-green-deep transition-colors">
-                {p.name}
-              </Link>
-            ))}
-            <p className="px-2 pt-3 pb-1 text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
-              Línea Industrial
-            </p>
-            {pvcIndustrial.map((p) => (
-              <Link key={p.slug} href={`/productos/${p.slug}`} onClick={closeAll}
-                className="block rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-brand-green-soft hover:text-brand-green-deep transition-colors">
-                {p.name}
-              </Link>
-            ))}
-            <p className="px-2 pt-3 pb-1 text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground">
-              Zonas Costeras
-            </p>
-            {pvcCosteras.map((p) => (
-              <Link key={p.slug} href={`/productos/${p.slug}`} onClick={closeAll}
-                className="block rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-brand-green-soft hover:text-brand-green-deep transition-colors">
-                {p.name}
-              </Link>
-            ))}
-            <Link href="/productos" onClick={closeAll}
-              className="block rounded-lg px-3 py-2.5 text-sm font-bold text-brand-green-deep hover:bg-brand-green-soft transition-colors mt-1">
-              Ver todo el catálogo →
-            </Link>
-          </MobileSection>
-
-          {/* Mallas section */}
-          <MobileSection title="Mallas Electrosoldadas">
-            {mallas.map((p) => (
-              <Link key={p.slug} href={`/productos/${p.slug}`} onClick={closeAll}
-                className="block rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-brand-green-soft hover:text-brand-green-deep transition-colors">
-                {p.name}
-              </Link>
-            ))}
-            <Link href="/productos?category=industrial" onClick={closeAll}
-              className="block rounded-lg px-3 py-2.5 text-sm font-bold text-brand-green-deep hover:bg-brand-green-soft transition-colors mt-1">
-              Ver todos →
-            </Link>
-          </MobileSection>
-
-          {/* Colecciones section */}
-          <MobileSection title="Colecciones">
-            {colecciones.map((c) => (
-              <Link key={c.slug} href={`/productos?collection=${c.slug}`} onClick={closeAll}
-                className="block rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-brand-green-soft hover:text-brand-green-deep transition-colors">
-                {c.name}
-              </Link>
-            ))}
-          </MobileSection>
-
-          {/* Direct links */}
-          <div className="border-b border-border">
-            <Link href="/calculadora" onClick={closeAll}
-              className="block px-4 py-3.5 text-sm font-semibold text-foreground hover:bg-surface-sunk transition-colors">
-              Calculadora
-            </Link>
-          </div>
-          <div className="border-b border-border">
-            <Link href="/instaladores" onClick={closeAll}
-              className="block px-4 py-3.5 text-sm font-semibold text-foreground hover:bg-surface-sunk transition-colors">
-              Instaladores
-            </Link>
-          </div>
-          <div className="border-b border-border">
-            <Link href="/inspecciones" onClick={closeAll}
-              className="block px-4 py-3.5 text-sm font-semibold text-foreground hover:bg-surface-sunk transition-colors">
-              Inspecciones
-            </Link>
-          </div>
-          <div className="border-b border-border">
-            <Link href="/nosotros" onClick={closeAll}
-              className="block px-4 py-3.5 text-sm font-semibold text-foreground hover:bg-surface-sunk transition-colors">
-              Nosotros
-            </Link>
-          </div>
-          <div className="border-b border-border">
-            <a href="https://wa.me/50762874042" target="_blank" rel="noopener noreferrer"
-              onClick={closeAll}
-              className="block px-4 py-3.5 text-sm font-semibold text-brand-green-deep hover:bg-brand-green-soft transition-colors">
-              Contacto por WhatsApp
-            </a>
-          </div>
-
-          {/* Contact info bottom */}
-          <div className="px-4 py-5 bg-surface-sunk space-y-2 mt-auto">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Clock className="h-4 w-4 text-brand-green shrink-0" />
-              <span>Lun–Sáb 8:00–18:00</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Phone className="h-4 w-4 text-brand-green shrink-0" />
-              <a href="tel:+50762874042" className="hover:text-brand-green-deep transition-colors">
-                +507 6287-4042
-              </a>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Mail className="h-4 w-4 text-brand-green shrink-0" />
-              <a href="mailto:ventas@intemperie.com" className="hover:text-brand-green-deep transition-colors">
-                ventas@intemperie.com
-              </a>
-            </div>
-          </div>
-        </div>
-      )}
+      <PrimaryNav />
     </header>
-  );
+  )
 }
