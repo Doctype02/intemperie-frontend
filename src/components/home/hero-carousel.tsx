@@ -44,12 +44,38 @@ const slides = [
   },
 ];
 
+/**
+ * Estado del carrusel. `mounted` decide qué diapositivas tienen <img> en el DOM.
+ *
+ * Las 4 diapositivas son `absolute inset-0`: aunque 3 estén a `opacity-0`,
+ * ocupan el viewport completo, así que el lazy-loading nativo las considera
+ * visibles y el navegador las descargaba las 4 de golpe (~404 KB de los 457 KB
+ * del primer viewport a 1440px, medido en producción).
+ */
+interface SlideState {
+  cur:     number;
+  /** Índices ya montados. Una diapositiva nunca se desmonta: el fundido de
+   *  salida dura 700 ms y necesita que la imagen saliente siga ahí. */
+  mounted: number[];
+}
+
+/** Muestra la diapositiva `i` y deja precargada la siguiente. */
+function show(s: SlideState, i: number): SlideState {
+  const want   = [i, (i + 1) % slides.length];
+  const mounted = want.every((x) => s.mounted.includes(x))
+    ? s.mounted
+    : [...new Set([...s.mounted, ...want])];
+  return s.cur === i && mounted === s.mounted ? s : { cur: i, mounted };
+}
+
 export function HeroCarousel() {
-  const [cur,      setCur]      = useState(0);
+  /* En el render inicial (y en SSR) solo se monta la diapositiva 0: es la única
+   * visible y la única que debe competir por ancho de banda con el LCP. */
+  const [{ cur, mounted }, setSlide] = useState<SlideState>({ cur: 0, mounted: [0] });
   const [autoplay, setAutoplay] = useState(true);
 
-  const next = useCallback(() => setCur((c) => (c + 1) % slides.length), []);
-  const prev = useCallback(() => setCur((c) => (c - 1 + slides.length) % slides.length), []);
+  const next = useCallback(() => setSlide((s) => show(s, (s.cur + 1) % slides.length)), []);
+  const prev = useCallback(() => setSlide((s) => show(s, (s.cur - 1 + slides.length) % slides.length)), []);
 
   useEffect(() => {
     if (!autoplay) return;
@@ -57,7 +83,22 @@ export function HeroCarousel() {
     return () => clearInterval(id);
   }, [autoplay, next]);
 
-  const go = (i: number) => { setAutoplay(false); setCur(i); };
+  /* Una vez cargada la página, se precarga la diapositiva 2 — la que el
+   * autoplay necesita a los 5.5 s — fuera de la ruta crítica del LCP. */
+  useEffect(() => {
+    let timer = 0;
+    const arm = () => {
+      timer = window.setTimeout(() => setSlide((s) => show(s, s.cur)), 200);
+    };
+    if (document.readyState === "complete") arm();
+    else window.addEventListener("load", arm, { once: true });
+    return () => {
+      window.removeEventListener("load", arm);
+      window.clearTimeout(timer);
+    };
+  }, []);
+
+  const go = (i: number) => { setAutoplay(false); setSlide((s) => show(s, i)); };
 
   return (
     <section
@@ -79,14 +120,17 @@ export function HeroCarousel() {
             i === cur ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
         >
-          <Image
-            src={s.image}
-            alt={s.title}
-            fill
-            priority={i === 0}
-            sizes="100vw"
-            className="object-cover object-center"
-          />
+          {mounted.includes(i) && (
+            <Image
+              src={s.image}
+              alt={s.title}
+              fill
+              /* `priority` quedó obsoleto en Next 16 a favor de `preload`. */
+              preload={i === 0}
+              sizes="100vw"
+              className="object-cover object-center"
+            />
+          )}
           <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/40 to-black/10" />
         </div>
       ))}
