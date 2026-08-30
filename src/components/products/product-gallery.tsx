@@ -119,13 +119,13 @@ export function ProductGallery({ images, productName, highlights }: ProductGalle
   // El foco vuelve al botón que abrió la ampliación al cerrarla.
   useEffect(() => {
     if (!lightbox) return;
-    const previouslyFocused = document.activeElement as HTMLElement | null;
+    const opener = openerRef.current ?? (document.activeElement as HTMLElement | null);
     closeRef.current?.focus();
     const { overflow } = document.body.style;
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = overflow;
-      (openerRef.current ?? previouslyFocused)?.focus?.();
+      opener?.focus?.();
     };
   }, [lightbox]);
 
