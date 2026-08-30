@@ -14,6 +14,7 @@ import { ProductCarousel } from "@/components/home/product-carousel";
 import type { CarouselProduct } from "@/components/home/product-carousel";
 import { RecentlyViewedSection } from "@/components/shared/recently-viewed-section";
 import { NewsletterSection } from "@/components/home/newsletter-section";
+import { serverApiBase } from "./_data/api-base";
 
 /* ── Types ───────────────────────────────────────────────────────────────── */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -35,7 +36,7 @@ type ApiProduct = Record<string, any>;
  * criterio que ya sigue `_data/catalog.ts`.
  */
 async function getProducts(): Promise<ApiProduct[]> {
-  const base = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+  const base = serverApiBase();
   const res = await fetch(`${base}/products?limit=50`, {
     next: { revalidate: 3600, tags: ["products"] },
   });

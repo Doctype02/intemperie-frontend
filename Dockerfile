@@ -23,6 +23,12 @@ WORKDIR /app
 # src/middleware.ts y las rutas de servidor en tiempo de ejecucion, y pasarlos
 # como ARG los dejaria escritos en las capas de la imagen.
 ARG NEXT_PUBLIC_API_URL
+# URL interna de la API para los fetch del prerenderizado. El contenedor de
+# build no alcanza el dominio publico (NAT sin retorno), asi que las paginas
+# se generan hablando con el backend por la red de compose. Sin prefijo
+# NEXT_PUBLIC_ a proposito: no debe llegar al navegador.
+ARG INTERNAL_API_URL
+ENV INTERNAL_API_URL=$INTERNAL_API_URL
 ARG NEXT_PUBLIC_SITE_URL
 ARG NEXT_PUBLIC_WHATSAPP_NUMBER
 
