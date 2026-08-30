@@ -1,244 +1,312 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { ChevronLeft, ChevronRight, X, ZoomIn } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight, ImageIcon, X, ZoomIn } from "lucide-react";
 import { BLUR_PLACEHOLDER } from "@/lib/image-utils";
 import type { ProductImage } from "@/types";
+
+/* Galería de producto.
+ *
+ * Diez de los quince productos del catálogo no tienen ninguna foto cargada.
+ * Por eso el caso de 0 imágenes no es un borde: es el caso mayoritario, y se
+ * resuelve con un panel que muestra la ficha técnica en lugar de un hueco.
+ *
+ * Con fotos, sólo se descarga la que se está viendo (más sus vecinas cuando el
+ * visitante navega). La versión anterior montaba las ocho imágenes de Poseidón
+ * con `loading="eager"`: ocho descargas a tamaño completo compitiendo con el
+ * LCP para ver una.
+ */
+
+interface Highlight {
+  label: string;
+  value: string;
+}
 
 interface ProductGalleryProps {
   images: ProductImage[];
   productName: string;
+  /** Datos reales que rellenan el panel cuando el producto aún no tiene foto. */
+  highlights?: Highlight[];
 }
 
-export function ProductGallery({ images, productName }: ProductGalleryProps) {
-  // visibleIndex = what the user sees; pendingIndex = what we're waiting to load
-  const [visibleIndex,  setVisibleIndex]  = useState(0);
-  const [pendingIndex,  setPendingIndex]  = useState<number | null>(null);
-  const [lightboxOpen,  setLightboxOpen]  = useState(false);
-  const loadedRef = useRef<Set<number>>(new Set([0]));
+/** Recuadro de proporción fija: reserva el hueco y evita saltos de diseño. */
+const FRAME =
+  "relative w-full overflow-hidden rounded-xl border border-hairline aspect-[4/3] sm:aspect-[3/2]";
 
-  const goTo = useCallback((i: number) => {
-    if (i === visibleIndex) return;
-    if (loadedRef.current.has(i)) {
-      setVisibleIndex(i);
-      setPendingIndex(null);
-    } else {
-      setPendingIndex(i);
-    }
-  }, [visibleIndex]);
+const FOCUS =
+  "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green";
 
-  const prev = useCallback(
-    () => goTo((visibleIndex - 1 + images.length) % images.length),
-    [goTo, visibleIndex, images.length]
-  );
-  const next = useCallback(
-    () => goTo((visibleIndex + 1) % images.length),
-    [goTo, visibleIndex, images.length]
-  );
+/* ── Sin fotografía ─────────────────────────────────────────────────────── */
 
-  const handleImageLoad = useCallback((i: number) => {
-    loadedRef.current.add(i);
-    // If this is the image we were waiting for, switch now
-    setPendingIndex((p) => {
-      if (p === i) {
-        setVisibleIndex(i);
-        return null;
-      }
-      return p;
-    });
-  }, []);
-
-  useEffect(() => {
-    if (lightboxOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => { document.body.style.overflow = ""; };
-  }, [lightboxOpen]);
-
-  useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if (!lightboxOpen) return;
-      if (e.key === "ArrowLeft")  prev();
-      if (e.key === "ArrowRight") next();
-      if (e.key === "Escape")     setLightboxOpen(false);
-    };
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, [lightboxOpen, prev, next]);
-
-  if (images.length === 0) {
-    return (
-      <div className="rounded-2xl border border-gray-100 bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center h-56 sm:h-72 lg:h-96">
-        <div className="text-center">
-          <div className="w-20 h-20 mx-auto mb-3 rounded-full bg-white shadow-sm flex items-center justify-center">
-            <span className="text-3xl font-bold text-green-600">{productName.charAt(0)}</span>
-          </div>
-          <span className="text-sm font-medium text-green-700">{productName}</span>
+function EmptyState({ productName, highlights = [] }: { productName: string; highlights?: Highlight[] }) {
+  return (
+    <div className={`${FRAME} bg-surface-2`}>
+      {/* Trama de plano de obra: dos gradientes, sin imagen que descargar. */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 opacity-[0.55]"
+        style={{
+          backgroundImage:
+            "linear-gradient(to right, var(--hairline) 1px, transparent 1px), linear-gradient(to bottom, var(--hairline) 1px, transparent 1px)",
+          backgroundSize: "28px 28px",
+        }}
+      />
+      <div className="relative flex h-full flex-col items-center justify-center gap-3 px-5 py-6 text-center">
+        <span className="flex size-12 items-center justify-center rounded-full bg-surface shadow-xs">
+          <ImageIcon className="size-5 text-brand-green" aria-hidden="true" />
+        </span>
+        <div>
+          <p className="font-heading text-base font-semibold text-foreground">
+            Fotografía en preparación
+          </p>
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            {productName} · pídenos fotos reales del modelo
+          </p>
         </div>
+
+        {highlights.length > 0 && (
+          <dl className="mt-1 flex flex-wrap items-stretch justify-center gap-2">
+            {highlights.map((h) => (
+              <div
+                key={h.label}
+                className="min-w-[7.5rem] rounded-lg border border-hairline bg-surface px-3 py-2 text-left"
+              >
+                <dt className="text-2xs font-semibold uppercase text-muted-foreground">
+                  {h.label}
+                </dt>
+                <dd className="mt-0.5 text-sm font-semibold text-foreground">{h.value}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
       </div>
-    );
+    </div>
+  );
+}
+
+/* ── Galería ────────────────────────────────────────────────────────────── */
+
+export function ProductGallery({ images, productName, highlights }: ProductGalleryProps) {
+  const [index, setIndex] = useState(0);
+  const [lightbox, setLightbox] = useState(false);
+  // Sólo se monta lo que se ha pedido ver; empieza con la primera.
+  const [mounted, setMounted] = useState<number[]>([0]);
+  const openerRef = useRef<HTMLButtonElement | null>(null);
+  const closeRef = useRef<HTMLButtonElement | null>(null);
+  const touchX = useRef<number | null>(null);
+
+  const total = images.length;
+
+  const goTo = useCallback(
+    (next: number) => {
+      if (total === 0) return;
+      const target = ((next % total) + total) % total;
+      setIndex(target);
+      // La siguiente y la anterior se precargan: navegar no debe esperar a la red.
+      setMounted((prev) => {
+        const wanted = [target, (target + 1) % total, (target - 1 + total) % total];
+        const missing = wanted.filter((i) => !prev.includes(i));
+        return missing.length > 0 ? [...prev, ...missing] : prev;
+      });
+    },
+    [total],
+  );
+
+  const prev = useCallback(() => goTo(index - 1), [goTo, index]);
+  const next = useCallback(() => goTo(index + 1), [goTo, index]);
+
+  // El foco vuelve al botón que abrió la ampliación al cerrarla.
+  useEffect(() => {
+    if (!lightbox) return;
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    closeRef.current?.focus();
+    const { overflow } = document.body.style;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = overflow;
+      (openerRef.current ?? previouslyFocused)?.focus?.();
+    };
+  }, [lightbox]);
+
+  useEffect(() => {
+    if (!lightbox) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setLightbox(false);
+      if (e.key === "ArrowLeft") prev();
+      if (e.key === "ArrowRight") next();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [lightbox, prev, next]);
+
+  if (total === 0) {
+    return <EmptyState productName={productName} highlights={highlights} />;
   }
 
-  const isLoading = pendingIndex !== null;
+  const current = images[index];
+  const multiple = total > 1;
 
   return (
     <>
-      <div className="space-y-3">
-        {/* Main image */}
-        <div className="relative rounded-2xl overflow-hidden border border-gray-100 bg-gray-50 h-56 sm:h-72 lg:h-96 group cursor-zoom-in">
-
-          {/* All images stacked; only visibleIndex is shown */}
-          {images.map((img, i) => (
-            <Image
-              key={img.id || i}
-              src={img.url}
-              alt={img.alt || `${productName} — imagen ${i + 1}`}
-              fill
-              priority={i === 0}
-              loading={i === 0 ? undefined : "eager"}
-              sizes="(max-width: 1024px) 100vw, 66vw"
-              className={`object-cover transition-opacity duration-100 ${
-                i === visibleIndex ? "opacity-100" : "opacity-0 pointer-events-none"
-              }`}
-              placeholder="blur"
-              blurDataURL={BLUR_PLACEHOLDER}
-              onLoad={() => handleImageLoad(i)}
-              onClick={i === visibleIndex ? () => setLightboxOpen(true) : undefined}
-            />
-          ))}
-
-          {/* Subtle spinner while waiting for a pending image */}
-          {isLoading && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="h-8 w-8 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-            </div>
+      <div className="space-y-2.5">
+        <div
+          className={`${FRAME} group bg-surface-2`}
+          onTouchStart={(e) => {
+            touchX.current = e.touches[0]?.clientX ?? null;
+          }}
+          onTouchEnd={(e) => {
+            if (!multiple || touchX.current === null) return;
+            const delta = (e.changedTouches[0]?.clientX ?? 0) - touchX.current;
+            if (Math.abs(delta) > 45) (delta < 0 ? next : prev)();
+            touchX.current = null;
+          }}
+        >
+          {images.map((img, i) =>
+            mounted.includes(i) ? (
+              <Image
+                key={img.id ?? img.url}
+                src={img.url}
+                alt={img.alt || `${productName} — imagen ${i + 1} de ${total}`}
+                fill
+                /* Next 16: `priority` esta obsoleto; `preload` inserta el
+                   <link rel=preload> de la unica imagen que se ve al entrar. */
+                preload={i === 0}
+                loading={i === 0 ? undefined : "lazy"}
+                sizes="(max-width: 1024px) 100vw, 640px"
+                placeholder="blur"
+                blurDataURL={BLUR_PLACEHOLDER}
+                className={`object-cover transition-opacity duration-200 ${
+                  i === index ? "opacity-100" : "opacity-0"
+                }`}
+                aria-hidden={i === index ? undefined : true}
+              />
+            ) : null,
           )}
 
-          {/* Zoom hint */}
+          {/* La imagen entera amplía: objetivo táctil máximo, no un icono de 24px. */}
           <button
-            onClick={() => setLightboxOpen(true)}
-            aria-label="Ver imagen ampliada"
-            className="absolute top-2.5 right-2.5 bg-white/80 hover:bg-white text-gray-700 rounded-lg p-1.5 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm z-10"
+            ref={openerRef}
+            type="button"
+            onClick={() => setLightbox(true)}
+            aria-label={`Ampliar ${productName}, imagen ${index + 1} de ${total}`}
+            className={`absolute inset-0 z-10 cursor-zoom-in ${FOCUS}`}
           >
-            <ZoomIn className="h-4 w-4" />
+            <span className="absolute top-2.5 right-2.5 flex size-9 items-center justify-center rounded-lg bg-surface/85 text-foreground shadow-xs transition-opacity duration-150 sm:opacity-0 sm:group-hover:opacity-100">
+              <ZoomIn className="size-4" aria-hidden="true" />
+            </span>
           </button>
 
-          {images.length > 1 && (
+          {multiple && (
             <>
-              <Button
-                variant="outline"
-                size="icon"
-                aria-label="Imagen anterior"
-                className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white shadow-md border-gray-200 rounded-xl h-10 w-10"
+              <button
+                type="button"
                 onClick={prev}
+                aria-label="Imagen anterior"
+                className={`absolute top-1/2 left-2 z-20 flex size-10 -translate-y-1/2 items-center justify-center rounded-lg border border-hairline bg-surface/90 text-foreground shadow-sm hover:bg-surface ${FOCUS}`}
               >
-                <ChevronLeft className="h-5 w-5" />
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                aria-label="Imagen siguiente"
-                className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white shadow-md border-gray-200 rounded-xl h-10 w-10"
+                <ChevronLeft className="size-5" aria-hidden="true" />
+              </button>
+              <button
+                type="button"
                 onClick={next}
+                aria-label="Imagen siguiente"
+                className={`absolute top-1/2 right-2 z-20 flex size-10 -translate-y-1/2 items-center justify-center rounded-lg border border-hairline bg-surface/90 text-foreground shadow-sm hover:bg-surface ${FOCUS}`}
               >
-                <ChevronRight className="h-5 w-5" />
-              </Button>
+                <ChevronRight className="size-5" aria-hidden="true" />
+              </button>
+              <p className="absolute right-2.5 bottom-2.5 z-20 rounded-md bg-brand-navy/85 px-2 py-0.5 text-2xs font-semibold text-on-dark tabular-nums">
+                {index + 1} / {total}
+              </p>
             </>
-          )}
-
-          {images.length > 1 && (
-            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 flex gap-1.5 bg-black/40 backdrop-blur-sm rounded-full px-3 py-1.5">
-              {images.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => goTo(i)}
-                  aria-label={`Ver imagen ${i + 1} de ${images.length}`}
-                  aria-current={i === visibleIndex ? "true" : undefined}
-                  className={`w-2 h-2 rounded-full transition-all ${
-                    i === visibleIndex ? "bg-white scale-110" : "bg-white/50 hover:bg-white/70"
-                  }`}
-                />
-              ))}
-            </div>
           )}
         </div>
 
-        {/* Thumbnails */}
-        {images.length > 1 && (
-          <div className="flex gap-2 overflow-x-auto pb-1 snap-x scrollbar-hide">
+        {multiple && (
+          <ul className="flex gap-2 overflow-x-auto pb-1" aria-label="Miniaturas del producto">
             {images.map((img, i) => (
-              <button
-                key={img.id || i}
-                onClick={() => goTo(i)}
-                aria-label={`Ver imagen ${i + 1} de ${images.length}`}
-                aria-current={i === visibleIndex ? "true" : undefined}
-                className={`w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border-2 shrink-0 snap-start transition-all relative ${
-                  i === visibleIndex
-                    ? "border-green-500 ring-2 ring-green-200"
-                    : i === pendingIndex
-                    ? "border-green-300 opacity-70"
-                    : "border-gray-100 hover:border-green-300"
-                }`}
-              >
-                <Image
-                  src={img.url}
-                  alt={img.alt || `${productName} — miniatura ${i + 1}`}
-                  fill
-                  sizes="80px"
-                  className="object-cover"
-                  placeholder="blur"
-                  blurDataURL={BLUR_PLACEHOLDER}
-                />
-              </button>
+              <li key={img.id ?? img.url}>
+                <button
+                  type="button"
+                  onClick={() => goTo(i)}
+                  aria-label={`Ver imagen ${i + 1} de ${total}`}
+                  aria-current={i === index ? "true" : undefined}
+                  className={`relative block size-16 shrink-0 overflow-hidden rounded-lg border-2 transition-colors duration-150 sm:size-20 ${FOCUS} ${
+                    i === index
+                      ? "border-brand-green"
+                      : "border-hairline hover:border-brand-green/60"
+                  }`}
+                >
+                  <Image
+                    src={img.url}
+                    alt=""
+                    fill
+                    sizes="80px"
+                    loading="lazy"
+                    placeholder="blur"
+                    blurDataURL={BLUR_PLACEHOLDER}
+                    className="object-cover"
+                  />
+                </button>
+              </li>
             ))}
-          </div>
+          </ul>
         )}
       </div>
 
-      {/* Lightbox */}
-      {lightboxOpen && (
+      {lightbox && (
         <div
           role="dialog"
           aria-modal="true"
-          aria-label="Imagen ampliada"
-          onClick={(e) => { if (e.target === e.currentTarget) setLightboxOpen(false); }}
-          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 p-4 sm:p-8"
+          aria-label={`${productName} — imagen ampliada`}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setLightbox(false);
+          }}
+          className="fixed inset-0 z-200 flex flex-col items-center justify-center gap-3 bg-brand-navy-deep/95 p-4 sm:p-8"
         >
-          <div className="relative w-full max-w-4xl max-h-[90vh] flex flex-col">
-            <button
-              onClick={() => setLightboxOpen(false)}
-              aria-label="Cerrar imagen"
-              className="absolute -top-10 right-0 text-white/80 hover:text-white transition-colors"
-            >
-              <X className="h-7 w-7" />
-            </button>
+          <button
+            ref={closeRef}
+            type="button"
+            onClick={() => setLightbox(false)}
+            aria-label="Cerrar imagen ampliada"
+            className={`absolute top-4 right-4 flex size-11 items-center justify-center rounded-lg text-on-dark hover:bg-on-dark/15 ${FOCUS}`}
+          >
+            <X className="size-6" aria-hidden="true" />
+          </button>
 
-            <div className="relative flex-1 min-h-0 rounded-xl overflow-hidden bg-black" style={{ height: "80vh" }}>
-              <Image
-                src={images[visibleIndex].url}
-                alt={images[visibleIndex].alt || `${productName} — imagen ${visibleIndex + 1}`}
-                fill
-                sizes="100vw"
-                className="object-contain"
-              />
-            </div>
-
-            {images.length > 1 && (
-              <div className="flex items-center justify-between mt-4">
-                <button onClick={prev} aria-label="Imagen anterior" className="text-white/70 hover:text-white transition-colors">
-                  <ChevronLeft className="h-8 w-8" />
-                </button>
-                <p className="text-white/60 text-sm">{visibleIndex + 1} / {images.length}</p>
-                <button onClick={next} aria-label="Imagen siguiente" className="text-white/70 hover:text-white transition-colors">
-                  <ChevronRight className="h-8 w-8" />
-                </button>
-              </div>
-            )}
+          <div className="relative h-[70vh] w-full max-w-4xl">
+            <Image
+              src={current.url}
+              alt={current.alt || `${productName} — imagen ${index + 1} de ${total}`}
+              fill
+              sizes="100vw"
+              className="object-contain"
+            />
           </div>
+
+          {multiple && (
+            <div className="flex w-full max-w-4xl items-center justify-between">
+              <button
+                type="button"
+                onClick={prev}
+                aria-label="Imagen anterior"
+                className={`flex size-11 items-center justify-center rounded-lg text-on-dark hover:bg-on-dark/15 ${FOCUS}`}
+              >
+                <ChevronLeft className="size-6" aria-hidden="true" />
+              </button>
+              <p className="text-sm text-on-dark-soft tabular-nums">
+                {index + 1} / {total}
+              </p>
+              <button
+                type="button"
+                onClick={next}
+                aria-label="Imagen siguiente"
+                className={`flex size-11 items-center justify-center rounded-lg text-on-dark hover:bg-on-dark/15 ${FOCUS}`}
+              >
+                <ChevronRight className="size-6" aria-hidden="true" />
+              </button>
+            </div>
+          )}
         </div>
       )}
     </>
