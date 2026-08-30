@@ -12,6 +12,20 @@ import { toast } from "sonner";
 const BLUR =
   "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAARCAAIAAoDASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAABgUE/8QAIxAAAQMEAgMBAAAAAAAAAAAAAQIDBAAFERIhMUFR/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAH/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCmtOkbddS1UqMhqIhWXnFnCU+SThI+T5PnXJd7lPkykOSX1u7UhIKjnATgD8CiigH/2Q==";
 
+/* Favoritos — sistema «Perímetro».
+ *
+ * Una lista de deseos es una lista de decisiones a medias: quien llega aquí ya
+ * eligió y viene a comparar precios y a comprar. Por eso los precios llevan
+ * `.tabular` (se leen en columna, no en párrafo) y cada ficha termina en el
+ * único botón que hace falta.
+ *
+ * El botón de quitar ya no vive dentro del enlace a la ficha. Estaba anidado
+ * dentro del `<a>` y se sostenía con un `preventDefault`: para un lector de
+ * pantalla era un control dentro de otro control, y con el teclado no había
+ * forma clara de llegar a él. Ahora es hermano del enlace, mide 44px y avisa
+ * con opción de deshacer, porque en una parrilla de dos columnas en móvil el
+ * dedo se equivoca y perder un favorito sin vuelta atrás es caro.
+ */
 export default function FavoritosPage() {
   const [ready, setReady] = useState(false);
   const { items, toggle } = useWishlist();
@@ -21,20 +35,23 @@ export default function FavoritosPage() {
 
   if (!ready) {
     return (
-      <main className="flex-1 bg-gray-50">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8 animate-pulse">
-          <div className="h-8 w-48 rounded bg-gray-200 mb-6" />
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="rounded-xl bg-white border border-gray-200 overflow-hidden">
-                <div className="aspect-[4/3] bg-gray-100" />
-                <div className="p-4 space-y-2">
-                  <div className="h-4 w-3/4 rounded bg-gray-200" />
-                  <div className="h-5 w-1/2 rounded bg-gray-200" />
-                  <div className="h-9 rounded bg-gray-200" />
+      <main className="flex-1">
+        <div className="shell py-section-sm">
+          <p className="sr-only" role="status">Cargando tus favoritos…</p>
+          <div className="animate-pulse" aria-hidden="true">
+            <div className="mb-6 h-8 w-48 rounded-md bg-surface-2" />
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="overflow-hidden rounded-lg border border-border bg-surface">
+                  <div className="aspect-[4/3] bg-surface-2" />
+                  <div className="space-y-2 p-3.5">
+                    <div className="h-4 w-3/4 rounded-sm bg-surface-2" />
+                    <div className="h-5 w-1/2 rounded-sm bg-surface-2" />
+                    <div className="h-11 rounded-lg bg-surface-2" />
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </main>
@@ -43,50 +60,62 @@ export default function FavoritosPage() {
 
   if (items.length === 0) {
     return (
-      <main className="flex-1 bg-gray-50 flex items-center justify-center py-24">
-        <div className="text-center max-w-sm px-4">
-          <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-red-50">
-            <Heart className="h-10 w-10 text-red-300" />
+      <main className="flex flex-1 items-center justify-center py-section">
+        {/* Un vacío sin salida es un callejón. Las dos salidas son las dos cosas
+            que se pueden hacer antes de elegir producto: ver el catálogo o
+            medir cuánta cerca hace falta. */}
+        <div className="shell max-w-sm text-center">
+          <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-surface-2">
+            <Heart className="h-9 w-9 text-muted-foreground" aria-hidden="true" />
           </div>
-          <h1 className="text-xl font-black text-gray-900">Sin favoritos aún</h1>
-          <p className="mt-2 text-sm text-gray-500 leading-relaxed">
-            Guarda los productos que te interesan tocando el corazón en cada producto.
+          <h1 className="font-heading text-xl font-bold text-foreground">
+            Todavía no has guardado nada
+          </h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Toca el corazón en cualquier producto y lo tendrás aquí para compararlo con calma.
           </p>
-          <Button className="mt-6 bg-green-700 hover:bg-green-800 h-11" asChild>
-            <Link href="/productos">
-              Explorar productos <ArrowRight className="ml-1.5 h-4 w-4" />
-            </Link>
-          </Button>
+          <div className="mt-6 space-y-3">
+            <Button size="block" asChild>
+              <Link href="/productos">
+                Ver el catálogo <ArrowRight className="ml-1.5 h-4 w-4" aria-hidden="true" />
+              </Link>
+            </Button>
+            <Button variant="outline" size="block" asChild>
+              <Link href="/calculadora">Calcular cuántos metros necesito</Link>
+            </Button>
+          </div>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="flex-1 bg-gray-50">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-8">
-        <div className="mb-6 flex items-center justify-between">
+    <main className="flex-1">
+      <div className="shell py-section-sm">
+        <div className="mb-6 flex items-end justify-between gap-4">
           <div>
-            <h1 className="text-xl sm:text-2xl font-black text-gray-900">
+            <h1 className="font-heading text-xl font-bold text-foreground sm:text-2xl">
               Mis favoritos
             </h1>
-            <p className="text-sm text-gray-500 mt-0.5">
+            <p className="mt-0.5 text-sm text-muted-foreground tabular">
               {items.length} {items.length === 1 ? "producto guardado" : "productos guardados"}
             </p>
           </div>
-          <Button variant="outline" size="sm" className="text-gray-500 border-gray-200 text-xs" asChild>
+          <Button variant="outline" size="sm" asChild>
             <Link href="/productos">Seguir explorando</Link>
           </Button>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
           {items.map((item) => (
-            <div
+            <li
               key={item.id}
-              className="group relative flex flex-col bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-green-400 hover:shadow-xl hover:shadow-green-900/10 transition-all duration-200"
+              className="group relative flex flex-col overflow-hidden rounded-lg border border-border bg-surface transition-colors hover:border-brand-green"
             >
-              {/* Image */}
-              <Link href={`/productos/${item.slug}`} className="block relative aspect-[4/3] bg-gray-100 overflow-hidden">
+              <Link
+                href={`/productos/${item.slug}`}
+                className="relative block aspect-[4/3] overflow-hidden bg-surface-2"
+              >
                 {item.imageUrl ? (
                   <Image
                     src={item.imageUrl}
@@ -98,53 +127,63 @@ export default function FavoritosPage() {
                     blurDataURL={BLUR}
                   />
                 ) : (
-                  <div className="flex h-full items-center justify-center bg-green-50">
-                    <span className="text-3xl font-black text-green-200">
-                      {item.name.charAt(0)}
-                    </span>
-                  </div>
+                  /* Sin fotografía se dibuja el alzado de la cerca en CSS: es la
+                     misma solución que la ficha de portada y no pide red. */
+                  <>
+                    <span
+                      className="diagram diagram-picket block size-full"
+                      aria-hidden="true"
+                    />
+                    <span className="sr-only">{item.name}</span>
+                  </>
                 )}
-
-                {/* Remove button */}
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    toggle(item);
-                    toast("Eliminado de favoritos", { icon: "🗑️" });
-                  }}
-                  aria-label="Quitar de favoritos"
-                  className="absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/95 shadow-sm hover:bg-red-50 hover:text-red-500 text-gray-400 transition-all duration-200"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
               </Link>
 
-              {/* Info */}
-              <div className="flex flex-col flex-1 p-3.5">
+              <button
+                type="button"
+                onClick={() => {
+                  toggle(item);
+                  toast("Quitado de favoritos", {
+                    description: item.name,
+                    action: { label: "Deshacer", onClick: () => toggle(item) },
+                  });
+                }}
+                className="absolute top-2 right-2 z-10 flex size-11 items-center justify-center rounded-full bg-surface/92 text-muted-foreground shadow-sm transition-colors hover:bg-destructive/10 hover:text-destructive"
+              >
+                <Trash2 className="h-4 w-4" aria-hidden="true" />
+                <span className="sr-only">Quitar {item.name} de favoritos</span>
+              </button>
+
+              <div className="flex flex-1 flex-col p-3.5">
                 {item.categoryName && (
-                  <p className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 mb-0.5 truncate">
+                  <p className="eyebrow mb-0.5 truncate text-muted-foreground">
                     {item.categoryName}
                   </p>
                 )}
                 <Link href={`/productos/${item.slug}`} className="flex-1">
-                  <h3 className="text-sm font-bold text-gray-900 leading-snug line-clamp-2 hover:text-green-700 transition-colors">
+                  <h2 className="line-clamp-2 text-sm leading-snug font-semibold text-foreground transition-colors hover:text-brand-green-deep">
                     {item.name}
-                  </h3>
+                  </h2>
                 </Link>
-                <div className="mt-2 flex items-baseline gap-1">
-                  <span className="text-lg font-black text-gray-900">
+                <p className="mt-2 flex items-baseline gap-1">
+                  <span className="text-lg leading-none font-bold text-foreground tabular">
                     ${Number(item.basePrice).toFixed(2)}
                   </span>
-                  <span className="text-[11px] text-gray-400">
+                  <span className="text-xs font-medium text-muted-foreground">
                     {item.unit === "PANEL" ? "/panel" : "/m"}
                   </span>
-                </div>
+                </p>
+
                 {item.stock === 0 ? (
-                  <div className="mt-3 flex w-full items-center justify-center rounded-lg border border-gray-200 py-2.5 text-[13px] font-semibold text-gray-400">
+                  <p className="mt-3 flex w-full items-center justify-center rounded-lg border border-border bg-surface-sunk py-3 text-sm font-semibold text-muted-foreground">
                     Agotado
-                  </div>
+                  </p>
                 ) : (
-                  <button
+                  /* La etiqueta visible es corta porque la ficha mide 158px en
+                     un móvil de 360px; el nombre del producto va en el nombre
+                     accesible, así doce botones dejan de llamarse igual. */
+                  <Button
+                    className="mt-3 w-full px-2 text-sm"
                     onClick={() => {
                       const minQty = item.unit === "METRO" ? 10 : 1;
                       addItem(
@@ -160,19 +199,19 @@ export default function FavoritosPage() {
                         minQty,
                       );
                       toast.success(`${item.name} agregado`, {
-                        description: `${item.unit === "METRO" ? "10m" : "1 unid."}`,
+                        description: `${item.unit === "METRO" ? "10 m" : "1 unid."}`,
                       });
                     }}
-                    className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg bg-green-700 py-2.5 text-[13px] font-bold text-white hover:bg-green-800 transition-colors"
                   >
-                    <ShoppingCart className="h-3.5 w-3.5" />
-                    Agregar al carrito
-                  </button>
+                    <ShoppingCart className="h-4 w-4" aria-hidden="true" />
+                    Agregar
+                    <span className="sr-only"> {item.name} al carrito</span>
+                  </Button>
                 )}
               </div>
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
       </div>
     </main>
   );
