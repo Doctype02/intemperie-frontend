@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
+import { mediaUrl } from "@/lib/image-utils";
 import {
   CheckCircle2, Star, Truck, BadgePercent, Headphones,
   MapPin, Phone, Mail, ArrowRight, ChevronRight,
@@ -380,7 +381,7 @@ export default function InstaladoresPage() {
 
               <div className="relative h-64 sm:h-80 lg:h-full min-h-[280px] rounded-2xl overflow-hidden shadow-xl">
                 <Image
-                  src="/products/cerca-pvc-atenea-305/porton.jpg"
+                  src={mediaUrl("/products/cerca-pvc-atenea-305/porton.jpg")}
                   alt="Instalación profesional de cercas PVC"
                   fill
                   sizes="(max-width: 1024px) 100vw, 50vw"
