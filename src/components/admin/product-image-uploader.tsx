@@ -247,7 +247,10 @@ export function ProductImageUploader({
       setItems((prev) => {
         const kept = prev.filter((item) => {
           const finished = item.status === "done" || item.status === "canceled";
-          if (finished) releasePreview(item.id);
+          if (finished) {
+            releasePreview(item.id);
+            filesRef.current.delete(item.id);
+          }
           return !finished;
         });
         return [...kept, ...accepted];
