@@ -4,10 +4,9 @@ import { useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { loginSchema, type LoginInput } from "@/lib/validators";
+import { loginResolver, type LoginInput } from "@/lib/validators";
 import { login as loginApi } from "@/lib/api/auth";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
@@ -21,7 +20,7 @@ function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
 
   const { register, handleSubmit, formState: { errors } } = useForm<LoginInput>({
-    resolver: zodResolver(loginSchema),
+    resolver: loginResolver,
   });
 
   const onSubmit = async (data: LoginInput) => {
