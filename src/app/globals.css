@@ -470,6 +470,26 @@
   }
 }
 
+/* ═══ Pintado diferido bajo el pliegue ════════════════════════════════════
+   La portada tiene ocho secciones de catálogo. El navegador las maquetaba y
+   pintaba todas en el primer fotograma, y además el precargador de imágenes
+   perezosas de Chrome dispara todo lo que esté a menos de ~1250 px del
+   viewport: cinco fotografías de categoría que nadie ha visto todavía
+   competían con la imagen del hero por el ancho de banda.
+
+   `content-visibility: auto` le dice al navegador que no maquete ni pinte lo
+   que está fuera de la pantalla, y de paso las imágenes perezosas de dentro
+   no se piden hasta que la sección se acerca. `contain-intrinsic-size: auto H`
+   reserva la altura mientras tanto y la memoriza en cuanto la sección se pinta
+   una vez, así la barra de desplazamiento no da saltos ni hay CLS.
+
+   No se aplica al hero ni a la banda de datos: esos sí están en el primer
+   viewport y esconderlos retrasaría el LCP. */
+@utility defer-paint {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 900px;
+}
+
 @utility scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
