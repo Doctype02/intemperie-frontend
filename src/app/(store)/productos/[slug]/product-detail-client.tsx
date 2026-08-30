@@ -33,6 +33,10 @@ interface Props {
 export function ProductPurchasePanel({ product }: Props) {
   const { unitCopy, stock } = product;
   const [quantity, setQuantity] = useState(unitCopy.min);
+  // Lo tecleado se conserva tal cual mientras se escribe y se ajusta al salir
+  // del campo. Si se recortase en cada pulsación, teclear «40» daría «10»: el
+  // primer «4» ya cae bajo el mínimo.
+  const [typed, setTyped] = useState(String(unitCopy.min));
   // El valor por defecto no es una elección del visitante: sólo viaja a la
   // cotización la cantidad que ha escrito o ajustado de verdad.
   const [quantityChosen, setQuantityChosen] = useState(false);
@@ -62,9 +66,13 @@ export function ProductPurchasePanel({ product }: Props) {
   const subtotal = product.price * quantity;
   const chosenQuantity = quantityChosen ? quantity : undefined;
 
+  const clamp = (value: number) =>
+    Math.max(unitCopy.min, Math.min(stock, Math.round(value) || unitCopy.min));
+
   const setQty = (value: number) => {
-    const clamped = Math.max(unitCopy.min, Math.min(stock, Math.round(value) || unitCopy.min));
+    const clamped = clamp(value);
     setQuantity(clamped);
+    setTyped(String(clamped));
     setQuantityChosen(true);
   };
 
@@ -153,8 +161,16 @@ export function ProductPurchasePanel({ product }: Props) {
             inputMode="numeric"
             min={unitCopy.min}
             max={stock}
-            value={quantity}
-            onChange={(e) => setQty(Number(e.target.value))}
+            value={typed}
+            onChange={(e) => {
+              setTyped(e.target.value);
+              const parsed = Number(e.target.value);
+              if (Number.isFinite(parsed) && parsed >= unitCopy.min && parsed <= stock) {
+                setQuantity(Math.round(parsed));
+                setQuantityChosen(true);
+              }
+            }}
+            onBlur={() => setQty(Number(typed))}
             className={`w-full min-w-0 bg-transparent text-center font-heading text-lg font-bold tabular-nums text-foreground ${FOCUS}`}
           />
           <button
