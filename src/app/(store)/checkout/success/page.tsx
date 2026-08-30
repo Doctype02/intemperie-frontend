@@ -1,112 +1,185 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, Suspense } from "react";
+import { useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { CheckCircle, ArrowRight, Phone } from "lucide-react";
+import { CheckCircle, ArrowRight, HelpCircle, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { IconWhatsApp, whatsappHref } from "@/components/ui/icon-whatsapp";
+import { CONTACT } from "@/components/layout/nav-data";
 
-function IconWhatsApp({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
-      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-    </svg>
-  );
-}
-
+/* Pantalla de cierre del pedido — sistema «Perímetro».
+ *
+ * Aquí se acaba de gastar dinero, así que la pantalla sólo puede decir lo que
+ * el sistema respalda. Se han quitado dos frases que no respaldaba nadie:
+ * «recibirás un correo de confirmación» (no hay envío de correo detrás de este
+ * flujo) e «instalación», que contradice al precio del catálogo —es de
+ * material—. Lo que queda es lo que sí ocurre: el pedido queda registrado con
+ * su referencia y alguien llama.
+ *
+ * El foco salta al titular al entrar: quien navega con lector de pantalla
+ * necesita oír «pago confirmado» al llegar, no descubrirlo tabulando.
+ */
 function SuccessContent() {
   const searchParams = useSearchParams();
   const orderRef = searchParams.get("ref");
   const method = searchParams.get("method");
   const isPaidByCard = method === "tilopay";
 
+  const headingRef = useRef<HTMLHeadingElement>(null);
+
   useEffect(() => {
     window.scrollTo({ top: 0 });
+    headingRef.current?.focus();
   }, []);
 
   const whatsappSteps = [
-    { num: "1", title: "Confirmación del equipo", desc: "Un asesor revisará tu pedido y te contactará para confirmar disponibilidad." },
-    { num: "2", title: "Coordinación del pago", desc: "Aceptamos transferencia bancaria, Yappy, Clave, Visa y Mastercard." },
-    { num: "3", title: "Fecha de entrega", desc: "Coordinamos la entrega e instalación según tu ubicación en Panamá." },
+    {
+      title: "Tu pedido llegó a nuestro equipo",
+      desc: "Un asesor lo revisa y te contesta por el mismo chat de WhatsApp.",
+    },
+    {
+      title: "Coordinación del pago",
+      desc: "Aceptamos transferencia bancaria, Yappy, Clave, Visa y Mastercard.",
+    },
+    {
+      title: "Coordinación de la entrega",
+      desc: "Te contactamos para acordar dónde y cuándo recibes el material.",
+    },
   ];
 
   const tilopaySteps = [
-    { num: "1", title: "Pago confirmado", desc: "Tu pago fue procesado exitosamente. Recibirás un correo de confirmación." },
-    { num: "2", title: "Preparación del pedido", desc: "Nuestro equipo revisará disponibilidad y preparará tu pedido." },
-    { num: "3", title: "Fecha de entrega", desc: "Coordinamos la entrega e instalación según tu ubicación en Panamá." },
+    {
+      title: "Pago confirmado",
+      desc: "Tilopay aprobó el cobro y tu pedido quedó registrado.",
+    },
+    {
+      title: "Revisión del pedido",
+      desc: "Confirmamos existencias y te avisamos si algo cambia.",
+    },
+    {
+      title: "Coordinación de la entrega",
+      desc: "Te contactamos para acordar dónde y cuándo recibes el material.",
+    },
   ];
 
   const steps = isPaidByCard ? tilopaySteps : whatsappSteps;
 
-  return (
-    <div className="mx-auto max-w-xl px-4 py-16 sm:py-20">
+  const waMessage = orderRef
+    ? `Hola Intemperie, acabo de ${isPaidByCard ? "pagar" : "enviar"} mi pedido (Ref: ${orderRef}) y quiero confirmar los detalles.`
+    : "Hola Intemperie, acabo de hacer un pedido y quiero confirmar los detalles.";
 
-      {/* Success indicator */}
-      <div className="text-center mb-8">
-        <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-green-100 ring-8 ring-green-50">
-          <CheckCircle className="h-10 w-10 text-green-600" />
+  return (
+    <div className="shell max-w-xl py-section">
+      <div className="mb-8 text-center">
+        <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-secondary">
+          <CheckCircle className="h-10 w-10 text-secondary-foreground" aria-hidden="true" />
         </div>
-        <h1 className="text-2xl sm:text-3xl font-black text-gray-900">
+        <h1
+          ref={headingRef}
+          tabIndex={-1}
+          className="font-heading text-2xl font-bold text-foreground sm:text-3xl"
+        >
           {isPaidByCard ? "¡Pago confirmado!" : "¡Pedido enviado!"}
         </h1>
-        <p className="mt-2 text-gray-500 text-sm max-w-xs mx-auto">
+        <p className="mx-auto mt-2 max-w-xs text-sm text-muted-foreground">
           {isPaidByCard
-            ? "Tu pago fue procesado con éxito. Coordinaremos la entrega a la brevedad."
-            : "Tu pedido fue enviado a nuestro equipo por WhatsApp. Te contactaremos en breve para confirmar."}
+            ? "Tu pago fue procesado con éxito. Nos ponemos en contacto para coordinar la entrega."
+            : "Tu pedido llegó a nuestro equipo por WhatsApp. Te contactamos para confirmarlo."}
         </p>
-        {orderRef && (
-          <div className="mt-4 inline-flex items-center gap-2 rounded-xl bg-green-50 border border-green-200 px-4 py-2.5">
-            <span className="text-xs text-green-700 font-semibold">Número de pedido:</span>
-            <span className="text-sm font-black text-green-800 tracking-widest">{orderRef}</span>
-          </div>
+
+        {orderRef ? (
+          <p className="mt-4 inline-flex flex-wrap items-center justify-center gap-2 rounded-lg border border-brand-green/40 bg-secondary px-4 py-2.5">
+            <span className="text-xs font-semibold text-secondary-foreground">
+              Número de pedido:
+            </span>
+            <span className="text-sm font-bold tracking-widest text-secondary-foreground tabular">
+              {orderRef}
+            </span>
+          </p>
+        ) : (
+          /* Sin referencia en la URL no se inventa una: se dice y se ofrece por
+             dónde recuperarla, que es lo único útil en ese momento. */
+          <p className="mx-auto mt-4 flex max-w-sm items-start gap-2.5 rounded-lg border border-border bg-surface-2 px-4 py-3 text-left text-sm text-muted-foreground">
+            <HelpCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+            <span>
+              Esta pantalla no trae el número de pedido. Lo encuentras en{" "}
+              <Link
+                href="/cuenta/pedidos"
+                className="font-semibold text-primary underline decoration-primary/40 decoration-2 underline-offset-4 hover:decoration-primary"
+              >
+                Mis pedidos
+              </Link>{" "}
+              o te lo damos por WhatsApp.
+            </span>
+          </p>
         )}
       </div>
 
-      {/* Next steps */}
-      <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden mb-4">
-        <div className="px-5 py-4 border-b border-gray-100 bg-gray-50">
-          <p className="text-xs font-black uppercase tracking-wider text-gray-500">¿Qué sigue?</p>
-        </div>
-        <div className="divide-y divide-gray-100">
-          {steps.map((step) => (
-            <div key={step.num} className="flex gap-4 px-5 py-4">
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-green-100 text-xs font-black text-green-700">
-                {step.num}
-              </div>
-              <div>
-                <p className="text-sm font-bold text-gray-900">{step.title}</p>
-                <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{step.desc}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Contact card */}
-      <div className="bg-white rounded-2xl border border-gray-200 px-5 py-4 mb-6 flex items-center gap-4">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-100">
-          <Phone className="h-5 w-5 text-green-700" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-xs text-gray-500">¿Tienes dudas? Llámanos o escríbenos:</p>
-          <p className="text-sm font-bold text-gray-900">+507 6287-4042 · ventas@intemperie.com</p>
-        </div>
-      </div>
-
-      {/* CTAs */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <a
-          href={`https://wa.me/50762874042?text=Hola%2C%20acabo%20de%20${isPaidByCard ? "pagar" : "enviar"}%20mi%20pedido${orderRef ? `%20(Ref%3A%20${orderRef})` : ""}%20y%20quiero%20confirmar%20los%20detalles`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex-1 flex items-center justify-center gap-2 h-12 rounded-xl bg-green-700 hover:bg-green-800 text-white text-sm font-bold transition-colors"
+      <section
+        aria-labelledby="next-steps-title"
+        className="mb-4 overflow-hidden rounded-xl border border-border bg-surface"
+      >
+        <h2
+          id="next-steps-title"
+          className="eyebrow border-b border-hairline bg-surface-2 px-5 py-4 text-muted-foreground"
         >
-          <IconWhatsApp className="h-4 w-4" />
-          Hablar con un asesor
-        </a>
-        <Button variant="outline" className="flex-1 h-12 rounded-xl border-gray-200 font-bold" asChild>
+          ¿Qué sigue?
+        </h2>
+        <ol className="divide-y divide-hairline">
+          {steps.map((step, i) => (
+            <li key={step.title} className="flex gap-4 px-5 py-4">
+              <span
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-bold text-secondary-foreground tabular"
+                aria-hidden="true"
+              >
+                {i + 1}
+              </span>
+              <div>
+                <p className="text-sm font-semibold text-foreground">{step.title}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">{step.desc}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      {/* El teléfono y el correo son enlaces: en el móvil, donde se paga, un
+          número que no se puede tocar obliga a copiarlo a mano. */}
+      <div className="mb-6 flex items-center gap-4 rounded-xl border border-border bg-surface px-5 py-4">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-secondary">
+          <Phone className="h-5 w-5 text-secondary-foreground" aria-hidden="true" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-xs text-muted-foreground">¿Tienes dudas? Llámanos o escríbenos:</p>
+          <p className="text-sm font-semibold text-foreground">
+            <a
+              href={CONTACT.phoneHref}
+              className="underline decoration-border-strong decoration-2 underline-offset-4 hover:decoration-primary"
+            >
+              <span className="tabular">{CONTACT.phoneDisplay}</span>
+            </a>
+            <span className="text-muted-foreground"> · </span>
+            <a
+              href={CONTACT.emailHref}
+              className="break-all underline decoration-border-strong decoration-2 underline-offset-4 hover:decoration-primary"
+            >
+              {CONTACT.email}
+            </a>
+          </p>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <Button variant="whatsapp" size="block" className="flex-1" asChild>
+          <a href={whatsappHref(waMessage)} target="_blank" rel="noopener noreferrer">
+            <IconWhatsApp />
+            Hablar con un asesor
+          </a>
+        </Button>
+        <Button variant="outline" size="block" className="flex-1" asChild>
           <Link href="/productos">
-            Seguir comprando <ArrowRight className="ml-1.5 h-4 w-4" />
+            Seguir comprando <ArrowRight className="ml-1.5 h-4 w-4" aria-hidden="true" />
           </Link>
         </Button>
       </div>
@@ -116,8 +189,15 @@ function SuccessContent() {
 
 export default function CheckoutSuccessPage() {
   return (
-    <main id="main-content" className="flex-1 bg-gray-50">
-      <Suspense fallback={<div className="h-96 animate-pulse bg-gray-100 m-4 rounded-2xl" />}>
+    <main id="main-content" className="flex-1">
+      <Suspense
+        fallback={
+          <div className="shell max-w-xl py-section">
+            <div className="h-96 animate-pulse rounded-xl bg-surface-2" aria-hidden="true" />
+            <p className="sr-only" role="status">Cargando la confirmación de tu pedido…</p>
+          </div>
+        }
+      >
         <SuccessContent />
       </Suspense>
     </main>
