@@ -1,5 +1,6 @@
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
+import { mediaUrl } from "@/lib/image-utils";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, Shield, Star, Phone, Mail, Clock, Check, Globe, Award, Users, Truck, Quote } from "lucide-react";
@@ -32,7 +33,7 @@ export default function NosotrosPage() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
             <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
               <div className="relative h-72 sm:h-96 rounded-2xl overflow-hidden bg-gray-200 shadow-lg">
-                <Image src="/products/cerca-pvc-vesta-601/vesta-1.jpg" alt="Calidad Intemperie" fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover" />
+                <Image src={mediaUrl("/products/cerca-pvc-vesta-601/vesta-1.jpg")} alt="Calidad Intemperie" fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover" />
               </div>
               <div>
                 <p className="text-sm font-semibold text-green-700 mb-3 tracking-wide uppercase">Bienvenido a Intemperie</p>
@@ -107,7 +108,7 @@ export default function NosotrosPage() {
                 </div>
               </div>
               <div className="order-1 lg:order-2 relative h-72 sm:h-96 rounded-2xl overflow-hidden bg-gray-200 shadow-lg">
-                <Image src="/products/cerca-pvc-atenea-305/porton.jpg" alt="Calidad" fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover" />
+                <Image src={mediaUrl("/products/cerca-pvc-atenea-305/porton.jpg")} alt="Calidad" fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover" />
               </div>
             </div>
           </div>
@@ -132,7 +133,7 @@ export default function NosotrosPage() {
                 "/products/cerca-pvc-vesta-601/vesta-1.jpg",
               ].map((src, i) => (
                 <div key={i} className="relative aspect-[4/3] rounded-xl overflow-hidden bg-gray-200 shadow-sm hover:shadow-md transition-shadow">
-                  <Image src={src} alt={`Proyecto ${i + 1}`} fill sizes="(max-width: 640px) 50vw, 25vw" className="object-cover" />
+                  <Image src={mediaUrl(src)} alt={`Proyecto ${i + 1}`} fill sizes="(max-width: 640px) 50vw, 25vw" className="object-cover" />
                 </div>
               ))}
             </div>

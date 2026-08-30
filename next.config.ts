@@ -105,13 +105,6 @@ const nextConfig: NextConfig = {
         { key: "X-Frame-Options", value: "SAMEORIGIN" },
       ],
     },
-    {
-      // Imágenes estáticas de producto servidas desde /public.
-      source: "/products/:slug*",
-      headers: [
-        { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
-      ],
-    },
     // NOTA: se eliminó el override `Cache-Control: immutable` sobre /_next/image.
     // Esa regla se aplicaba también a las respuestas de error del optimizador
     // (400/404/500 cuando el origen remoto falla), congelando el fallo un año en

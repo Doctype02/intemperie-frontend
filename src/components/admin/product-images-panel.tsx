@@ -89,12 +89,19 @@ export function ProductImagesPanel({
       return;
     }
     if (!value) {
-      toast.error("Escribe una URL: puede ser /products/slug/foto.jpg o https://…");
+      toast.error("Escribe la dirección https:// de la imagen.");
       return;
     }
-    if (!/^(https?:\/\/|\/)/i.test(value)) {
+    /* Sólo direcciones absolutas https. Antes se admitía además una ruta que
+       empezara por «/», que el navegador resolvía contra el dominio de la
+       tienda y servía el `public/` de Next. Esa puerta es la que dejó el
+       catálogo entero apuntando fuera del Object Storage: la ruta se guardaba
+       tal cual en la base de datos y nadie volvía a mirarla. Lo normal es subir
+       el archivo con el botón de arriba, que ya lo manda al bucket; esto queda
+       para pegar una imagen que ya esté publicada. */
+    if (!/^https:\/\//i.test(value)) {
       toast.error(
-        "La URL debe empezar por «https://» (imagen externa) o por «/» (archivo del propio sitio).",
+        "La dirección debe empezar por «https://». Para un archivo tuyo, súbelo con el botón de arriba.",
       );
       return;
     }
@@ -215,7 +222,7 @@ export function ProductImagesPanel({
               autoCapitalize="none"
               autoCorrect="off"
               spellCheck={false}
-              placeholder="/products/slug/imagen.jpg  o  https://…"
+              placeholder="https://…"
               className="text-xs"
             />
           </div>

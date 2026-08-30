@@ -4,6 +4,7 @@ import { ArrowRight, Search, ShieldCheck } from "lucide-react"
 
 import { WA_MESSAGE } from "@/components/layout/nav-data"
 import { IconWhatsApp, whatsappHref } from "@/components/ui/icon-whatsapp"
+import { mediaUrl } from "@/lib/image-utils"
 
 /* Portada, sección 1 — sistema «Perímetro».
  *
@@ -135,7 +136,7 @@ export function Hero({
             aspecto fija en ambos anchos: no hay salto de maquetación. */}
         <div className="relative aspect-[16/10] overflow-hidden rounded-xl lg:aspect-[4/3]">
           <Image
-            src="/products/cerca-pvc-afrodita-401/1-imagen-principal.jpg"
+            src={mediaUrl("/products/cerca-pvc-afrodita-401/1-imagen-principal.jpg")}
             alt="Cerca de PVC blanca instalada en el frente de una vivienda"
             fill
             preload
