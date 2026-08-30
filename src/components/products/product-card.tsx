@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { ShoppingCart, Star, ArrowRight, Heart } from "lucide-react";
+import { ShoppingCart, ArrowRight, Heart, ImageIcon, Ruler } from "lucide-react";
 import { toast } from "sonner";
 import { useCartStore } from "@/lib/store/cart-store";
 import { useWishlist } from "@/lib/hooks/use-wishlist";
@@ -18,9 +18,15 @@ interface ProductCardProps {
   unit: ProductUnit;
   stock: number;
   isNew?: boolean;
-  reviewCount?: number;
-  rating?: number;
-  sku?: string;
+  /* Atributos reales del catalogo (columna `attributes` de Product). No hay
+   * SKU ni resenas en el modelo: mostrarlos seria inventar datos. Lo que un
+   * comprador de cercas pregunta primero es la altura, y eso si esta. */
+  attributes?: {
+    heightOptions?: string[]
+    colors?: string[]
+    material?: string
+    warranty?: string
+  } | null;
   category?: { name: string } | null;
   collection?: { name: string } | null;
   images?: ProductImage[];
@@ -35,26 +41,6 @@ const catColors: Record<string, string> = {
   "Zonas Costeras": "#cffafe",
 };
 
-function Stars({ rating = 5, count = 0 }: { rating?: number; count?: number }) {
-  return (
-    <div className="flex items-center gap-1">
-      <div className="flex items-center gap-0.5">
-        {[1, 2, 3, 4, 5].map((i) => (
-          <Star
-            key={i}
-            className={`h-2.5 w-2.5 ${
-              i <= Math.round(rating)
-                ? "fill-amber-400 text-amber-400"
-                : "fill-gray-200 text-gray-200"
-            }`}
-          />
-        ))}
-      </div>
-      <span className="text-[10px] text-gray-400">({count})</span>
-    </div>
-  );
-}
-
 export function ProductCard(p: ProductCardProps) {
   const addItem = useCartStore((s) => s.addItem);
   const { toggle, isWishlisted } = useWishlist();
@@ -68,6 +54,11 @@ export function ProductCard(p: ProductCardProps) {
     p.comparePrice && p.comparePrice > p.basePrice
       ? Math.round(((p.comparePrice - p.basePrice) / p.comparePrice) * 100)
       : 0;
+
+  /* `attributes` es Json en Prisma: puede venir vacio o incompleto segun el
+   * producto, asi que se normaliza a array antes de pintar nada. */
+  const alturas = Array.isArray(p.attributes?.heightOptions) ? p.attributes.heightOptions : [];
+  const colores = Array.isArray(p.attributes?.colors) ? p.attributes.colors : [];
 
   const stockDot =
     p.stock === 0
@@ -112,9 +103,16 @@ export function ProductCard(p: ProductCardProps) {
               priority={p.priority}
             />
           ) : (
-            <div className="flex h-full items-center justify-center">
-              <span className="text-3xl font-black text-gray-300">
-                {collectionName.charAt(0)}
+            /* Dos tercios del catalogo no tienen foto cargada todavia. Una
+             * letra gigante gris parece un error de carga; esto parece una
+             * ficha pendiente de foto, que es lo que realmente es. */
+            <div className="flex h-full flex-col items-center justify-center gap-1.5 px-3 text-center">
+              <ImageIcon className="size-7 text-muted-foreground/40" aria-hidden="true" />
+              <span className="text-[11px] font-medium leading-tight text-muted-foreground">
+                Foto en preparacion
+              </span>
+              <span className="text-[10px] leading-tight text-muted-foreground/70">
+                Escribenos y te la enviamos
               </span>
             </div>
           )}
@@ -187,14 +185,29 @@ export function ProductCard(p: ProductCardProps) {
           </h3>
         </Link>
 
-        {/* Stars — only if there are actual reviews */}
-        {/* `p.reviewCount &&` a secas pintaba un "0" suelto: con reviewCount 0
-            la expresion evalua a 0 y React renderiza el cero. */}
-        {p.reviewCount && p.reviewCount > 0 ? (
-          <div className="mt-1.5">
-            <Stars rating={p.rating} count={p.reviewCount} />
+        {/* Altura y color: es lo primero que pregunta quien va a cercar un
+         * terreno, y ya estaba en la base de datos sin mostrarse en ningun
+         * sitio. Solo se pinta si el producto lo trae de verdad. */}
+        {(alturas.length > 0 || colores.length > 0) && (
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11px] text-muted-foreground">
+            {alturas.length > 0 && (
+              <span className="inline-flex items-center gap-1">
+                <Ruler className="size-3 shrink-0 text-brand-green" aria-hidden="true" />
+                {alturas.length === 1 ? alturas[0] : `${alturas[0]}–${alturas[alturas.length - 1]}`}
+              </span>
+            )}
+            {colores.length > 0 && (
+              <span className="truncate">
+                {colores.length === 1 ? colores[0] : `${colores.length} colores`}
+              </span>
+            )}
           </div>
-        ) : null}
+        )}
+
+        {/* Sin estrellas: el modelo Product no expone valoraciones y el catalogo
+         * no tiene ninguna resena cargada. Pintar estrellas vacias o inventadas
+         * es peor que no pintarlas — y con marcado AggregateRating seria ademas
+         * un riesgo con Google. Cuando existan resenas reales, aqui van. */}
 
         {/* Price */}
         <div className="mt-2.5 flex items-baseline gap-1.5 flex-wrap">
