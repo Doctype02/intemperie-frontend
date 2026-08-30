@@ -15,9 +15,16 @@ export interface CarouselProduct {
   unit: ProductUnit;
   stock: number;
   isNew?: boolean;
-  reviewCount?: number;
-  rating?: number;
-  sku?: string;
+  /* Atributos reales del catalogo. `sku`, `rating` y `reviewCount` estaban
+   * declarados aqui pero no existen en el modelo Product del backend: nunca
+   * llegaba un valor. Se sustituyen por lo que si hay y decide una compra de
+   * cercas: altura disponible y colores. */
+  attributes?: {
+    heightOptions?: string[]
+    colors?: string[]
+    material?: string
+    warranty?: string
+  } | null;
   category?: { name: string };
   collection?: { name: string };
   images?: ProductImage[];

@@ -20,16 +20,34 @@ import { NewsletterSection } from "@/components/home/newsletter-section";
 type ApiProduct = Record<string, any>;
 
 /* ── Data fetching ────────────────────────────────────────────────────────── */
+/* Trae el catalogo para la portada.
+ *
+ * Antes esta funcion tenia un `catch { return [] }`. Parece defensivo y es lo
+ * contrario: si la API no responde durante el prerenderizado, devolvia un
+ * array vacio, `ProductCarousel` hacia `return null` al no tener productos, y
+ * el build **terminaba con exito** publicando una portada sin una sola
+ * referencia del catalogo. Ocurrio en produccion: el HTML servido no contenia
+ * ni un nombre de producto, ni un precio, ni un enlace de ficha. Ni para el
+ * visitante ni para Google.
+ *
+ * Ahora se propaga el fallo. Un build que no puede leer el catalogo debe
+ * romperse y avisar, no publicar una tienda vacia en silencio. Es el mismo
+ * criterio que ya sigue `_data/catalog.ts`.
+ */
 async function getProducts(): Promise<ApiProduct[]> {
-  try {
-    const base = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
-    const res  = await fetch(`${base}/products?limit=50`, { next: { revalidate: 3600, tags: ["products"] } });
-    if (!res.ok) return [];
-    const data = await res.json();
-    return (data.data ?? data ?? []) as ApiProduct[];
-  } catch {
-    return [];
+  const base = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+  const res = await fetch(`${base}/products?limit=50`, {
+    next: { revalidate: 3600, tags: ["products"] },
+  });
+  if (!res.ok) {
+    throw new Error(`No se pudo leer el catalogo para la portada: ${res.status} ${res.statusText}`);
   }
+  const data = await res.json();
+  const items = (data.data ?? data ?? []) as ApiProduct[];
+  if (items.length === 0) {
+    throw new Error("El catalogo devolvio 0 productos: no se publica una portada vacia.");
+  }
+  return items;
 }
 
 function normalizeProduct(p: ApiProduct): CarouselProduct {
@@ -45,9 +63,11 @@ function normalizeProduct(p: ApiProduct): CarouselProduct {
     unit:         (p.unit ?? "METRO") as import("@/types").ProductUnit,
     stock:        Number(p.stock ?? 0),
     isNew,
-    reviewCount:  p.reviewCount ? Number(p.reviewCount) : undefined,
-    rating:       p.rating      ? Number(p.rating)      : undefined,
-    sku:          p.sku         ? String(p.sku)          : undefined,
+    /* `sku`, `rating` y `reviewCount` se pasaban aqui y no existen en el
+     * modelo Product: llegaban siempre `undefined`. La tarjeta ya no los
+     * acepta. En su lugar viaja `attributes`, que si trae datos reales y es
+     * lo que un comprador de cercas mira primero: altura y colores. */
+    attributes:   (p.attributes ?? null) as CarouselProduct["attributes"],
     category:     p.category    ? { name: String(p.category.name ?? "") } : undefined,
     collection:   p.collection  ? { name: String(p.collection.name ?? "") } : undefined,
     images:       Array.isArray(p.images) ? p.images : [],
