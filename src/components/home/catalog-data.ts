@@ -1,4 +1,5 @@
 import type { ProductImage, ProductUnit } from "@/types"
+import { serverApiBase } from "@/app/(store)/_data/api-base"
 
 /* Datos de la portada — sistema «Perímetro».
  *
@@ -62,21 +63,40 @@ function normalize(p: Raw): HomeProduct {
   }
 }
 
+/* Trae el catálogo para la portada.
+ *
+ * Dos decisiones que parecen detalles y no lo son, ambas aprendidas a golpes
+ * en este despliegue:
+ *
+ * 1. `serverApiBase()` en vez de `NEXT_PUBLIC_API_URL`. El navegador y el
+ *    servidor NO pueden usar la misma URL aquí: el VPS está tras un NAT sin
+ *    retorno sobre sí mismo, así que el dominio público no se alcanza ni desde
+ *    el host ni desde el contenedor de build. Los fetch de servidor van por la
+ *    red interna.
+ *
+ * 2. Sin `catch` que devuelva `[]`. Ese catch parece defensivo —«que la portada
+ *    se sirva igual aunque la API esté caída»— y es justo lo contrario: durante
+ *    el prerenderizado convierte un fallo de red en una portada publicada SIN
+ *    CATÁLOGO, con el build en verde. Ocurrió: el HTML servido no tenía ni un
+ *    nombre de producto, ni para el visitante ni para Googlebot, y las métricas
+ *    seguían sanas porque medían correctamente un documento vacío.
+ *
+ * Un build que no puede leer el catálogo debe romperse y avisar.
+ */
 export async function getCatalog(): Promise<HomeProduct[]> {
-  const base = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"
-  try {
-    const res = await fetch(`${base}/products?limit=100`, {
-      next: { revalidate: 3600, tags: ["products"] },
-    })
-    if (!res.ok) return []
-    const json = await res.json()
-    const list = (json?.data ?? json ?? []) as Raw[]
-    return Array.isArray(list) ? list.map(normalize).filter((p) => p.slug) : []
-  } catch {
-    /* La portada tiene que servirse igual si la API está caída: se degrada a
-       las secciones estáticas (hero, proceso, cotización) en vez de a un 500. */
-    return []
+  const res = await fetch(`${serverApiBase()}/products?limit=100`, {
+    next: { revalidate: 3600, tags: ["products"] },
+  })
+  if (!res.ok) {
+    throw new Error(`No se pudo leer el catálogo para la portada: ${res.status} ${res.statusText}`)
   }
+  const json = await res.json()
+  const list = (json?.data ?? json ?? []) as Raw[]
+  const productos = Array.isArray(list) ? list.map(normalize).filter((p) => p.slug) : []
+  if (productos.length === 0) {
+    throw new Error("El catálogo devolvió 0 productos: no se publica una portada vacía.")
+  }
+  return productos
 }
 
 /* ── Utilidades de agrupación ──────────────────────────────────────────────
