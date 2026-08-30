@@ -7,7 +7,7 @@ import { ProductGallery } from "@/components/products/product-gallery";
 import { ProductPurchasePanel } from "./product-detail-client";
 import { ProductFaq, buildFaq } from "./product-faq";
 import { ProductHighlights, ProductSpecSheet } from "./product-spec-sheet";
-import { toProductView, type ProductView } from "./product-view";
+import { toProductView, toPurchaseTarget, type ProductView } from "./product-view";
 
 /**
  * Ficha de producto: estática con revalidación.
@@ -151,16 +151,10 @@ export default async function ProductDetailPage({
         { "@type": "ListItem", position: 3, name: product.name, item: url },
       ],
     },
-    {
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      mainEntity: faq.map((item) => ({
-        "@type": "Question",
-        name: item.q,
-        acceptedAnswer: { "@type": "Answer", text: item.a },
-      })),
-    },
   ];
+  /* Sin bloque FAQPage: desde 2023 Google sólo muestra ese resultado
+     enriquecido a sitios oficiales y sanitarios, así que serían ~2 kB por
+     página a cambio de nada. Las preguntas siguen en el HTML, indexables. */
 
   return (
     <>
@@ -226,7 +220,7 @@ export default async function ProductDetailPage({
             <aside className="lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:sticky lg:top-[77px] lg:self-start">
               <PriceBlock product={product} />
               <div className="mt-4">
-                <ProductPurchasePanel product={product} />
+                <ProductPurchasePanel product={toPurchaseTarget(product)} />
               </div>
               <TrustStrip />
             </aside>

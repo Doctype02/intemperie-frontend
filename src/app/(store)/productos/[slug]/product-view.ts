@@ -295,6 +295,45 @@ export function toProductView(product: Product): ProductView {
   };
 }
 
+/* ── Lo que cruza al cliente ────────────────────────────────────────────── */
+
+/**
+ * Subconjunto que necesita el panel de compra. La ficha técnica completa, la
+ * descripción y el resto de imágenes se quedan en el servidor: cada campo que
+ * cruza la frontera se serializa otra vez en la carga RSC del HTML.
+ */
+export type PurchaseTarget = Pick<
+  ProductView,
+  | "id"
+  | "name"
+  | "slug"
+  | "price"
+  | "unit"
+  | "unitCopy"
+  | "stock"
+  | "heights"
+  | "colors"
+  | "categoryName"
+  | "collectionName"
+> & { imageUrl?: string };
+
+export function toPurchaseTarget(product: ProductView): PurchaseTarget {
+  return {
+    id: product.id,
+    name: product.name,
+    slug: product.slug,
+    price: product.price,
+    unit: product.unit,
+    unitCopy: product.unitCopy,
+    stock: product.stock,
+    heights: product.heights,
+    colors: product.colors,
+    categoryName: product.categoryName,
+    collectionName: product.collectionName,
+    imageUrl: product.images[0]?.url,
+  };
+}
+
 /* ── Enlaces salientes con contexto ─────────────────────────────────────── */
 
 export interface QuoteContext {
@@ -308,7 +347,7 @@ export interface QuoteContext {
  * Mensaje de WhatsApp con el producto ya puesto. Sin contexto, el vendedor
  * abre el chat preguntando «¿de qué producto?»; con él, responde un precio.
  */
-export function buildQuoteMessage(product: ProductView, ctx: QuoteContext = {}): string {
+export function buildQuoteMessage(product: PurchaseTarget, ctx: QuoteContext = {}): string {
   const lines = [
     "Hola Intemperie, quiero cotizar:",
     `• Producto: ${product.name}`,
@@ -326,7 +365,7 @@ export function buildQuoteMessage(product: ProductView, ctx: QuoteContext = {}):
  * Precotizador con el producto preseleccionado.
  * Contrato de la URL: `?producto=<slug>` y, si se sabe, `&metros=<n>`.
  */
-export function buildCalculatorHref(product: ProductView, quantity?: number): string {
+export function buildCalculatorHref(product: PurchaseTarget, quantity?: number): string {
   const params = new URLSearchParams({ producto: product.slug });
   if (quantity && quantity > 0) params.set("metros", String(quantity));
   return `/calculadora?${params}`;

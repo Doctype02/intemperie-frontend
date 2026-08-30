@@ -13,7 +13,7 @@ import { getWhatsAppLink } from "@/lib/utils";
 import {
   buildCalculatorHref,
   buildQuoteMessage,
-  type ProductView,
+  type PurchaseTarget,
 } from "./product-view";
 
 /* Panel de compra: la única isla interactiva de la ficha.
@@ -27,7 +27,7 @@ const FOCUS =
   "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green";
 
 interface Props {
-  product: ProductView;
+  product: PurchaseTarget;
 }
 
 export function ProductPurchasePanel({ product }: Props) {
@@ -52,7 +52,7 @@ export function ProductPurchasePanel({ product }: Props) {
       slug: product.slug,
       basePrice: product.price,
       unit: product.unit,
-      imageUrl: product.images[0]?.url,
+      imageUrl: product.imageUrl,
     });
     // Una vez por producto: `trackView` cambia de identidad en cada render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -84,7 +84,7 @@ export function ProductPurchasePanel({ product }: Props) {
         stock,
         collection: product.collectionName ? { name: product.collectionName } : null,
         category: product.categoryName ? { name: product.categoryName } : null,
-        images: product.images,
+        images: product.imageUrl ? [{ url: product.imageUrl }] : [],
       },
       quantity,
     );
@@ -214,7 +214,7 @@ export function ProductPurchasePanel({ product }: Props) {
               basePrice: product.price,
               unit: product.unit,
               stock,
-              imageUrl: product.images[0]?.url,
+              imageUrl: product.imageUrl,
               categoryName: product.categoryName ?? product.collectionName,
             });
             toast(wishlisted ? "Eliminado de favoritos" : "Guardado en favoritos", {
