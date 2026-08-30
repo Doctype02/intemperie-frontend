@@ -419,6 +419,46 @@
       repeating-linear-gradient(0deg, var(--hairline) 0 1px, transparent 1px 12px);
   }
 
+  /* Diagrama de producto — dibuja la cerca cuando no hay fotografía.
+     Diez de las quince fichas del catálogo no tienen foto cargada. Un
+     rectángulo gris con un icono de imagen rota parece un error del sitio; un
+     alzado técnico de la propia cerca parece lo que es —una ficha pendiente de
+     fotografía— y encima informa: se distingue de un vistazo una cerca de
+     listones de una malla electrosoldada.
+
+     Son gradientes CSS: cero peticiones de red, cero bytes de imagen, cero
+     descodificación. La cuadrícula de la malla y el listón del PVC ya son la
+     firma visual del sistema (.mesh-rule, .picket-rule); esto es la misma
+     gramática a tamaño de tarjeta. */
+  .diagram {
+    --ink: color-mix(in oklab, var(--brand-navy) 42%, transparent);
+    --post: color-mix(in oklab, var(--brand-navy) 68%, transparent);
+    background-color: var(--surface-2);
+  }
+
+  /* Alzado de cerca de PVC: dos rieles horizontales y los listones verticales. */
+  .diagram-picket {
+    background-image:
+      linear-gradient(var(--post) 0 0),
+      linear-gradient(var(--post) 0 0),
+      repeating-linear-gradient(90deg, var(--ink) 0 9px, transparent 9px 22px);
+    background-size: 84% 5px, 84% 5px, 84% 60%;
+    background-position: 8% 32%, 8% 72%, 8% 20%;
+    background-repeat: no-repeat;
+  }
+
+  /* Alzado de malla electrosoldada: cuadrícula entre dos postes. */
+  .diagram-mesh {
+    background-image:
+      linear-gradient(var(--post) 0 0),
+      linear-gradient(var(--post) 0 0),
+      repeating-linear-gradient(90deg, var(--ink) 0 2px, transparent 2px 16px),
+      repeating-linear-gradient(180deg, var(--ink) 0 2px, transparent 2px 16px);
+    background-size: 5px 68%, 5px 68%, 74% 60%, 74% 60%;
+    background-position: 9% 18%, 91% 18%, 13% 20%, 13% 20%;
+    background-repeat: no-repeat;
+  }
+
   /* Firma visual: el listón de la cerca de PVC. Remate superior de sección. */
   .picket-rule {
     height: 6px;
