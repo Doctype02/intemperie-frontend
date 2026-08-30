@@ -1,29 +1,43 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
+/**
+ * Esqueleto de la ficha, no un spinner.
+ *
+ * Las quince fichas se prerenderizan, así que esto sólo aparece cuando se
+ * genera un slug nuevo bajo demanda. Reproduce la retícula real (foto, panel,
+ * ficha técnica) para que el contenido no dé un salto al llegar.
+ */
 export default function ProductDetailLoading() {
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6 md:py-8">
-      <Skeleton className="h-4 w-56 mb-6 hidden sm:block" />
-      <div className="grid gap-6 md:gap-8 lg:grid-cols-3">
-        {/* Gallery */}
-        <div className="lg:col-span-2 space-y-3">
-          <Skeleton className="w-full rounded-2xl h-56 sm:h-72 lg:h-96" />
+    <div className="mx-auto max-w-7xl px-4 pt-4 pb-28 sm:px-6 lg:pt-6 lg:pb-14">
+      <Skeleton className="mb-4 hidden h-3 w-56 sm:block" />
+
+      <div className="max-w-3xl space-y-3">
+        <Skeleton className="h-3 w-32" />
+        <Skeleton className="h-8 w-3/4" />
+        <Skeleton className="h-4 w-full max-w-xl" />
+        <Skeleton className="h-4 w-64" />
+      </div>
+
+      <div className="mt-6 grid gap-6 lg:mt-8 lg:grid-cols-[minmax(0,1fr)_21rem] lg:gap-8 xl:grid-cols-[minmax(0,1fr)_23rem]">
+        <div className="space-y-2.5 lg:col-start-1 lg:row-start-1">
+          <Skeleton className="aspect-[4/3] w-full rounded-xl sm:aspect-[3/2]" />
           <div className="flex gap-2">
-            {[1, 2, 3, 4].map((i) => (
-              <Skeleton key={i} className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl shrink-0" />
+            {[0, 1, 2, 3].map((i) => (
+              <Skeleton key={i} className="size-16 shrink-0 rounded-lg sm:size-20" />
             ))}
           </div>
         </div>
-        {/* Sidebar */}
-        <div className="space-y-4">
-          <Skeleton className="h-3 w-32" />
-          <Skeleton className="h-8 w-3/4" />
-          <Skeleton className="h-10 w-1/3" />
-          <Skeleton className="h-5 w-24 rounded-full" />
-          <Skeleton className="h-20 w-full" />
-          <Skeleton className="h-48 w-full rounded-xl" />
-          <Skeleton className="h-12 w-full rounded-xl" />
-          <Skeleton className="h-11 w-full rounded-xl" />
+
+        <div className="space-y-4 lg:col-start-2 lg:row-start-1">
+          <Skeleton className="h-28 w-full rounded-xl" />
+          <Skeleton className="h-36 w-full rounded-xl" />
+          <Skeleton className="h-13 w-full rounded-lg" />
+          <Skeleton className="h-13 w-full rounded-lg" />
+        </div>
+
+        <div className="space-y-6 lg:col-start-1 lg:row-start-2">
+          <Skeleton className="h-72 w-full rounded-xl" />
         </div>
       </div>
     </div>
