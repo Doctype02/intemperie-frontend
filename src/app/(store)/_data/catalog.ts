@@ -1,5 +1,5 @@
 import { cache } from "react";
-import { API_BASE } from "@/lib/api";
+import { serverApiBase } from "./api-base";
 import type { Category, Collection, Product } from "@/types";
 
 /**
@@ -49,7 +49,7 @@ type FetchOpts = { tags: string[]; revalidate?: number };
 async function getJson<T>(path: string, opts: FetchOpts): Promise<T | null> {
   let res: Response;
   try {
-    res = await fetch(`${API_BASE}${path}`, {
+    res = await fetch(`${serverApiBase()}${path}`, {
       next: { revalidate: opts.revalidate ?? CATALOG_TTL, tags: opts.tags },
     });
   } catch (err) {
