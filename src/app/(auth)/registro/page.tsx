@@ -4,12 +4,11 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { registerSchema, type RegisterInput } from "@/lib/validators";
+import { registerResolver, type RegisterInput } from "@/lib/validators";
 import { register as registerApi } from "@/lib/api/auth";
 import { useAuthStore } from "@/lib/store/auth-store";
 
@@ -24,7 +23,7 @@ export default function RegisterPage() {
     handleSubmit,
     formState: { errors },
   } = useForm<RegisterInput>({
-    resolver: zodResolver(registerSchema),
+    resolver: registerResolver,
   });
 
   const onSubmit = async (data: RegisterInput) => {
