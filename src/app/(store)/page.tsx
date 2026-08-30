@@ -133,7 +133,12 @@ function CategoryCards() {
                 src={c.img}
                 alt={c.name}
                 fill
-                sizes="(max-width: 640px) 140px, 20vw"
+                /* El contenedor es `max-w-7xl` (1280px) con `px-6` y 4 huecos
+                 * de 12px, asi que a partir de 1280px de viewport la tarjeta
+                 * mide (1280-96)/5 = 237px y deja de crecer. Con `20vw` a secas
+                 * el navegador pedia 288px (variante w=400) en vez de 237px
+                 * (variante w=256): 85 KB en vez de 41 KB por las 5 tarjetas. */
+                sizes="(max-width: 640px) 140px, (max-width: 1280px) 20vw, 237px"
                 className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
@@ -307,7 +312,9 @@ function FeaturedCollectionsGrid() {
                 src={c.img}
                 alt={c.name}
                 fill
-                sizes="(max-width: 640px) 50vw, 25vw"
+                /* Mismo tope de contenedor: 4 columnas dentro de `max-w-7xl`
+                 * con `gap-4` => (1280-96)/4 = 296px a partir de 1280px. */
+                sizes="(max-width: 1024px) 50vw, (max-width: 1280px) 25vw, 296px"
                 className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent" />
