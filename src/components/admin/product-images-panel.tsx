@@ -191,7 +191,7 @@ export function ProductImagesPanel({
 
       {/* Camino secundario, pero intacto: URLs de imágenes alojadas fuera. */}
       <details className="mt-4 rounded-lg border border-border bg-surface-2 px-3 py-2">
-        <summary className="flex cursor-pointer list-none items-center gap-2 py-1 text-xs font-semibold text-foreground">
+        <summary className="flex cursor-pointer list-none items-center gap-2 py-1 text-xs font-semibold text-foreground [&::-webkit-details-marker]:hidden">
           <Link2 className="size-3.5 text-muted-foreground" aria-hidden="true" />
           Añadir por URL (imagen alojada fuera)
         </summary>
