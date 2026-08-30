@@ -12,7 +12,16 @@ import {
   getOrderPaymentStatus,
   clearCheckoutToken,
 } from "@/lib/api/orders";
-import { Check, ArrowLeft, ShoppingCart, Lock, Loader2, X } from "lucide-react";
+import {
+  AlertCircle,
+  ArrowLeft,
+  Check,
+  ChevronDown,
+  Loader2,
+  Lock,
+  ShoppingCart,
+  X,
+} from "lucide-react";
 import type { GuestAddress } from "@/types";
 
 type Step = "address" | "review" | "payment";
@@ -67,6 +76,9 @@ const PANAMA_PROVINCES = [
   "Ngäbe-Buglé",
   "Emberá-Wounaan",
 ];
+
+/** Formas de pago que el equipo acepta de verdad al cerrar el pedido. */
+const PAYMENT_METHODS = ["Visa", "Mastercard", "Yappy", "Clave", "Transferencia", "Efectivo"];
 
 const emptyAddress: GuestAddress = {
   name: "", phone: "", email: "", street: "", city: "", province: "",
@@ -351,14 +363,17 @@ export default function CheckoutPage() {
 
   if (!ready) {
     return (
-      <main className="flex-1 bg-gray-50">
-        <div className="mx-auto max-w-4xl px-4 py-8 animate-pulse space-y-4">
-          <div className="h-8 w-48 rounded bg-gray-200 mx-auto" />
-          <div className="grid gap-8 lg:grid-cols-3">
-            <div className="lg:col-span-2 rounded-xl bg-white border border-gray-200 p-6 space-y-4">
-              {[1, 2, 3, 4].map((i) => <div key={i} className="h-10 rounded bg-gray-200" />)}
+      <main className="flex-1">
+        <div className="shell max-w-4xl py-section-sm">
+          <p className="sr-only" role="status">Preparando tu pedido…</p>
+          <div className="animate-pulse space-y-4" aria-hidden="true">
+            <div className="mx-auto h-8 w-48 rounded-md bg-surface-2" />
+            <div className="grid gap-6 lg:grid-cols-3">
+              <div className="space-y-4 rounded-xl border border-border bg-surface p-6 lg:col-span-2">
+                {[1, 2, 3, 4].map((i) => <div key={i} className="h-11 rounded-lg bg-surface-2" />)}
+              </div>
+              <div className="h-48 rounded-xl border border-border bg-surface p-6" />
             </div>
-            <div className="rounded-xl bg-white border border-gray-200 p-6 h-48" />
           </div>
         </div>
       </main>
@@ -367,31 +382,33 @@ export default function CheckoutPage() {
 
   if (!isAuthenticated && !guestMode) {
     return (
-      <main className="flex-1 bg-gray-50 flex items-center justify-center py-20">
-        <div className="bg-white rounded-2xl border border-gray-200 p-8 max-w-sm w-full mx-4 shadow-sm">
-          <ShoppingCart className="mx-auto mb-4 h-10 w-10 text-green-600" />
-          <h1 className="text-xl font-bold text-gray-900 text-center">Completa tu pedido</h1>
-          <p className="mt-2 text-sm text-gray-500 text-center">Elige cómo quieres continuar</p>
-          <div className="mt-6 space-y-3">
-            <Button className="w-full h-12 bg-green-700 hover:bg-green-800 text-sm font-bold" asChild>
-              <Link href="/login?redirect=/checkout">Iniciar sesión con mi cuenta</Link>
-            </Button>
-            <div className="relative flex items-center gap-3">
-              <div className="flex-1 border-t border-gray-200" />
-              <span className="text-xs text-gray-400">o</span>
-              <div className="flex-1 border-t border-gray-200" />
+      <main className="flex flex-1 items-center justify-center py-section">
+        <div className="shell max-w-sm">
+          <div className="rounded-xl border border-border bg-surface p-6 shadow-sm sm:p-8">
+            <ShoppingCart className="mx-auto mb-4 h-10 w-10 text-primary" aria-hidden="true" />
+            <h1 className="text-center font-heading text-xl font-bold text-foreground">
+              Completa tu pedido
+            </h1>
+            <p className="mt-2 text-center text-sm text-muted-foreground">
+              Elige cómo quieres continuar
+            </p>
+            <div className="mt-6 space-y-3">
+              <Button size="block" asChild>
+                <Link href="/login?redirect=/checkout">Iniciar sesión con mi cuenta</Link>
+              </Button>
+              <div className="flex items-center gap-3" aria-hidden="true">
+                <span className="h-px flex-1 bg-border" />
+                <span className="text-xs text-muted-foreground">o</span>
+                <span className="h-px flex-1 bg-border" />
+              </div>
+              <Button variant="outline" size="block" onClick={() => setGuestMode(true)}>
+                Continuar como invitado
+              </Button>
             </div>
-            <Button
-              variant="outline"
-              className="w-full h-12 border-gray-300 text-gray-700 text-sm font-bold hover:bg-gray-50"
-              onClick={() => setGuestMode(true)}
-            >
-              Continuar como invitado
-            </Button>
+            <p className="mt-4 text-center text-xs text-muted-foreground">
+              Con cuenta puedes consultar tus pedidos y guardar tus direcciones
+            </p>
           </div>
-          <p className="mt-4 text-center text-xs text-gray-400">
-            Con cuenta puedes rastrear tu pedido y guardar tus direcciones
-          </p>
         </div>
       </main>
     );
@@ -498,6 +515,8 @@ export default function CheckoutPage() {
     }
   };
 
+  const totals = { subtotal, tax, shipping, total };
+
   return (
     <>
     {/* Tilopay iframe modal */}
@@ -508,23 +527,27 @@ export default function CheckoutPage() {
         aria-modal="true"
         aria-labelledby="tilopay-dialog-title"
         aria-describedby="tilopay-dialog-description"
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+        /* El velo es azul de obra, no negro: sobre el fondo oscuro del sitio un
+           negro puro no se distingue del propio fondo y el diálogo parece
+           flotar sin contexto. */
+        className="fixed inset-0 z-50 flex items-center justify-center bg-brand-navy-deep/80 p-4 backdrop-blur-sm"
       >
-        {/* Close button — floating, always visible */}
+        {/* Salir del pago se hace con el pulgar y con prisa: 44px, siempre
+            visible y separado del formulario de la pasarela. */}
         <button
           ref={closeButtonRef}
           type="button"
           onClick={closeTilopay}
-          className="absolute top-4 right-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-lg text-gray-600 hover:bg-gray-100 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          className="absolute top-4 right-4 z-10 flex size-11 items-center justify-center rounded-full bg-surface text-foreground shadow-lg transition-colors hover:bg-surface-2"
           aria-label="Cerrar el pago seguro"
         >
           <X className="h-5 w-5" aria-hidden="true" />
         </button>
 
-        <div className="relative flex w-full max-w-lg flex-col rounded-2xl bg-white shadow-2xl overflow-hidden" style={{ height: "640px" }}>
-          <div className="flex items-center gap-2 border-b border-gray-100 px-4 py-3 shrink-0">
-            <Lock className="h-3.5 w-3.5 text-green-600" aria-hidden="true" />
-            <h2 id="tilopay-dialog-title" className="text-xs font-semibold text-gray-600">
+        <div className="relative flex h-[640px] max-h-full w-full max-w-lg flex-col overflow-hidden rounded-xl bg-surface shadow-xl">
+          <div className="flex shrink-0 items-center gap-2 border-b border-hairline px-4 py-3">
+            <Lock className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
+            <h2 id="tilopay-dialog-title" className="text-xs font-semibold text-muted-foreground">
               Pago seguro · Tilopay
             </h2>
           </div>
@@ -534,29 +557,33 @@ export default function CheckoutPage() {
           <iframe
             ref={iframeRef}
             src={tilopayFrame.url}
-            className="flex-1 w-full border-0"
+            className="w-full flex-1 border-0"
             title="Pago seguro con Tilopay"
             allow="payment"
           />
 
           {verifying && (
             <div
-              className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-2 bg-white/95 px-6 text-center"
+              className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-2 bg-surface/95 px-6 text-center"
               role="status"
               aria-live="polite"
             >
-              <Loader2 className="h-7 w-7 animate-spin text-green-600" aria-hidden="true" />
-              <p className="text-sm font-semibold text-gray-700">Confirmando tu pago con nuestro servidor…</p>
-              <p className="text-xs text-gray-500">No cierres esta ventana ni vuelvas a pagar.</p>
+              <Loader2 className="h-7 w-7 animate-spin text-primary" aria-hidden="true" />
+              <p className="text-sm font-semibold text-foreground">
+                Confirmando tu pago con nuestro servidor…
+              </p>
+              <p className="text-xs text-muted-foreground">
+                No cierres esta ventana ni vuelvas a pagar.
+              </p>
             </div>
           )}
         </div>
       </div>
     )}
-    <main className="flex-1 bg-gray-50" inert={tilopayFrame ? true : undefined}>
-      <div className="mx-auto max-w-4xl px-4 py-8">
+    <main className="flex-1" inert={tilopayFrame ? true : undefined}>
+      <div className="shell max-w-4xl py-section-sm">
         {/* Step indicators */}
-        <nav aria-label="Progreso del checkout" className="mb-8">
+        <nav aria-label="Progreso del checkout" className="mb-6">
           <ol className="flex items-center justify-center gap-1 md:gap-2">
             {(["address", "review", "payment"] as const).map((s, i) => {
               const isActive = step === s;
@@ -564,14 +591,14 @@ export default function CheckoutPage() {
               const label = ["Dirección", "Revisar", "Pago"][i];
               return (
                 <li key={s} className="flex items-center gap-1 md:gap-2" aria-current={isActive ? "step" : undefined}>
-                  <div className={`flex h-7 w-7 md:h-8 md:w-8 items-center justify-center rounded-full text-xs md:text-sm font-bold transition-colors ${
-                    isCompleted ? "bg-green-100 text-green-700 border-2 border-green-400" :
-                    isActive    ? "bg-green-700 text-white" : "bg-gray-100 text-gray-400"
-                  }`}>
+                  <span className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold tabular transition-colors ${
+                    isCompleted ? "border-2 border-brand-green bg-secondary text-secondary-foreground" :
+                    isActive    ? "bg-primary text-primary-foreground" : "bg-surface-2 text-muted-foreground"
+                  }`} aria-hidden="true">
                     {isCompleted ? <Check className="h-3.5 w-3.5" aria-hidden="true" /> : i + 1}
-                  </div>
-                  <span className={`text-xs md:text-sm font-semibold hidden sm:inline transition-colors ${
-                    isCompleted ? "text-green-600" : isActive ? "text-green-700" : "text-gray-400"
+                  </span>
+                  <span className={`hidden text-sm font-semibold transition-colors sm:inline ${
+                    isCompleted || isActive ? "text-primary" : "text-muted-foreground"
                   }`} aria-hidden="true">
                     {label}
                   </span>
@@ -579,7 +606,7 @@ export default function CheckoutPage() {
                     {`Paso ${i + 1}: ${label}${isCompleted ? " (completado)" : isActive ? " (paso actual)" : ""}`}
                   </span>
                   {i < 2 && (
-                    <div aria-hidden="true" className={`mx-1 h-px w-8 md:w-10 transition-colors ${isCompleted ? "bg-green-300" : "bg-gray-200"}`} />
+                    <span aria-hidden="true" className={`mx-1 h-px w-8 md:w-10 transition-colors ${isCompleted ? "bg-brand-green" : "bg-border"}`} />
                   )}
                 </li>
               );
@@ -587,22 +614,48 @@ export default function CheckoutPage() {
           </ol>
         </nav>
 
-        <div className="grid gap-8 lg:grid-cols-3">
+        {/* Móvil: el total va arriba y siempre a la vista, y el detalle se
+            despliega si se quiere. El resumen completo vive en la columna
+            derecha, que en un móvil queda a una pantalla y media de scroll:
+            nadie paga a ciegas por no querer bajar hasta el final. */}
+        <details className="group mb-4 rounded-xl border border-border bg-surface lg:hidden">
+          <summary className="flex min-h-11 list-none items-center justify-between gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden">
+            <span className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
+              <ChevronDown
+                className="h-4 w-4 text-muted-foreground transition-transform group-open:rotate-180"
+                aria-hidden="true"
+              />
+              Resumen del pedido
+              <span className="text-muted-foreground tabular">({items.length})</span>
+            </span>
+            <span className="text-base font-bold text-foreground tabular">${total.toFixed(2)}</span>
+          </summary>
+          <div className="border-t border-hairline px-4 py-3">
+            <SummaryLines items={items} totals={totals} />
+          </div>
+        </details>
+
+        <div className="grid gap-6 lg:grid-cols-3">
           {/* Main content */}
           <div className="lg:col-span-2">
-            <div className="rounded-xl bg-white border border-gray-200 p-6">
+            <div className="rounded-xl border border-border bg-surface p-4 sm:p-6">
 
               {/* ── STEP: ADDRESS ─────────────────────────────── */}
               {step === "address" && (
                 <div>
                   <h2 ref={stepHeadingRef} tabIndex={-1} className={stepHeadingCls}>Dirección de envío</h2>
-                  <p className="text-xs text-gray-400 mt-0.5 mb-5">Los campos con <span className="text-red-500">*</span> son obligatorios</p>
+                  <p className="mt-0.5 mb-5 text-xs text-muted-foreground">
+                    Los campos con <span className="text-destructive">*</span> son obligatorios
+                  </p>
                   <form onSubmit={handleAddressSubmit} noValidate>
                     {/* El resumen de error va ANTES del formulario y con role="alert"
-                        para que el lector de pantalla lo anuncie al validar. */}
+                        para que el lector de pantalla lo anuncie al validar. El
+                        mensaje de cada campo no repite el aviso: se enlaza con
+                        aria-describedby y se oye al llegar al campo, así no se
+                        anuncian seis alarmas a la vez. */}
                     {error && <ErrorAlert className="mb-4">{error}</ErrorAlert>}
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 
                       {/* Name */}
                       <Field label="Nombre completo" htmlFor="addr-name" required error={fieldErrors.name}>
@@ -626,6 +679,7 @@ export default function CheckoutPage() {
                           name="phone"
                           required
                           type="tel"
+                          inputMode="tel"
                           autoComplete="tel"
                           placeholder="+507 6000-0000"
                           className={inputCls}
@@ -642,6 +696,9 @@ export default function CheckoutPage() {
                           name="email"
                           required
                           type="email"
+                          inputMode="email"
+                          autoCapitalize="none"
+                          spellCheck={false}
                           autoComplete="email"
                           placeholder="tu@correo.com"
                           className={inputCls}
@@ -701,7 +758,7 @@ export default function CheckoutPage() {
                           name="province"
                           required
                           autoComplete="address-level1"
-                          className={`${inputCls} bg-white`}
+                          className={inputCls}
                           value={address.province}
                           onChange={(e) => updateField("province", e.target.value)}
                           {...fieldA11y("province")}
@@ -713,16 +770,15 @@ export default function CheckoutPage() {
                         </select>
                       </Field>
 
-                      {/* Country — fixed */}
-                      <Field label="País" htmlFor="addr-country" className="sm:col-span-2">
-                        <div id="addr-country" className={`${inputCls} bg-gray-50 text-gray-500 flex items-center gap-2 cursor-default select-none`}>
-                          <span aria-hidden="true">🇵🇦</span>
-                          <span>Panamá</span>
-                        </div>
-                      </Field>
+                      {/* El país no es un campo: sólo se envía dentro de Panamá y la
+                          lista de provincias ya lo dice. Se muestra como dato, no
+                          como control, para no ofrecer una elección que no existe. */}
+                      <p className="text-sm text-muted-foreground sm:col-span-2">
+                        Enviamos únicamente dentro de <strong className="font-semibold text-foreground">Panamá</strong>.
+                      </p>
 
                     </div>
-                    <Button type="submit" className="mt-4 w-full bg-green-700 hover:bg-green-800 h-12 text-sm font-bold">
+                    <Button type="submit" size="block" className="mt-5">
                       Continuar al resumen
                     </Button>
                   </form>
@@ -734,39 +790,36 @@ export default function CheckoutPage() {
                 <div>
                   <h2 ref={stepHeadingRef} tabIndex={-1} className={`${stepHeadingCls} mb-4`}>Revisa tu pedido</h2>
                   {error && <ErrorAlert className="mb-4">{error}</ErrorAlert>}
-                  <div className="mb-4 rounded-lg bg-gray-50 p-4">
-                    <p className="text-xs text-gray-400 uppercase mb-1">Enviar a</p>
-                    <p className="font-medium">{address.name}</p>
-                    <p className="text-sm text-gray-500">{address.street}</p>
-                    <p className="text-sm text-gray-500">{address.city}, {address.province}</p>
-                    <p className="text-sm text-gray-500">{address.phone}</p>
+                  <div className="mb-4 rounded-lg border border-hairline bg-surface-sunk p-4">
+                    <p className="eyebrow mb-1 text-muted-foreground">Enviar a</p>
+                    <p className="font-semibold text-foreground">{address.name}</p>
+                    <p className="text-sm text-muted-foreground">{address.street}</p>
+                    <p className="text-sm text-muted-foreground">{address.city}, {address.province}</p>
+                    <p className="text-sm text-muted-foreground tabular">{address.phone}</p>
                   </div>
-                  <div className="space-y-3">
+                  <ul className="space-y-3">
                     {items.map((item) => (
-                      <div key={item.id} className="flex justify-between border-b pb-3">
-                        <div>
-                          <p className="text-sm font-medium">{item.product?.name}</p>
-                          <p className="text-xs text-gray-400">
+                      <li key={item.id} className="flex justify-between gap-3 border-b border-hairline pb-3">
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-foreground">{item.product?.name}</p>
+                          <p className="text-xs text-muted-foreground tabular">
                             {item.quantity} {item.product?.unit === "METRO" ? "m" : "unid."}
                           </p>
                         </div>
-                        <p className="text-sm font-bold">
+                        <p className="text-sm font-bold text-foreground tabular">
                           ${((Number(item.product?.basePrice) || 0) * item.quantity).toFixed(2)}
                         </p>
-                      </div>
+                      </li>
                     ))}
+                  </ul>
+                  <div className="mt-4">
+                    <SummaryLines items={items} totals={totals} hideItems />
                   </div>
-                  <div className="mt-4 space-y-2">
-                    <div className="flex justify-between text-sm"><span className="text-gray-500">Subtotal</span><span>${subtotal.toFixed(2)}</span></div>
-                    <div className="flex justify-between text-sm"><span className="text-gray-500">ITBMS (7%)</span><span>${tax.toFixed(2)}</span></div>
-                    <div className="flex justify-between text-sm"><span className="text-gray-500">Envío</span><span>{shipping === 0 ? "Gratis" : `$${shipping.toFixed(2)}`}</span></div>
-                    <div className="border-t pt-2 flex justify-between font-bold text-lg"><span>Total</span><span>${total.toFixed(2)}</span></div>
-                  </div>
-                  <div className="mt-6 flex flex-col sm:flex-row gap-3">
+                  <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                     <Button variant="outline" onClick={() => setStep("address")}>
                       <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" />Editar dirección
                     </Button>
-                    <Button className="flex-1 bg-green-700 hover:bg-green-800 h-12" onClick={() => setStep("payment")}>
+                    <Button size="block" className="flex-1" onClick={() => setStep("payment")}>
                       Ir al pago
                     </Button>
                   </div>
@@ -777,63 +830,57 @@ export default function CheckoutPage() {
               {step === "payment" && (
                 <div>
                   <h2 ref={stepHeadingRef} tabIndex={-1} className={`${stepHeadingCls} mb-1`}>Elige tu método de pago</h2>
-                  <p className="text-sm text-gray-500 mb-6">Selecciona cómo quieres completar tu pedido</p>
+                  <p className="mb-6 text-sm text-muted-foreground">
+                    Selecciona cómo quieres completar tu pedido
+                  </p>
 
                   {error && <ErrorAlert className="mb-4">{error}</ErrorAlert>}
 
                   <div className="space-y-3">
                     {/* Tilopay — iframe modal */}
-                    <div className="rounded-xl border-2 border-green-200 bg-green-50/40 p-5">
-                      <div className="flex items-center justify-between mb-4">
-                        <div>
-                          <p className="text-sm font-bold text-gray-900">Pagar con tarjeta</p>
-                          <p className="text-xs text-gray-500 mt-0.5">Visa · Mastercard · Amex</p>
-                        </div>
-                        <div className="flex gap-1 shrink-0" aria-hidden="true">
-                          {[
-                            { label: "VISA", bg: "bg-blue-600", text: "text-white" },
-                            { label: "MC", bg: "bg-red-500", text: "text-white" },
-                          ].map((m) => (
-                            <span key={m.label} className={`rounded px-1.5 py-0.5 text-[9px] font-black ${m.bg} ${m.text}`}>
-                              {m.label}
-                            </span>
-                          ))}
-                        </div>
+                    <div className="rounded-xl border-2 border-brand-green/45 bg-secondary/35 p-4 sm:p-5">
+                      <div className="mb-4">
+                        <p className="text-sm font-bold text-foreground">Pagar con tarjeta</p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">Visa · Mastercard · Amex</p>
                       </div>
+                      {/* El importe va dentro del botón: es el último sitio donde
+                          se puede comprobar cuánto se va a cobrar. */}
                       <Button
                         onClick={handleTilopay}
                         disabled={loading}
-                        className="w-full bg-green-700 hover:bg-green-800 h-12 text-sm font-bold"
+                        aria-busy={loading}
+                        size="block"
                       >
                         {loading
-                          ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />Preparando pago…</>
-                          : `Pagar $${total.toFixed(2)}`}
+                          ? <><Loader2 className="animate-spin" aria-hidden="true" />Preparando pago…</>
+                          : <>Pagar <span className="tabular">${total.toFixed(2)}</span></>}
                       </Button>
-                      <p className="text-[10px] text-gray-400 text-center mt-2 flex items-center justify-center gap-1">
+                      <p className="mt-2 flex items-center justify-center gap-1 text-2xs text-muted-foreground">
                         <Lock className="h-3 w-3" aria-hidden="true" /> Pago seguro con Tilopay · PCI DSS
                       </p>
                     </div>
 
                     <div className="flex items-center gap-3" aria-hidden="true">
-                      <div className="flex-1 border-t border-gray-200" />
-                      <span className="text-xs text-gray-400 font-medium">o</span>
-                      <div className="flex-1 border-t border-gray-200" />
+                      <span className="h-px flex-1 bg-border" />
+                      <span className="text-xs font-medium text-muted-foreground">o</span>
+                      <span className="h-px flex-1 bg-border" />
                     </div>
 
                     {/* WhatsApp fallback */}
-                    <div className="rounded-xl border border-gray-200 bg-white p-5">
-                      <p className="text-sm font-bold text-gray-900 mb-0.5">Confirmar por WhatsApp</p>
-                      <p className="text-xs text-gray-500 mb-3">
+                    <div className="rounded-xl border border-border bg-surface p-4 sm:p-5">
+                      <p className="mb-0.5 text-sm font-bold text-foreground">Confirmar por WhatsApp</p>
+                      <p className="mb-3 text-xs text-muted-foreground">
                         Envía tu pedido a nuestro equipo. Coordinaremos el pago por transferencia, Yappy o efectivo.
                       </p>
                       <Button
                         variant="outline"
-                        className="w-full h-11 border-gray-300 text-gray-700 text-sm font-bold hover:bg-gray-50"
+                        className="w-full"
                         disabled={loading}
+                        aria-busy={loading}
                         onClick={handleWhatsApp}
                       >
                         {loading ? (
-                          <><Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />Procesando…</>
+                          <><Loader2 className="animate-spin" aria-hidden="true" />Procesando…</>
                         ) : "Confirmar por WhatsApp"}
                       </Button>
                     </div>
@@ -841,7 +888,8 @@ export default function CheckoutPage() {
 
                   <Button
                     variant="ghost"
-                    className="mt-4 text-gray-500 text-xs"
+                    size="sm"
+                    className="mt-4 text-muted-foreground"
                     onClick={() => setStep("review")}
                     disabled={loading}
                   >
@@ -852,44 +900,35 @@ export default function CheckoutPage() {
             </div>
           </div>
 
-          {/* Order summary sidebar */}
-          <aside aria-labelledby="order-summary-title" className="rounded-xl bg-white border border-gray-200 p-6 h-fit">
-            <h2 id="order-summary-title" className="font-bold text-gray-900 mb-4">Resumen del pedido</h2>
-            <div className="space-y-3">
-              {items.map((item) => (
-                <div key={item.id} className="flex gap-3 text-sm">
-                  <span className="text-gray-400">{item.quantity}×</span>
-                  <span className="flex-1 truncate text-gray-600">{item.product?.name}</span>
-                  <span className="font-medium">
-                    ${((Number(item.product?.basePrice) || 0) * item.quantity).toFixed(2)}
-                  </span>
-                </div>
-              ))}
-            </div>
-            <div className="mt-4 border-t pt-4 space-y-2 text-sm">
-              <div className="flex justify-between"><span className="text-gray-500">Subtotal</span><span>${subtotal.toFixed(2)}</span></div>
-              <div className="flex justify-between"><span className="text-gray-500">ITBMS (7%)</span><span>${tax.toFixed(2)}</span></div>
-              <div className="flex justify-between"><span className="text-gray-500">Envío</span><span>{shipping === 0 ? "Gratis" : `$${shipping.toFixed(2)}`}</span></div>
-              <div className="border-t pt-2 flex justify-between font-bold text-base"><span>Total</span><span>${total.toFixed(2)}</span></div>
-            </div>
-            <div className="mt-4 rounded-xl border border-gray-100 bg-gray-50 p-3">
-              <div className="flex items-center gap-1.5 mb-2.5">
-                <Lock className="h-3 w-3 text-green-600" aria-hidden="true" />
-                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Pago 100% seguro</p>
-              </div>
-              <div className="flex flex-wrap gap-1.5">
-                {[
-                  { label: "VISA", bg: "bg-blue-600", text: "text-white" },
-                  { label: "MC", bg: "bg-red-500", text: "text-white" },
-                  { label: "Yappy", bg: "bg-yellow-400", text: "text-gray-900" },
-                  { label: "Clave", bg: "bg-green-600", text: "text-white" },
-                ].map((m) => (
-                  <div key={m.label} className={`rounded-md px-2.5 py-1 text-[10px] font-black ${m.bg} ${m.text}`}>
-                    {m.label}
-                  </div>
+          {/* Order summary sidebar — pegado al scroll en escritorio: al recorrer
+              un formulario largo el total no debe irse de la pantalla. */}
+          <aside
+            aria-labelledby="order-summary-title"
+            className="hidden h-fit rounded-xl border border-border bg-surface p-5 lg:sticky lg:top-24 lg:block"
+          >
+            <h2 id="order-summary-title" className="mb-4 font-heading font-bold text-foreground">
+              Resumen del pedido
+            </h2>
+            <SummaryLines items={items} totals={totals} />
+
+            <div className="mt-4 rounded-lg border border-hairline bg-surface-sunk p-3">
+              <p className="eyebrow mb-2.5 flex items-center gap-1.5 text-muted-foreground">
+                <Lock className="h-3 w-3 text-primary" aria-hidden="true" />
+                Pago 100% seguro
+              </p>
+              {/* Las marcas de tarjeta iban con su color corporativo escrito a
+                  mano. Aquí sólo hace falta decir qué se acepta, y decirlo con
+                  los tokens del sistema se lee igual en claro y en oscuro. */}
+              <ul className="flex flex-wrap gap-1.5">
+                {PAYMENT_METHODS.map((label) => (
+                  <li
+                    key={label}
+                    className="rounded-md border border-border bg-surface px-2 py-1 text-2xs font-semibold text-foreground"
+                  >
+                    {label}
+                  </li>
                 ))}
-              </div>
-              <p className="text-[10px] text-gray-400 mt-2">Transferencia bancaria y efectivo también aceptados</p>
+              </ul>
             </div>
           </aside>
         </div>
@@ -899,10 +938,17 @@ export default function CheckoutPage() {
   );
 }
 
-const inputCls = "w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500 aria-[invalid=true]:border-red-400 aria-[invalid=true]:ring-1 aria-[invalid=true]:ring-red-300";
+/* Campo de texto: mismos tokens que el `Input` del sistema. 44px de alto y
+   cuerpo de 16px, porque por debajo de eso Safari en iOS hace zoom al enfocar
+   y descoloca la página entera en mitad de un pago. */
+const inputCls =
+  "h-11 w-full min-w-0 rounded-lg border border-input bg-surface px-3 py-2 text-[1rem] text-foreground tabular " +
+  "transition-colors duration-150 outline-none placeholder:text-muted-foreground/80 " +
+  "hover:border-foreground/35 focus-visible:border-ring aria-invalid:border-destructive";
 
-const stepHeadingCls =
-  "text-lg font-bold text-gray-900 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-green-700 rounded";
+/* El foco lo dibuja la regla global de :focus-visible (anillo doble), así que
+   aquí no se declara ni se anula ninguno. */
+const stepHeadingCls = "font-heading text-lg font-bold text-foreground";
 
 /** Bloque de error anunciado por lectores de pantalla en cuanto aparece. */
 function ErrorAlert({ children, className = "" }: { children: React.ReactNode; className?: string }) {
@@ -911,9 +957,61 @@ function ErrorAlert({ children, className = "" }: { children: React.ReactNode; c
       role="alert"
       aria-live="assertive"
       aria-atomic="true"
-      className={`rounded-xl bg-red-50 border border-red-100 text-red-700 text-sm px-4 py-3 ${className}`}
+      className={`flex items-start gap-2.5 rounded-lg border border-destructive/35 bg-destructive/8 px-4 py-3 text-sm text-destructive ${className}`}
     >
-      {children}
+      <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+      <span>{children}</span>
+    </div>
+  );
+}
+
+/* Conceptos e importes del pedido. Se pinta en tres sitios (resumen plegable de
+   móvil, paso de revisión y columna de escritorio) y por eso vive aquí: tres
+   copias de la misma suma acaban divergiendo. */
+function SummaryLines({
+  items,
+  totals,
+  hideItems = false,
+}: {
+  items: { id: string; quantity: number; product?: { name?: string; basePrice?: number | string } }[];
+  totals: { subtotal: number; tax: number; shipping: number; total: number };
+  hideItems?: boolean;
+}) {
+  return (
+    <div className="space-y-3 text-sm">
+      {!hideItems && (
+        <ul className="space-y-2">
+          {items.map((item) => (
+            <li key={item.id} className="flex gap-3">
+              <span className="text-muted-foreground tabular">{item.quantity}×</span>
+              <span className="flex-1 truncate text-muted-foreground">{item.product?.name}</span>
+              <span className="font-medium text-foreground tabular">
+                ${((Number(item.product?.basePrice) || 0) * item.quantity).toFixed(2)}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+      <dl className={`space-y-2 ${hideItems ? "" : "border-t border-hairline pt-3"}`}>
+        <div className="flex justify-between gap-3">
+          <dt className="text-muted-foreground">Subtotal</dt>
+          <dd className="text-foreground tabular">${totals.subtotal.toFixed(2)}</dd>
+        </div>
+        <div className="flex justify-between gap-3">
+          <dt className="text-muted-foreground">ITBMS (7%)</dt>
+          <dd className="text-foreground tabular">${totals.tax.toFixed(2)}</dd>
+        </div>
+        <div className="flex justify-between gap-3">
+          <dt className="text-muted-foreground">Envío</dt>
+          <dd className="text-foreground tabular">
+            {totals.shipping === 0 ? "Gratis" : `$${totals.shipping.toFixed(2)}`}
+          </dd>
+        </div>
+        <div className="flex justify-between gap-3 border-t border-hairline pt-2 text-base font-bold">
+          <dt className="text-foreground">Total</dt>
+          <dd className="text-foreground tabular">${totals.total.toFixed(2)}</dd>
+        </div>
+      </dl>
     </div>
   );
 }
@@ -937,15 +1035,15 @@ function Field({
 }) {
   return (
     <div className={className}>
-      <label htmlFor={htmlFor} className="block text-sm font-medium text-gray-700 mb-1">
+      <label htmlFor={htmlFor} className="mb-1 block font-heading text-sm font-semibold text-foreground">
         {label}
-        {required && <span className="ml-0.5 text-red-500" aria-hidden="true">*</span>}
+        {required && <span className="ml-0.5 text-destructive" aria-hidden="true">*</span>}
         {required && <span className="sr-only"> (obligatorio)</span>}
-        {optional && <span className="ml-1 text-xs font-normal text-gray-400">(opcional)</span>}
+        {optional && <span className="ml-1 text-xs font-normal text-muted-foreground">(opcional)</span>}
       </label>
       {children}
       {error && htmlFor && (
-        <p id={`${htmlFor}-error`} className="mt-1 text-xs font-medium text-red-600">
+        <p id={`${htmlFor}-error`} className="mt-1 text-xs font-medium text-destructive">
           {error}
         </p>
       )}
