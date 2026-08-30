@@ -20,7 +20,7 @@ import { IconWhatsApp, whatsappHref } from "@/components/ui/icon-whatsapp"
  */
 export function QuoteBand() {
   return (
-    <section className="bg-brand-navy-deep text-on-dark">
+    <section className="defer-paint bg-brand-navy-deep text-on-dark">
       <div className="picket-rule" aria-hidden="true" />
 
       <div className="shell grid gap-8 py-10 sm:py-12 lg:grid-cols-2 lg:gap-12 lg:py-14">

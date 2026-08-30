@@ -32,7 +32,7 @@ export function SegmentSections({ sections }: { sections: SegmentSection[] }) {
         <section
           key={seg.slug}
           id={`uso-${seg.slug}`}
-          className={`border-b border-border ${i % 2 === 0 ? "bg-background" : "bg-surface-sunk"}`}
+          className={`defer-paint border-b border-border ${i % 2 === 0 ? "bg-background" : "bg-surface-sunk"}`}
         >
           <div className="shell py-8 sm:py-10 lg:py-12">
             <SectionHeader

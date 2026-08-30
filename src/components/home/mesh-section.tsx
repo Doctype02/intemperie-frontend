@@ -30,7 +30,7 @@ export function MeshSection({ products }: { products: HomeProduct[] }) {
   const antiClimb = products.some((p) => p.attributes?.antiClimbing)
 
   return (
-    <section id="malla" className="border-b border-border bg-surface">
+    <section id="malla" className="defer-paint border-b border-border bg-surface">
       <div className="shell py-8 sm:py-10 lg:py-12">
         <SectionHeader
           eyebrow="Acero galvanizado"

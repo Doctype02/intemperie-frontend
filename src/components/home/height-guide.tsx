@@ -29,7 +29,7 @@ export function HeightGuide({ bands }: { bands: HeightBand[] }) {
   if (!bands.length) return null
 
   return (
-    <section id="por-altura" className="border-b border-border bg-brand-navy-deep">
+    <section id="por-altura" className="defer-paint border-b border-border bg-brand-navy-deep">
       <div className="shell py-8 sm:py-10 lg:py-12">
         <SectionHeader
           tone="dark"

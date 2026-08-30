@@ -20,7 +20,7 @@ export function NewArrivals({ products }: { products: HomeProduct[] }) {
   if (products.length < 2) return null
 
   return (
-    <section className="border-b border-border bg-background">
+    <section className="defer-paint border-b border-border bg-background">
       <div className="shell py-8 sm:py-10 lg:py-12">
         <SectionHeader
           eyebrow="Recién incorporado"

@@ -33,7 +33,7 @@ export function PriceList({ products }: { products: HomeProduct[] }) {
   const hasMeters = products.some((p) => p.unit === "METRO")
 
   return (
-    <section id="precios" className="border-b border-border bg-surface-sunk">
+    <section id="precios" className="defer-paint border-b border-border bg-surface-sunk">
       <div className="shell py-8 sm:py-10 lg:py-12">
         <SectionHeader
           eyebrow="Sin llamar, sin esperar"
