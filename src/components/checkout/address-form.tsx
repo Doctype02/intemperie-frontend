@@ -1,12 +1,11 @@
 "use client";
 
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { addressSchema, type AddressInput } from "@/lib/validators";
+import { addressResolver, type AddressInput } from "@/lib/validators";
 import type { Address } from "@/types";
 
 interface AddressFormProps {
@@ -23,7 +22,7 @@ export function AddressForm({ onSubmit, isSubmitting, defaultValues }: AddressFo
     watch,
     formState: { errors },
   } = useForm<AddressInput>({
-    resolver: zodResolver(addressSchema),
+    resolver: addressResolver,
     defaultValues: {
       street: defaultValues?.street || "",
       city: defaultValues?.city || "",
