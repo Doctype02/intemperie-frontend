@@ -18,12 +18,12 @@ import type { ProductImage, ProductUnit } from "@/types"
  *
  * Lo que cambia aquí:
  *
- * 1. COLOR. Tenía dieciséis literales y un mapa `catColors` con hexadecimales
- *    por categoría («Residencial» = #dcfce7). Ese mapa se rompía dos veces: en
- *    modo oscuro pintaba un verde pastel detrás de una foto sobre fondo azul
- *    marino, y con una categoría nueva en el CMS caía al color por defecto sin
- *    que nadie se enterara. Un fondo distinto por categoría además no informaba
- *    de nada: el nombre de la categoría ya está escrito debajo.
+ * 1. COLOR. Tenía dieciséis literales y un mapa `catColors` con un hexadecimal
+ *    escrito a mano por categoría. Ese mapa se rompía dos veces: en modo oscuro
+ *    metía un pastel clarísimo detrás de la foto, sobre un fondo azul marino, y
+ *    con una categoría nueva en el CMS caía al color por defecto sin que nadie
+ *    se enterara. Un fondo distinto por categoría tampoco informaba de nada: el
+ *    nombre de la categoría ya está escrito justo debajo.
  *
  * 2. EL HUECO SIN FOTO. Diez de las quince fichas del catálogo no tienen
  *    fotografía. Un icono de imagen genérico dice «esto falló»; el alzado
@@ -154,18 +154,20 @@ export function ProductCard(p: ProductCardProps) {
           />
         )}
 
-        <div className="absolute top-2 left-2 flex flex-col items-start gap-1">
-          {p.isNew && (
-            <span className="rounded-sm bg-brand-green-deep px-1.5 py-0.5 text-2xs font-bold text-on-dark">
-              Nuevo
-            </span>
-          )}
-          {discount > 0 && (
-            <span className="tabular rounded-sm bg-destructive px-1.5 py-0.5 text-2xs font-bold text-destructive-foreground">
-              -{discount}%
-            </span>
-          )}
-        </div>
+        {(p.isNew || discount > 0) && (
+          <div className="absolute top-2 left-2 flex flex-col items-start gap-1">
+            {p.isNew && (
+              <span className="rounded-sm bg-brand-green-deep px-1.5 py-0.5 text-2xs font-bold text-on-dark">
+                Nuevo
+              </span>
+            )}
+            {discount > 0 && (
+              <span className="tabular rounded-sm bg-destructive px-1.5 py-0.5 text-2xs font-bold text-destructive-foreground">
+                -{discount}%
+              </span>
+            )}
+          </div>
+        )}
 
         {/* El objetivo táctil mide 44 px aunque el círculo visible mida 32: se
             pulsa con el pulgar en marcha, y agrandar el círculo taparía la
