@@ -37,6 +37,11 @@ export function HeaderAccount() {
   const items = [
     { label: "Mi cuenta", href: "/cuenta" },
     { label: "Mis pedidos", href: "/cuenta/pedidos" },
+    /* Inspecciones es la herramienta de campo, no una pagina de tienda: lleva la
+       tabla de materiales de la empresa y las firmas. Se retiro del menu publico
+       y del pie por eso, pero quien tiene sesion necesita poder llegar. Aqui,
+       dentro del menu de la cuenta, sale para quien ha entrado y para nadie mas. */
+    { label: "Inspecciones", href: "/inspecciones" },
     ...(user?.role === "ADMIN" ? [{ label: "Panel de administración", href: "/admin" }] : []),
   ]
 
