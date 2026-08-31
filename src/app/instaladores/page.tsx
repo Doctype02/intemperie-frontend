@@ -194,14 +194,23 @@ export default function InstaladoresPage() {
           <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {BENEFITS.map((benefit) => (
               <li key={benefit.title} className="rounded-xl border border-border bg-surface p-5">
-                {/* `bg-secondary` y no `bg-brand-green-soft`: en modo oscuro el
-                    verde suave y el verde profundo caen a la misma luminosidad
-                    y el icono desaparece dentro de su propia caja. */}
-                <span className="flex size-11 items-center justify-center rounded-lg bg-secondary">
-                  <benefit.Icon className="size-5 text-secondary-foreground" aria-hidden="true" />
-                </span>
-                <h3 className="mt-4 text-base font-bold text-foreground">{benefit.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{benefit.body}</p>
+                {/* El icono iba encima del título, y sus 44 px más los 16 de
+                    separación eran 60 px de una tarjeta de 175 en móvil: un
+                    tercio del alto sin una palabra. Puesto al lado, ocupa la
+                    misma línea que el título, que ahí sobra ancho —318 px de
+                    contenido para un rótulo de tres palabras. */}
+                <div className="flex items-center gap-3">
+                  {/* `bg-secondary` y no `bg-brand-green-soft`: en modo oscuro
+                      el verde suave y el verde profundo caen a la misma
+                      luminosidad y el icono desaparece dentro de su caja. */}
+                  <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-secondary">
+                    <benefit.Icon className="size-5 text-secondary-foreground" aria-hidden="true" />
+                  </span>
+                  <h3 className="text-base font-bold text-balance text-foreground">
+                    {benefit.title}
+                  </h3>
+                </div>
+                <p className="mt-3 text-sm text-muted-foreground">{benefit.body}</p>
               </li>
             ))}
           </ul>
