@@ -1,290 +1,749 @@
-import { Header } from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
-import { mediaUrl } from "@/lib/image-utils";
-import Link from "next/link";
-import Image from "next/image";
-import { ArrowRight, Shield, Star, Phone, Mail, Clock, Check, Globe, Award, Users, Truck, Quote } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import Image from "next/image"
+import Link from "next/link"
+import type { Metadata } from "next"
+import {
+  ArrowRight,
+  Award,
+  Check,
+  ChevronRight,
+  Clock,
+  Factory,
+  Mail,
+  MapPin,
+  Phone,
+  ShieldCheck,
+  Wrench,
+} from "lucide-react"
 
+import { Footer } from "@/components/layout/footer"
+import { Header } from "@/components/layout/header"
+import { CONTACT, WA_MESSAGE } from "@/components/layout/nav-data"
+import { IconWhatsApp, whatsappHref } from "@/components/ui/icon-whatsapp"
+
+import {
+  CERTIFICATIONS,
+  ESSENCE,
+  MODEL_SHOTS,
+  PROJECTS,
+  TEAM,
+  TESTIMONIALS,
+  monthLabel,
+} from "./content"
+
+/* «Nosotros» — sistema «Perímetro».
+ *
+ * Esta y `/instaladores` eran las dos últimas páginas con la paleta antigua:
+ * `green-700`, `gray-50`, `gray-900`, `amber-400`… 278 clases de color escritas
+ * a mano en un sitio donde el color vive en `globals.css`. Aquí ya no queda
+ * ninguna: cada superficie, cada línea y cada texto sale de un token, así que
+ * el día que se afine el verde de marca esta página se afina con él.
+ *
+ * Pero el problema de fondo no era el color, era el contenido. Una página
+ * «nosotros» sólo tiene un trabajo —convencer a alguien que está a punto de
+ * gastarse cuatro cifras de que hay una empresa detrás— y ésta lo hacía con
+ * material que no aguanta una pregunta:
+ *
+ * · «Más de 15 años protegiendo hogares, industrias y proyectos en
+ *   **Latinoamérica**», mientras la política de envíos habla de la República
+ *   de Panamá y el JSON-LD del sitio declara `areaServed: PA`. Dos promesas de
+ *   cobertura distintas en la misma web. Se queda la que la empresa cumple.
+ *
+ * · Ocho fotografías del catálogo bajo el rótulo «Nuestras instalaciones»,
+ *   numeradas «Proyecto 1»…«Proyecto 8», sin ubicación y sin fecha. Como
+ *   prueba de obra no valen; como catálogo, sí. Quedan dos, llamadas por el
+ *   nombre del modelo y enlazadas a su ficha.
+ *
+ * · Tres testimonios de nombre de pila, ciudad y cinco estrellas cada uno.
+ *   Ése es, literalmente, el formato del testimonio inventado.
+ *
+ * Ninguna de esas cosas se ha sustituido por otra inventada. Todo el contenido
+ * verificable —equipo, certificaciones, obras y testimonios— vive ahora en
+ * `content.ts` con sus listas a cero y con la ficha de lo que hay que pedirle
+ * al cliente escrita al lado de cada una. Las secciones cuyo contenido no ha
+ * llegado no se pintan; la que sí tiene sustituto honesto —obras— lo dice y
+ * manda al catálogo. La página se lee entera y cierra igual con las cuatro
+ * listas vacías.
+ *
+ * Cero hidratación: es HTML de servidor de arriba abajo, como la portada. El
+ * único JavaScript de la ruta es el de la cabecera y el botón flotante.
+ */
+
+export const metadata: Metadata = {
+  title: "Quiénes somos",
+  description:
+    "Intemperie fabrica e instala cercas de PVC y malla electrosoldada en Panamá, desde La Chorrera. Quiénes somos, qué hacemos y cómo contactarnos.",
+  alternates: { canonical: "/nosotros" },
+}
+
+/* ── Primitivas de maquetación ───────────────────────────────────────────
+   Las mismas cuatro decisiones repetidas nueve veces se declaran una: el
+   canalón lo pone `.shell`, el ritmo vertical lo pone esta función y la
+   superficie alterna para que nueve bloques seguidos no se lean como una
+   mancha única. */
+function Section({
+  children,
+  surface = "base",
+  id,
+  defer = true,
+}: {
+  children: React.ReactNode
+  surface?: "base" | "raised" | "sunk" | "navy"
+  id?: string
+  defer?: boolean
+}) {
+  const bg = {
+    base: "bg-background",
+    raised: "bg-surface",
+    sunk: "bg-surface-sunk",
+    navy: "bg-brand-navy-deep text-on-dark",
+  }[surface]
+
+  return (
+    <section
+      id={id}
+      className={`border-b border-border ${bg} ${defer ? "defer-paint" : ""}`}
+    >
+      <div className="shell py-10 sm:py-12 lg:py-14">{children}</div>
+    </section>
+  )
+}
+
+function SectionHead({
+  eyebrow,
+  title,
+  sub,
+}: {
+  eyebrow: string
+  title: string
+  sub?: string
+}) {
+  return (
+    <div className="mb-6 max-w-prose">
+      <p className="eyebrow text-brand-green-deep">{eyebrow}</p>
+      <h2 className="mt-1 text-2xl font-bold tracking-tight text-balance text-foreground sm:text-3xl">
+        {title}
+      </h2>
+      {sub && <p className="mt-2 text-sm text-muted-foreground">{sub}</p>}
+    </div>
+  )
+}
+
+/* ── Página ──────────────────────────────────────────────────────────────── */
 export default function NosotrosPage() {
+  const [firstShot, secondShot] = MODEL_SHOTS
+
   return (
     <>
       <Header />
-      <main className="flex-1">
-        {/* Hero */}
-        <section className="relative bg-gradient-to-br from-green-800 to-green-950 overflow-hidden">
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute -top-20 -left-20 w-96 h-96 bg-white rounded-full blur-3xl" />
-            <div className="absolute -bottom-20 -right-20 w-96 h-96 bg-white rounded-full blur-3xl" />
-          </div>
-          <div className="relative mx-auto max-w-7xl px-4 sm:px-6 py-20 md:py-28 text-center text-white">
-            <p className="text-sm font-semibold text-green-300 mb-3 tracking-wide uppercase">Intemperie</p>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight">
-              Seguridad y Elegancia<br />al Aire Libre
-            </h1>
-            <p className="mt-4 text-base sm:text-lg text-green-100 max-w-2xl mx-auto">
-              Especialistas en Cercas PVC y Mallas Electrosoldadas. Más de 15 años protegiendo hogares, industrias y proyectos en Latinoamérica.
-            </p>
-          </div>
-        </section>
 
-        {/* Welcome */}
-        <section className="bg-white py-16 lg:py-20">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
-              <div className="relative h-72 sm:h-96 rounded-2xl overflow-hidden bg-gray-200 shadow-lg">
-                <Image src={mediaUrl("/products/cerca-pvc-vesta-601/vesta-1.jpg")} alt="Calidad Intemperie" fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-green-700 mb-3 tracking-wide uppercase">Bienvenido a Intemperie</p>
-                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-gray-900 tracking-tight leading-tight">
-                  SEGURIDAD Y ELEGANCIA<br />PARA TODOS LOS ESPACIOS
-                </h2>
-                <p className="mt-5 text-base text-gray-500 leading-relaxed">
-                  Somos especialistas en Cercas PVC y Mallas Electrosoldadas para todo tipo de cerramientos. Trabajamos con PVC reforzado de la más alta calidad y mallas electrosoldadas de fábricas certificadas.
-                </p>
-                <div className="mt-6 space-y-3">
-                  {["Garantía oficial en todos nuestros productos", "Envíos a Latinoamérica y el Caribe", "Asesoría técnica e instalación profesional"].map((item, i) => (
-                    <div key={i} className="flex items-start gap-2.5">
-                      <Check className="h-5 w-5 text-green-600 shrink-0 mt-0.5" />
-                      <span className="text-sm text-gray-600">{item}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+      {/* El enlace «Saltar al contenido» de la cabecera apunta aquí. Antes esta
+          página no tenía el ancla: el salto no llevaba a ningún sitio. */}
+      <main id="main-content" tabIndex={-1} className="flex-1">
+        {/* ── 1. Quiénes somos ─────────────────────────────────────────────
+            Sin `defer-paint`: está en el primer viewport y aplazar su pintado
+            retrasaría el LCP. */}
+        <section className="border-b border-border bg-brand-navy-deep text-on-dark">
+          <div className="shell grid gap-8 py-10 lg:grid-cols-[1.05fr_1fr] lg:items-center lg:gap-12 lg:py-16">
+            <div className="min-w-0">
+              <p className="eyebrow text-brand-green">
+                Intemperie · {CONTACT.city}
+              </p>
 
-        {/* Vision / Mission / Purpose */}
-        <section className="bg-gray-50 py-16 lg:py-20">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <div className="text-center mb-12">
-              <p className="text-sm font-semibold text-green-700 mb-2 tracking-wide uppercase">Nuestra esencia</p>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900">VISIÓN, MISIÓN Y PROPÓSITO</h2>
-              <p className="mt-3 text-sm text-gray-500 max-w-xl mx-auto">Los principios que guían cada cerca que fabricamos y cada proyecto que entregamos.</p>
-            </div>
-            <div className="grid sm:grid-cols-3 gap-6">
-              {[
-                { title: "Visión", subtitle: "Ser líderes en cerramientos", body: "Convertirnos en la empresa referente de Latinoamérica y el Caribe en soluciones de cercas PVC y mallas electrosoldadas, reconocida por su innovación, calidad y compromiso con cada cliente." },
-                { title: "Misión", subtitle: "Proteger lo que más importa", body: "Diseñar, comercializar e instalar sistemas de cerramiento que combinan seguridad, estética y durabilidad, brindando asesoría profesional y un servicio cercano en cada proyecto." },
-                { title: "Propósito", subtitle: "Transformar espacios al aire libre", body: "Crear entornos seguros, elegantes y duraderos para hogares, empresas y comunidades, aportando tranquilidad y valor a las personas que confían en nosotros." },
-              ].map((item, i) => (
-                <div key={i} className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-100 hover:shadow-lg transition-all duration-300">
-                  <span className="inline-block text-xs font-extrabold text-green-700 bg-green-50 px-3 py-1 rounded-full mb-4">{item.title}</span>
-                  <h3 className="text-lg font-extrabold text-gray-900 mb-3">{item.subtitle}</h3>
-                  <p className="text-sm text-gray-500 leading-relaxed">{item.body}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+              <h1 className="mt-2 text-4xl font-bold tracking-tight text-balance lg:text-5xl">
+                Fabricamos e instalamos cercas en Panamá
+              </h1>
 
-        {/* Why choose us */}
-        <section className="bg-white py-16 lg:py-20">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
-              <div className="order-2 lg:order-1">
-                <p className="text-sm font-semibold text-green-700 mb-3 tracking-wide uppercase">Por qué elegirnos</p>
-                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-gray-900 tracking-tight leading-tight">
-                  CALIDAD QUE SE VE<br />Y SE SIENTE.
-                </h2>
-                <p className="mt-5 text-base text-gray-500 leading-relaxed">
-                  Trabajamos con PVC reforzado de la más alta calidad y mallas electrosoldadas de fábricas certificadas. Cada producto está diseñado para resistir la intemperie por décadas.
-                </p>
-                <div className="mt-6 grid sm:grid-cols-2 gap-3">
-                  {[
-                    { icon: Shield, title: "Garantía Oficial", desc: "En todos nuestros productos" },
-                    { icon: Globe, title: "Envíos Internacionales", desc: "A Latinoamérica y el Caribe" },
-                    { icon: Users, title: "Asesoría Técnica", desc: "Instalación profesional" },
-                    { icon: Truck, title: "Despacho Rápido", desc: "A todo Panamá" },
-                  ].map((item, i) => (
-                    <div key={i} className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                      <item.icon className="h-6 w-6 text-green-600 mb-2" />
-                      <h3 className="text-sm font-extrabold text-gray-900">{item.title}</h3>
-                      <p className="text-xs text-gray-500 mt-0.5">{item.desc}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="order-1 lg:order-2 relative h-72 sm:h-96 rounded-2xl overflow-hidden bg-gray-200 shadow-lg">
-                <Image src={mediaUrl("/products/cerca-pvc-atenea-305/porton.jpg")} alt="Calidad" fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover" />
+              <p className="mt-4 max-w-prose text-base text-on-dark-soft">
+                Cercas de PVC y malla electrosoldada para casas, naves, fincas e
+                instituciones. Vendemos el material con el precio por metro
+                lineal delante y lo montamos nosotros o un instalador de la red.
+              </p>
+
+              <p className="mt-3 max-w-prose text-sm text-on-dark-soft">
+                Trabajamos desde {CONTACT.city}, con cobertura en las diez
+                provincias. No enviamos fuera del país: lo que se promete aquí
+                es lo mismo que dice la{" "}
+                <Link
+                  href="/envios"
+                  className="rounded-sm font-semibold text-on-dark underline underline-offset-4 transition-colors hover:text-brand-green"
+                >
+                  política de envíos
+                </Link>
+                .
+              </p>
+
+              <div className="mt-6 flex flex-wrap gap-2">
+                <a
+                  href={whatsappHref(WA_MESSAGE.general)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex h-12 items-center gap-2 rounded-lg bg-whatsapp px-5 font-heading font-semibold text-on-dark transition-colors hover:bg-whatsapp-deep"
+                >
+                  <IconWhatsApp />
+                  Hablar con nosotros
+                </a>
+                <Link
+                  href="/productos"
+                  className="flex h-12 items-center gap-2 rounded-lg border border-on-dark/45 bg-on-dark/10 px-5 font-heading font-semibold text-on-dark transition-colors hover:bg-on-dark/20"
+                >
+                  Ver el catálogo
+                  <ArrowRight className="size-4" aria-hidden="true" />
+                </Link>
               </div>
             </div>
-          </div>
-        </section>
 
-        {/* Projects Gallery */}
-        <section className="bg-gray-50 py-16 lg:py-20">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <div className="text-center mb-10">
-              <p className="text-sm font-semibold text-green-700 mb-2 tracking-wide uppercase">Proyectos realizados</p>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900">NUESTRAS INSTALACIONES</h2>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-              {[
-                "/products/cerca-pvc-afrodita-401/porton.jpg",
-                "/products/cerca-pvc-afrodita-401/porton-2.jpg",
-                "/products/cerca-pvc-atenea-305/porton.jpg",
-                "/products/cerca-pvc-atenea-305/porton-2.jpg",
-                "/products/cerca-pvc-poseidon-502/1-pagina-principal.jpg",
-                "/products/cerca-pvc-poseidon-502/10.jpg",
-                "/products/cerca-pvc-vesta-601/1-foto-de-portada.jpg",
-                "/products/cerca-pvc-vesta-601/vesta-1.jpg",
-              ].map((src, i) => (
-                <div key={i} className="relative aspect-[4/3] rounded-xl overflow-hidden bg-gray-200 shadow-sm hover:shadow-md transition-shadow">
-                  <Image src={mediaUrl(src)} alt={`Proyecto ${i + 1}`} fill sizes="(max-width: 640px) 50vw, 25vw" className="object-cover" />
+            {/* Una sola imagen en el primer viewport, con relación de aspecto
+                fija en los dos anchos: no hay salto de maquetación. */}
+            {firstShot && (
+              <figure className="min-w-0">
+                <div className="relative aspect-[16/10] overflow-hidden rounded-xl lg:aspect-[4/3]">
+                  <Image
+                    src={firstShot.src}
+                    alt={firstShot.alt}
+                    fill
+                    preload
+                    sizes="(max-width: 1024px) 100vw, 46vw"
+                    className="object-cover object-center"
+                  />
                 </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Testimonials */}
-        <section className="bg-white py-16 lg:py-20">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <div className="text-center mb-12">
-              <p className="text-sm font-semibold text-green-700 mb-2 tracking-wide uppercase">Lo que dicen nuestros clientes</p>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900">TESTIMONIOS</h2>
-            </div>
-            <div className="grid sm:grid-cols-3 gap-6">
-              {[
-                { name: "Karen Zambrano",  initials: "KZ", color: "bg-green-100 text-green-700",  text: "Excelente servicio y la cerca se ve hermosa. Muy fácil de instalar.", location: "Ciudad de Panamá" },
-                { name: "Keila Arenas",    initials: "KA", color: "bg-blue-100 text-blue-700",    text: "Calidad superior, justo lo que buscaba para mi propiedad.", location: "Chiriquí" },
-                { name: "Verónica Álvarez",initials: "VA", color: "bg-purple-100 text-purple-700",text: "Asesoría profesional de principio a fin. ¡100% recomendados!", location: "Colón" },
-              ].map((t, i) => (
-                <div key={i} className="bg-gray-50 rounded-2xl p-6 sm:p-8 border border-gray-100 flex flex-col">
-                  <Quote className="h-7 w-7 text-green-200 mb-3" />
-                  <p className="text-sm text-gray-600 leading-relaxed italic flex-1">&ldquo;{t.text}&rdquo;</p>
-                  <div className="flex items-center gap-0.5 mt-3 text-amber-400">
-                    {[...Array(5)].map((_, j) => (<Star key={j} className="h-3.5 w-3.5 fill-current" />))}
-                  </div>
-                  <div className="mt-4 pt-4 border-t border-gray-200 flex items-center gap-3">
-                    <div className={`h-9 w-9 rounded-full flex items-center justify-center text-sm font-black shrink-0 ${t.color}`}>
-                      {t.initials}
-                    </div>
-                    <div>
-                      <p className="text-sm font-extrabold text-gray-900 leading-tight">{t.name}</p>
-                      <p className="text-xs text-gray-400">{t.location}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Instaladores */}
-        <section id="instaladores" className="bg-gray-50 border-y border-gray-100 py-14 sm:py-20">
-          <div className="mx-auto max-w-4xl px-4 sm:px-6">
-            <div className="grid gap-10 lg:grid-cols-2 items-center">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-green-600 mb-2">Programa de instaladores</p>
-                <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 leading-tight">
-                  ¿Eres instalador de cercas?
-                </h2>
-                <p className="mt-3 text-sm text-gray-500 leading-relaxed">
-                  Únete a la red oficial de instaladores certificados de Intemperie. Accede a precios exclusivos,
-                  capacitación técnica, leads de clientes en tu zona y el respaldo de la marca líder en cercas PVC en Panamá.
-                </p>
-                <ul className="mt-5 space-y-2.5">
-                  {[
-                    "Descuento de instalador en todos los productos",
-                    "Clientes referidos en tu zona de cobertura",
-                    "Certificado digital y badge verificado Intemperie",
-                    "Soporte técnico directo con nuestro equipo",
-                  ].map((item) => (
-                    <li key={item} className="flex items-start gap-2.5 text-sm text-gray-600">
-                      <Check className="h-4 w-4 text-green-600 shrink-0 mt-0.5" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-                <div className="mt-8 flex flex-col sm:flex-row gap-3">
+                <figcaption className="mt-2 text-xs text-on-dark-soft">
+                  Modelo de catálogo{" "}
                   <Link
-                    href="/instaladores/registro"
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-green-700 px-6 py-3 text-sm font-extrabold text-white hover:bg-green-800 transition-colors shadow-sm"
+                    href={firstShot.href}
+                    className="rounded-sm font-semibold text-on-dark underline underline-offset-4 transition-colors hover:text-brand-green"
                   >
-                    Registrar mi empresa <ArrowRight className="h-4 w-4" />
+                    {firstShot.model}
                   </Link>
-                  <Link
-                    href="/instaladores"
-                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 px-6 py-3 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    Ver directorio de instaladores
-                  </Link>
-                </div>
-              </div>
-              <div className="hidden lg:block rounded-2xl bg-green-700 p-8 text-white">
-                <p className="text-xs font-bold uppercase tracking-widest text-green-300 mb-4">Beneficios del programa</p>
-                <div className="space-y-4">
-                  {[
-                    { icon: Award, label: "Certificación oficial", desc: "Badge verificado en tu perfil" },
-                    { icon: Users, label: "Red de clientes", desc: "Leads en tu zona geográfica" },
-                    { icon: Truck, label: "Envío prioritario", desc: "Despacho express en tus pedidos" },
-                    { icon: Shield, label: "Soporte técnico", desc: "Asesoría directa del equipo" },
-                  ].map(({ icon: Icon, label, desc }) => (
-                    <div key={label} className="flex items-start gap-3">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/10">
-                        <Icon className="h-4.5 w-4.5 text-green-200" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-extrabold text-white">{label}</p>
-                        <p className="text-xs text-green-200/80 mt-0.5">{desc}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+                  . No es una fotografía de obra entregada.
+                </figcaption>
+              </figure>
+            )}
           </div>
         </section>
 
-        {/* CTA */}
-        <section className="bg-green-700 py-16 lg:py-20">
-          <div className="mx-auto max-w-4xl px-4 sm:px-6 text-center">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white tracking-tight">
-              ¿LISTO PARA CERCAR TU ESPACIO?
-            </h2>
-            <p className="mt-4 text-base sm:text-lg text-green-100 max-w-2xl mx-auto">
-              Cotiza tu proyecto en minutos. Te asesoramos con el modelo, dimensiones e instalación.
-            </p>
-            <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
-              <Button asChild size="lg" className="bg-white text-green-700 hover:bg-green-50 font-bold h-14 px-10 rounded-xl shadow-lg">
-                <a href="https://wa.me/50762874042" target="_blank" rel="noopener noreferrer">Escríbenos por WhatsApp <ArrowRight className="ml-2 h-5 w-5" /></a>
-              </Button>
-              <Button asChild variant="outline" size="lg" className="border-white/30 text-white hover:bg-white/10 font-bold h-14 px-10 rounded-xl">
-                <Link href="/productos">Ver tienda online</Link>
-              </Button>
-            </div>
-          </div>
-        </section>
-
-        {/* Contact */}
-        <section className="bg-gray-900 text-white py-12">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 text-center sm:text-left">
+        {/* ── 2. Los cuatro datos comprobables ─────────────────────────────
+            Cuatro y no seis, y ninguno es «100% satisfacción»: los cuatro se
+            pueden comprobar sin salir del sitio, y tres de ellos llevan a la
+            página donde se comprueban. */}
+        <section className="border-b border-border bg-surface">
+          <div className="shell">
+            <ul className="grid grid-cols-2 lg:grid-cols-4">
               {[
-                { icon: Phone, label: "Teléfono", value: "+507 6287-4042", href: "tel:+50762874042" },
-                { icon: Mail, label: "Email", value: "ventas@intemperie.com", href: "mailto:ventas@intemperie.com" },
-                { icon: Globe, label: "Ubicación", value: "Latinoamérica y Caribe" },
-                { icon: Clock, label: "Horario", value: "Lun–Sáb 8AM–6PM" },
+                {
+                  Icon: Factory,
+                  title: "Fabricación propia",
+                  sub: `Taller en ${CONTACT.city}`,
+                  href: "/productos",
+                },
+                {
+                  Icon: MapPin,
+                  title: "Las diez provincias",
+                  sub: "Cobertura y costes publicados",
+                  href: "/envios",
+                },
+                {
+                  Icon: ShieldCheck,
+                  title: "Garantía por modelo",
+                  sub: "El plazo, en cada ficha",
+                  href: "/productos",
+                },
+                {
+                  Icon: Wrench,
+                  title: "Instalación",
+                  sub: "Equipo propio y red de instaladores",
+                  href: "/instaladores",
+                },
               ].map((item, i) => (
-                <div key={i} className="flex flex-col items-center sm:items-start gap-1.5">
-                  <item.icon className="h-5 w-5 text-green-400 mb-1" />
-                  <p className="text-xs text-gray-400">{item.label}</p>
-                  {item.href ? (
-                    <a href={item.href} className="text-sm font-semibold text-white hover:text-green-300 transition-colors">{item.value}</a>
+                <li
+                  key={item.title}
+                  className={`border-border ${i % 2 === 0 ? "sm:border-r" : ""} ${
+                    i < 2 ? "border-b lg:border-b-0" : ""
+                  } lg:border-r lg:last:border-r-0`}
+                >
+                  <Link
+                    href={item.href}
+                    className="flex h-full items-start gap-2.5 px-1 py-4 transition-colors hover:bg-surface-2 sm:px-4"
+                  >
+                    <item.Icon
+                      className="mt-0.5 size-5 shrink-0 text-brand-green"
+                      aria-hidden="true"
+                    />
+                    <div className="min-w-0">
+                      <p className="text-sm leading-tight font-semibold text-foreground">
+                        {item.title}
+                      </p>
+                      <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
+                        {item.sub}
+                      </p>
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        {/* ── 3. Qué hacemos ─────────────────────────────────────────────── */}
+        <Section surface="base">
+          <div className="grid gap-8 lg:grid-cols-[1fr_1fr] lg:items-start lg:gap-12">
+            <div className="min-w-0">
+              <SectionHead
+                eyebrow="Qué hacemos"
+                title="Dos materiales, un perímetro"
+              />
+              <p className="max-w-prose text-base text-foreground">
+                Trabajamos dos sistemas y sólo dos, porque son los que sabemos
+                fabricar y montar: cerca de PVC reforzado, para quien quiere que
+                el cerramiento se vea bien y no lo pinte nunca más, y malla
+                electrosoldada, para quien necesita cerrar mucho metro con el
+                menor coste por metro.
+              </p>
+              <ul className="mt-5 space-y-3">
+                {[
+                  {
+                    title: "Le decimos el precio antes de ir a verlo",
+                    body: "El precio por metro lineal está publicado en cada ficha y en la calculadora. La visita sirve para medir, no para revelar el precio.",
+                  },
+                  {
+                    title: "Asesoría de altura y modelo",
+                    body: "Qué altura pide un lindero, qué calibre aguanta un potrero y qué modelo resiste el salitre: eso se resuelve antes de cotizar.",
+                  },
+                  {
+                    title: "Montaje o material suelto",
+                    body: "Puede comprar sólo el material y montarlo usted, o encargarnos la instalación completa.",
+                  },
+                ].map((item) => (
+                  <li key={item.title} className="flex items-start gap-2.5">
+                    <Check
+                      className="mt-0.5 size-5 shrink-0 text-brand-green"
+                      aria-hidden="true"
+                    />
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-foreground">
+                        {item.title}
+                      </p>
+                      <p className="mt-0.5 text-sm text-muted-foreground">
+                        {item.body}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="/calculadora"
+                className="mt-6 inline-flex h-12 items-center gap-2 rounded-lg bg-primary px-5 font-heading font-semibold text-primary-foreground transition-colors hover:bg-brand-green-deep"
+              >
+                Calcular mi presupuesto
+                <ArrowRight className="size-4" aria-hidden="true" />
+              </Link>
+            </div>
+
+            {secondShot && (
+              <figure className="min-w-0">
+                <div className="relative aspect-[4/3] overflow-hidden rounded-xl border border-border">
+                  <Image
+                    src={secondShot.src}
+                    alt={secondShot.alt}
+                    fill
+                    loading="lazy"
+                    sizes="(max-width: 1024px) 100vw, 46vw"
+                    className="object-cover object-center"
+                  />
+                </div>
+                <figcaption className="mt-2 text-xs text-muted-foreground">
+                  Modelo de catálogo{" "}
+                  <Link
+                    href={secondShot.href}
+                    className="rounded-sm font-semibold text-brand-green-deep underline underline-offset-4 transition-colors hover:text-brand-green"
+                  >
+                    {secondShot.model}
+                  </Link>
+                  . Fotografía de producto, no de obra entregada.
+                </figcaption>
+              </figure>
+            )}
+          </div>
+        </Section>
+
+        {/* ── 4. Visión, misión y propósito ──────────────────────────────── */}
+        <Section surface="sunk">
+          <SectionHead
+            eyebrow="Nuestra esencia"
+            title="Visión, misión y propósito"
+            sub="Lo que la empresa se propone. Son palabras nuestras, no cifras: las cifras están arriba y llevan a la página donde se comprueban."
+          />
+          <ul className="grid gap-4 sm:grid-cols-3">
+            {ESSENCE.map((pillar) => (
+              <li
+                key={pillar.label}
+                className="rounded-xl border border-border bg-surface p-5"
+              >
+                <p className="eyebrow text-brand-green-deep">{pillar.label}</p>
+                <h3 className="mt-2 text-lg font-bold text-balance text-foreground">
+                  {pillar.title}
+                </h3>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {pillar.body}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </Section>
+
+        {/* ── 5. Equipo ────────────────────────────────────────────────────
+            No se pinta mientras no haya nadie cargado. Ver `content.ts`. */}
+        {TEAM.length > 0 && (
+          <Section surface="base">
+            <SectionHead
+              eyebrow="Quién le atiende"
+              title="El equipo"
+              sub="Las personas que cotizan, fabrican y montan."
+            />
+            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {TEAM.map((member) => (
+                <li
+                  key={member.name}
+                  className="rounded-xl border border-border bg-surface p-5"
+                >
+                  {member.photo ? (
+                    <div className="relative mb-4 aspect-[4/3] overflow-hidden rounded-lg">
+                      <Image
+                        src={member.photo.src}
+                        alt={member.photo.alt}
+                        fill
+                        loading="lazy"
+                        sizes="(max-width: 640px) 100vw, 25vw"
+                        className="object-cover object-center"
+                      />
+                    </div>
                   ) : (
-                    <p className="text-sm font-semibold text-white">{item.value}</p>
+                    <p
+                      className="mb-4 flex size-12 items-center justify-center rounded-lg bg-brand-green-soft font-heading text-lg font-bold text-brand-green-deep"
+                      aria-hidden="true"
+                    >
+                      {member.name.charAt(0)}
+                    </p>
                   )}
-                </div>
+                  <p className="text-base font-bold text-foreground">
+                    {member.name}
+                  </p>
+                  <p className="mt-0.5 text-sm text-muted-foreground">
+                    {member.role}
+                  </p>
+                  {member.since && (
+                    <p className="mt-1 text-xs text-muted-foreground tabular">
+                      En Intemperie desde {member.since}
+                    </p>
+                  )}
+                </li>
               ))}
+            </ul>
+          </Section>
+        )}
+
+        {/* ── 6. Certificaciones ──────────────────────────────────────────
+            Tampoco se pinta vacía: «fábricas certificadas» sin decir por quién
+            no es una certificación. Ver `content.ts`. */}
+        {CERTIFICATIONS.length > 0 && (
+          <Section surface="raised">
+            <SectionHead
+              eyebrow="Respaldo"
+              title="Certificaciones"
+              sub="Quién emite cada certificado y a qué aplica."
+            />
+            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {CERTIFICATIONS.map((cert) => (
+                <li
+                  key={cert.name}
+                  className="rounded-xl border border-border bg-surface p-5"
+                >
+                  <Award
+                    className="size-5 text-brand-green"
+                    aria-hidden="true"
+                  />
+                  <h3 className="mt-3 text-base font-bold text-foreground">
+                    {cert.name}
+                  </h3>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {cert.issuer}
+                    {cert.year && <span className="tabular"> · {cert.year}</span>}
+                  </p>
+                  {cert.scope && (
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {cert.scope}
+                    </p>
+                  )}
+                  {cert.href && (
+                    <a
+                      href={cert.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-3 inline-flex items-center gap-1 rounded-sm text-sm font-semibold text-brand-green-deep transition-colors hover:text-brand-green"
+                    >
+                      Ver el documento
+                      <ChevronRight className="size-4" aria-hidden="true" />
+                    </a>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </Section>
+        )}
+
+        {/* ── 7. Obras entregadas ─────────────────────────────────────────
+            Ésta sí se pinta vacía, porque tiene un sustituto honesto: decir en
+            qué estado está la documentación y mandar al sitio donde sí hay
+            fotografías con nombre —el catálogo—. Es la diferencia entre una
+            sección vacía y una sección que informa. */}
+        <Section surface="sunk" id="obras">
+          <SectionHead
+            eyebrow="Obras entregadas"
+            title={
+              PROJECTS.length > 0
+                ? "Dónde y cuándo"
+                : "Estamos documentando las obras"
+            }
+            sub={
+              PROJECTS.length > 0
+                ? "Cada obra con su ubicación, el mes de entrega y el modelo instalado."
+                : undefined
+            }
+          />
+
+          {PROJECTS.length > 0 ? (
+            <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {PROJECTS.map((project) => (
+                <li key={`${project.location}-${project.deliveredOn}`}>
+                  <figure className="h-full overflow-hidden rounded-xl border border-border bg-surface">
+                    <div className="relative aspect-[4/3]">
+                      <Image
+                        src={project.image.src}
+                        alt={project.image.alt}
+                        fill
+                        loading="lazy"
+                        sizes="(max-width: 640px) 100vw, 33vw"
+                        className="object-cover object-center"
+                      />
+                    </div>
+                    <figcaption className="p-4">
+                      <p className="text-sm font-semibold text-foreground">
+                        {project.location}
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted-foreground tabular">
+                        Entregada en {monthLabel(project.deliveredOn)}
+                        {project.meters != null && ` · ${project.meters} m lineales`}
+                      </p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {project.modelHref ? (
+                          <Link
+                            href={project.modelHref}
+                            className="rounded-sm font-semibold text-brand-green-deep underline underline-offset-4 transition-colors hover:text-brand-green"
+                          >
+                            {project.model}
+                          </Link>
+                        ) : (
+                          project.model
+                        )}
+                      </p>
+                    </figcaption>
+                  </figure>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="max-w-prose rounded-xl border border-border bg-surface p-5 sm:p-6">
+              <p className="text-sm text-foreground">
+                Aquí había ocho fotografías rotuladas «Proyecto 1», «Proyecto
+                2»… sin decir dónde estaban ni de cuándo eran. Una obra sin
+                ubicación y sin fecha no prueba nada, así que se han retirado.
+              </p>
+              <p className="mt-3 text-sm text-muted-foreground">
+                Estamos reuniendo las obras entregadas con su corregimiento, su
+                mes de entrega, los metros instalados y el permiso del
+                propietario. Hasta que estén, las fotografías de cada modelo —y
+                su precio por metro— están en el catálogo.
+              </p>
+              <div className="mt-5 flex flex-wrap gap-2">
+                <Link
+                  href="/productos"
+                  className="flex h-12 items-center gap-2 rounded-lg bg-primary px-5 font-heading font-semibold text-primary-foreground transition-colors hover:bg-brand-green-deep"
+                >
+                  Ver los modelos
+                  <ArrowRight className="size-4" aria-hidden="true" />
+                </Link>
+                <a
+                  href={whatsappHref(WA_MESSAGE.general)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex h-12 items-center gap-2 rounded-lg border border-border-strong px-5 font-heading font-semibold text-foreground transition-colors hover:bg-surface-2"
+                >
+                  <IconWhatsApp />
+                  Pedir referencias de obra
+                </a>
+              </div>
             </div>
+          )}
+        </Section>
+
+        {/* ── 8. Testimonios ──────────────────────────────────────────────
+            No se pinta vacía. Ver `content.ts`. */}
+        {TESTIMONIALS.length > 0 && (
+          <Section surface="base">
+            <SectionHead
+              eyebrow="Clientes"
+              title="Lo que dicen de nosotros"
+              sub="Firmados con nombre y apellido, con la obra y la fecha al lado."
+            />
+            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {TESTIMONIALS.map((item) => (
+                <li key={item.author} className="h-full">
+                  <figure className="flex h-full flex-col rounded-xl border border-border bg-surface p-5">
+                    <blockquote className="flex-1 text-sm text-foreground">
+                      «{item.quote}»
+                    </blockquote>
+                    <figcaption className="mt-4 border-t border-border pt-4">
+                      <p className="text-sm font-semibold text-foreground">
+                        {item.author}
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted-foreground tabular">
+                        {item.location} · {monthLabel(item.date)}
+                        {item.model && ` · ${item.model}`}
+                      </p>
+                    </figcaption>
+                  </figure>
+                </li>
+              ))}
+            </ul>
+          </Section>
+        )}
+
+        {/* ── 9. Programa de instaladores ─────────────────────────────────── */}
+        <Section surface="raised" id="instaladores">
+          <div className="grid gap-6 lg:grid-cols-[1.1fr_1fr] lg:items-center lg:gap-12">
+            <div className="min-w-0">
+              <SectionHead
+                eyebrow="Programa de instaladores"
+                title="¿Monta cercas para vivir?"
+                sub="Precio de instalador, capacitación técnica y trabajo referido en su zona. El programa está abierto; el directorio público todavía se está verificando."
+              />
+              <div className="flex flex-wrap gap-2">
+                <Link
+                  href="/instaladores/registro"
+                  className="flex h-12 items-center gap-2 rounded-lg bg-primary px-5 font-heading font-semibold text-primary-foreground transition-colors hover:bg-brand-green-deep"
+                >
+                  Registrar mi empresa
+                  <ArrowRight className="size-4" aria-hidden="true" />
+                </Link>
+                <Link
+                  href="/instaladores"
+                  className="flex h-12 items-center gap-2 rounded-lg border border-border-strong px-5 font-heading font-semibold text-foreground transition-colors hover:bg-surface-2"
+                >
+                  Ver el programa
+                </Link>
+              </div>
+            </div>
+
+            <ul className="grid gap-3 rounded-xl border border-border bg-surface-sunk p-5 sm:grid-cols-2">
+              {[
+                "Precio de instalador en todo el catálogo",
+                "Trabajo referido en su zona de cobertura",
+                "Capacitación técnica de montaje",
+                "Soporte directo con el taller",
+              ].map((item) => (
+                <li key={item} className="flex items-start gap-2.5">
+                  <Check
+                    className="mt-0.5 size-4 shrink-0 text-brand-green"
+                    aria-hidden="true"
+                  />
+                  <span className="text-sm text-foreground">{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </Section>
+
+        {/* ── 10. Cierre ─────────────────────────────────────────────────── */}
+        <section className="defer-paint bg-brand-navy-deep text-on-dark">
+          <div className="picket-rule" aria-hidden="true" />
+          <div className="shell py-10 sm:py-12 lg:py-14">
+            <div className="max-w-prose">
+              <p className="eyebrow text-brand-green">Hablemos</p>
+              <h2 className="mt-2 text-2xl font-bold tracking-tight text-balance sm:text-3xl">
+                Díganos qué quiere cercar
+              </h2>
+              <p className="mt-2 text-sm text-on-dark-soft">
+                Le decimos el modelo, la altura y lo que cuesta el metro. Sin
+                dejar el correo y sin esperar a nadie.
+              </p>
+            </div>
+
+            <div className="mt-6 flex flex-wrap gap-2">
+              <a
+                href={whatsappHref(WA_MESSAGE.quote)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex h-12 items-center gap-2 rounded-lg bg-whatsapp px-5 font-heading font-semibold text-on-dark transition-colors hover:bg-whatsapp-deep"
+              >
+                <IconWhatsApp />
+                Escribir por WhatsApp
+              </a>
+              <a
+                href={CONTACT.phoneHref}
+                className="flex h-12 items-center gap-2 rounded-lg border border-on-dark/45 bg-on-dark/10 px-5 font-heading font-semibold text-on-dark transition-colors hover:bg-on-dark/20"
+              >
+                <Phone className="size-4" aria-hidden="true" />
+                {CONTACT.phoneDisplay}
+              </a>
+            </div>
+
+            <dl className="mt-8 grid gap-4 border-t border-on-dark/15 pt-6 sm:grid-cols-3">
+              <div className="flex items-start gap-2.5">
+                <MapPin
+                  className="mt-0.5 size-5 shrink-0 text-brand-green"
+                  aria-hidden="true"
+                />
+                <div>
+                  <dt className="eyebrow text-on-dark-soft">Taller</dt>
+                  <dd className="mt-0.5 text-sm font-semibold">
+                    {CONTACT.city}
+                  </dd>
+                </div>
+              </div>
+              <div className="flex items-start gap-2.5">
+                <Clock
+                  className="mt-0.5 size-5 shrink-0 text-brand-green"
+                  aria-hidden="true"
+                />
+                <div>
+                  <dt className="eyebrow text-on-dark-soft">Horario</dt>
+                  <dd className="mt-0.5 text-sm font-semibold">
+                    {CONTACT.hours}
+                  </dd>
+                </div>
+              </div>
+              <div className="flex items-start gap-2.5">
+                <Mail
+                  className="mt-0.5 size-5 shrink-0 text-brand-green"
+                  aria-hidden="true"
+                />
+                <div>
+                  <dt className="eyebrow text-on-dark-soft">Correo</dt>
+                  <dd className="mt-0.5 text-sm font-semibold">
+                    <a
+                      href={CONTACT.emailHref}
+                      className="rounded-sm underline underline-offset-4 transition-colors hover:text-brand-green"
+                    >
+                      {CONTACT.email}
+                    </a>
+                  </dd>
+                </div>
+              </div>
+            </dl>
           </div>
         </section>
       </main>
+
       <Footer />
     </>
-  );
+  )
 }
