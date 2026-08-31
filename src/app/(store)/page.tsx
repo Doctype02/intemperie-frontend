@@ -58,11 +58,12 @@ export default async function HomePage() {
        dos `main` anidados no son HTML válido. `tabIndex={-1}` para que el foco
        aterrice de verdad al saltar. */
     <div id="main-content" tabIndex={-1}>
-      <Hero
-        priceFrom={priceFrom(catalog)}
-        modelCount={catalog.length}
-        warrantyYears={maxWarrantyYears(catalog)}
-      />
+      {/* El hero llevaba una banda con «Desde $X / metro», «N modelos» y
+            «Garantía hasta N años», justo encima del buscador. Tres cifras
+            compitiendo por la atención con el campo de búsqueda, que es la
+            acción real de esa pantalla. Las tres siguen contadas del catálogo
+            en ValueStrip, unos píxeles más abajo. */}
+        <Hero />
 
       <ValueStrip
         modelCount={catalog.length}
