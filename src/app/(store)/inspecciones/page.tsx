@@ -563,7 +563,9 @@ export default function InspeccionesPage() {
         <p id={planoAyudaId} className="mt-1.5 max-w-2xl text-sm text-muted-foreground">
           Marca los límites de tu propiedad, los portones, los accesos y las zonas
           especiales. No hace falta que sea exacto: sirve para que el inspector
-          llegue sabiendo qué va a encontrarse.
+          llegue sabiendo qué va a encontrarse. Los tramos, las esquinas, los portones
+          y los postes tienen molde: se colocan tocando la hoja y salen siempre
+          iguales, sin dibujarlos a pulso.
         </p>
 
         {/* Barra de herramientas. Tres grupos con nombre porque son tres
@@ -711,7 +713,8 @@ export default function InspeccionesPage() {
             pantalla de 5 pulgadas también le sirve saberlo. */}
         <p id={planoAlternativaId} className="mt-2 text-sm text-muted-foreground">
           El plano se dibuja con el dedo o con el ratón y no tiene equivalente con
-          teclado. Si no puedes dibujarlo, descríbelo por escrito al pedir la
+          teclado; los moldes tampoco, porque hay que decir en qué punto de la hoja
+          va cada pieza. Si no puedes dibujarlo, descríbelo por escrito al pedir la
           inspección: un inspector de Intemperie levanta el plano en sitio.
         </p>
       </section>
