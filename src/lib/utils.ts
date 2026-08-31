@@ -100,3 +100,24 @@ export function formatTaxRatePercent(rate: string): string {
   const percent = Math.round(Number(rate) * 10000) / 100;
   return `${Number.isFinite(percent) ? percent : 0}%`;
 }
+
+/* Los importes del servidor se comparan y se restan en céntimos enteros.
+ *
+ * Hace falta para lo que el API no manda: cuánto le falta al carrito para el
+ * envío gratis. `500.00 - 449.10` en punto flotante da 50.900000000000006, y esa
+ * cifra acaba impresa en «Agrega $X más para envío gratis». En enteros no hay
+ * arrastre posible. Nunca para recalcular impuesto, envío o total: esos vienen
+ * dados y no se tocan. */
+export function moneyToCents(amount: string): number {
+  const [whole = "0", decimals = "0"] = amount.replace(/^\+/, "").split(".");
+  const sign = whole.startsWith("-") ? -1 : 1;
+  const wholeCents = Math.abs(parseInt(whole, 10) || 0) * 100;
+  const fraction = parseInt(decimals.padEnd(2, "0").slice(0, 2), 10) || 0;
+  return sign * (wholeCents + fraction);
+}
+
+export function centsToMoney(cents: number): string {
+  const sign = cents < 0 ? "-" : "";
+  const absolute = Math.abs(Math.round(cents));
+  return `${sign}${Math.floor(absolute / 100)}.${String(absolute % 100).padStart(2, "0")}`;
+}
