@@ -127,7 +127,7 @@ function usePlanPalette(): PlanPalette | null {
   return useSyncExternalStore(neverChanges, readPlanPalette, noPaletteOnServer);
 }
 
-/* ══ DRAWING ENGINE ═════════════════════════════════════════ */
+/* ══ EL MOTOR DE DIBUJO ═════════════════════════════════════ */
 function useCanvas(ref: React.RefObject<HTMLCanvasElement | null>) {
   const tool     = useRef<Tool>("pencil");
   const color    = useRef("");
@@ -287,7 +287,7 @@ function useCanvas(ref: React.RefObject<HTMLCanvasElement | null>) {
   return { setTool, setInk, setStrokeWidth, undo, redo, clear, toggleGrid, init };
 }
 
-/* ══ PAGE ═══════════════════════════════════════════════════ */
+/* ══ LA PÁGINA ══════════════════════════════════════════════ */
 export default function InspeccionesPage() {
   const { user } = useAuthStore();
   const isAdmin  = user?.role === "ADMIN";
@@ -325,7 +325,7 @@ export default function InspeccionesPage() {
   const [gridOn,     setGridOn]     = useState(true);
   const [showForm,   setShowForm]   = useState(false);
 
-  /* form state (auto-filled where possible) */
+  /* Los datos de la ficha. Los que ya se saben por la sesión llegan puestos. */
   const today = new Date().toISOString().split("T")[0];
   const [inspNum,     setInspNum]     = useState("0001");
   const [clientName,  setClientName]  = useState(user?.name  ?? "");
@@ -355,13 +355,15 @@ export default function InspeccionesPage() {
   // eslint-disable-next-line react-hooks/set-state-in-effect -- ídem
   useEffect(() => { if (user?.email) setCorreo(user.email);      }, [user?.email]);
 
-  /* init canvases */
+  /* Arranque del lienzo del plano. */
   useEffect(() => {
     const cleanDraw = draw.init();
     return () => { cleanDraw?.(); };
   }, [draw]);
 
-  /* init sig pads */
+  /* Arranque de los recuadros de firma. Se mantienen con eventos de ratón y
+     tacto tal cual estaban: las firmas quedaban explícitamente fuera de este
+     encargo y sólo se les ha cambiado el color de la tinta. */
   useEffect(() => {
     const pads = [sig1Ref, sig2Ref];
     const cleanups: (() => void)[] = [];
