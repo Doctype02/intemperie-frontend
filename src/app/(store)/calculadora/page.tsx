@@ -3,28 +3,60 @@ import Link from "next/link"
 import { ArrowRight, ChevronRight, Phone } from "lucide-react"
 
 import { FenceCalculator } from "@/components/calculator/fence-calculator"
-import { findBySlug, parseMeters, toQuoteModels } from "@/components/calculator/quote-models"
+import { parseMeters } from "@/components/calculator/quote-models"
 import { CONTACT, WA_MESSAGE } from "@/components/layout/nav-data"
 import { IconWhatsApp, whatsappHref } from "@/components/ui/icon-whatsapp"
 
-import { listProducts } from "../_data/catalog"
+import { getCategories } from "../_data/catalog"
+import { loadChosenModel, loadQuoteCatalog } from "./catalog-query"
+import { CatalogPicker } from "./catalog-search"
 
 /* Precotizador — sistema «Perímetro».
  *
- * La página no calcula nada: carga el catálogo, lo traduce a lo que el
- * precotizador necesita (`quote-models.ts`) y monta el armazón. Todo lo de
- * esta pantalla que no cambia al recalcular —cabecera, notas del estimado,
- * contacto, salida al catálogo— es HTML de servidor y no viaja como
- * JavaScript. La única isla de cliente es el precotizador en sí, porque
- * escribir metros y ver el total cambiar es literalmente lo que se pide.
+ * La página no calcula nada: lee la URL, pide los modelos que coinciden y monta
+ * el armazón. Todo lo de esta pantalla que no cambia al recalcular —cabecera,
+ * buscador, facetas, notas del estimado, contacto, salida al catálogo— es HTML
+ * de servidor y no viaja como JavaScript. La única isla de cliente es el
+ * precotizador en sí, porque escribir metros y ver el total cambiar es
+ * literalmente lo que se pide.
  *
+ * ─────────────────────────────────────────────────────────────────────────
+ * POR QUÉ HAY UN BUSCADOR DONDE ANTES HABÍA UN CARRUSEL ENTERO
+ *
+ * La página pedía `listProducts({}, 100)` y serializaba el catálogo completo
+ * dentro de la isla. Tres problemas a la vez:
+ *
+ *   1. NO ESCALA. Quince modelos son 234 kB de HTML; cincuenta, ~780 kB; cien,
+ *      ~1.5 MB. Cada modelo viaja dos veces —tarjeta pintada y datos de
+ *      hidratación— y nada de eso se mira.
+ *   2. TOPE CALLADO. El `100` no era una decisión, era un límite. El modelo 101
+ *      simplemente no existía en el precotizador, sin error y sin aviso.
+ *   3. NO GUÍA. Un carrusel de cincuenta cercas es inservible por rápido que
+ *      cargue: nadie desliza cincuenta fichas para elegir una.
+ *
+ * Ahora se filtra en el servidor por la URL, igual que el listado del catálogo,
+ * y la isla recibe sólo los modelos que coinciden. El peso del HTML deja de
+ * depender del tamaño del catálogo, y cuando hay más coincidencias de las que
+ * se pintan se dice en pantalla en vez de recortar en silencio.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
  * CONTRATO DE LA URL
+ *
  * `?producto=<slug>` y `?metros=<n>`, tal como los escribe `buildCalculatorHref`
  * en la ficha de producto. Se resuelven aquí, en el servidor, para que el
  * primer HTML ya traiga el modelo elegido: si se resolvieran al hidratar, quien
- * llega desde una ficha vería el paso 1 en blanco y luego un salto.
+ * llega desde una ficha vería el paso 1 en blanco y luego un salto. Los dos
+ * viajan además en cada enlace de faceta (ver `quoteHref`), para que tocar un
+ * filtro no borre el modelo ni los metros con los que se llegó.
  *
+ * A eso se suman las facetas del catálogo —`search`, `category`, `height`—, que
+ * son literalmente las del listado: mismo nombre de parámetro, mismas franjas
+ * de altura, mismas categorías. Un sitio no puede llamar «1.8 – 2.1 m» a una
+ * franja en el catálogo y otra cosa en el precotizador.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
  * LO QUE ESTA PÁGINA YA NO DICE
+ *
  * Se han retirado el «+30 % de instalación» que la calculadora sumaba al total
  * sin ningún campo detrás, y la nota de precios que lo acompañaba. Ni el
  * catálogo ni la API tienen tarifa de mano de obra: la instalación se cotiza
@@ -42,20 +74,41 @@ export default async function CalculadoraPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }) {
-  const params = await searchParams
-  const first = (key: string) => {
-    const value = params[key]
-    return Array.isArray(value) ? value[0] : value
+  const raw = await searchParams
+
+  /* Next entrega `?height=a&height=b` como array. Dos alturas a la vez no son
+     una franja, son un error de copiar y pegar: se toma la primera. Las cadenas
+     vacías se descartan para que `search` sea `undefined` y no `""`, y así
+     `?search=` no cuente como filtro puesto. Es la misma normalización que hace
+     el listado. */
+  const params: Record<string, string | undefined> = {}
+  for (const [key, value] of Object.entries(raw)) {
+    const first = Array.isArray(value) ? value[0] : value
+    if (first) params[key] = first
   }
+
+  const meters = parseMeters(params.metros, 10)
+  /* Se reescribe ya normalizado: los enlaces de faceta arrastran `metros`, y
+     arrastrar `?metros=-5` o `?metros=1e9` sería propagar basura por toda la
+     navegación en lugar de cortarla en la puerta. */
+  params.metros = String(meters)
 
   /* Sin `catch` que devuelva `[]`: un fallo de la API tiene que romper y
      reintentarse, no publicar un precotizador sin catálogo con el que no se
-     puede cotizar nada. Es la misma regla que la portada y el listado. */
-  const { products } = await listProducts({}, 100)
-  const models = toQuoteModels(products)
+     puede cotizar nada. Es la misma regla que la portada y el listado.
 
-  const preselected = findBySlug(models, first("producto"))
-  const meters = parseMeters(first("metros"), 10)
+     Las dos consultas van en paralelo porque no dependen la una de la otra: el
+     modelo de `?producto=` se pide por su slug, no se busca entre los
+     resultados. Las categorías vienen cacheadas una hora. */
+  const [{ models, total, truncated }, chosen, categories] = await Promise.all([
+    loadQuoteCatalog({
+      search: params.search,
+      category: params.category,
+      height: params.height,
+    }),
+    loadChosenModel(params.producto),
+    getCategories(),
+  ])
 
   return (
     <div className="pb-section-sm">
@@ -96,8 +149,17 @@ export default async function CalculadoraPage({
       <div className="shell pt-8 sm:pt-10">
         <FenceCalculator
           models={models}
-          initialModelId={preselected?.id ?? null}
+          initialModel={chosen}
           initialMeters={meters}
+          filters={
+            <CatalogPicker
+              params={params}
+              categories={categories}
+              shown={models.length}
+              total={total}
+              truncated={truncated}
+            />
+          }
         />
 
         {/* ── Letra pequeña y salidas ───────────────────────────────────────
@@ -116,8 +178,9 @@ export default async function CalculadoraPage({
               <li>
                 {/* Si algún modelo llega a traer `gatePrice`, sus puertas SÍ entran en el
                     estimado y esta nota dejaría de ser cierta. Se lee del catálogo en vez
-                    de quedarse escrita. */}
-                {models.some((m) => m.gatePrice != null)
+                    de quedarse escrita. Se mira también el modelo elegido, que puede haber
+                    llegado por `?producto=` sin estar entre los resultados a la vista. */}
+                {[...models, ...(chosen ? [chosen] : [])].some((m) => m.gatePrice != null)
                   ? "No incluye instalación, transporte ni accesorios. Se cotizan aparte, con la medida tomada."
                   : "No incluye instalación, transporte, puertas ni accesorios. Se cotizan aparte, con la medida tomada."}
               </li>

@@ -48,6 +48,30 @@ export const FACET_KEYS = [
 export type FacetKey = (typeof FACET_KEYS)[number]
 
 /**
+ * Opciones de `hrefWith`.
+ *
+ * Existen porque el precotizador filtra con este mismo vocabulario pero vive en
+ * otra ruta y arrastra dos parámetros propios (`producto` y `metros`). La
+ * alternativa era duplicar la función allí, y entonces habría dos sitios
+ * decidiendo cómo se escribe una faceta en la URL: el día que se añada una, una
+ * de las dos pantallas se quedaría sin ella y nadie se enteraría hasta que un
+ * filtro dejara de conservarse al navegar. Se parametriza en vez de copiarse.
+ *
+ * Los valores por defecto son los del listado, así que sus veintitantas
+ * llamadas de dos argumentos siguen significando exactamente lo mismo.
+ */
+export interface HrefOptions {
+  /** Ruta destino. El listado es el caso por defecto. */
+  basePath?: string
+  /**
+   * Claves ajenas a las facetas que deben sobrevivir al navegar. No entran en
+   * `patch` a propósito: no son facetas del catálogo, son estado de la otra
+   * pantalla que pasa de largo.
+   */
+  carry?: readonly string[]
+}
+
+/**
  * Construye la URL del listado con los parámetros actuales más un parche.
  * `null` borra la clave; poner cualquier faceta devuelve siempre a la página 1
  * —quedarse en la 3 con un filtro que sólo tiene 2 páginas da un vacío que
@@ -56,6 +80,7 @@ export type FacetKey = (typeof FACET_KEYS)[number]
 export function hrefWith(
   params: Record<string, string | undefined>,
   patch: Partial<Record<FacetKey, string | null>> = {},
+  { basePath = "/productos", carry = [] }: HrefOptions = {},
 ) {
   const sp = new URLSearchParams()
   for (const key of FACET_KEYS) {
@@ -63,8 +88,14 @@ export function hrefWith(
     if (value) sp.set(key, value)
   }
   if (!("page" in patch)) sp.delete("page")
+  /* Detrás de las facetas para que la parte legible de la URL —lo que se está
+     filtrando— quede delante de lo que sólo es estado arrastrado. */
+  for (const key of carry) {
+    const value = params[key]
+    if (value) sp.set(key, value)
+  }
   const qs = sp.toString()
-  return qs ? `/productos?${qs}` : "/productos"
+  return qs ? `${basePath}?${qs}` : basePath
 }
 
 /* ── Altura ──────────────────────────────────────────────────────────────── */
@@ -158,23 +189,37 @@ const chipOff =
   "border-border bg-surface text-muted-foreground hover:border-brand-green hover:text-brand-green-deep"
 const chipOn = "border-brand-green-deep bg-brand-green-deep text-on-dark"
 
-/** Chip de faceta. Pulsar el chip activo lo apaga: es su propio «quitar». */
-function FacetChip({
+/**
+ * Chip de faceta. Pulsar el chip activo lo apaga: es su propio «quitar».
+ *
+ * Exportado porque el precotizador filtra por las mismas facetas y un chip de
+ * «uso» no puede verse de dos maneras según la pantalla en la que se toque.
+ */
+export function FacetChip({
   href,
   active,
   children,
   count,
+  className = "",
 }: {
   href: string
   active: boolean
   children: React.ReactNode
   count?: number
+  /**
+   * Añadidos del sitio que lo usa. El precotizador sube el chip a 44 px de
+   * alto: allí es el único control de faceta a mano en móvil, no hay barra
+   * lateral donde reintentar, y se toca con el pulgar mientras se mira una
+   * cerca. Va como parche y no como cambio del chip base para no mover el
+   * listado, donde el chip lleva su tamaño desde el rediseño.
+   */
+  className?: string
 }) {
   return (
     <Link
       href={href}
       aria-current={active ? "true" : undefined}
-      className={`${chip} ${active ? chipOn : chipOff}`}
+      className={`${chip} ${active ? chipOn : chipOff} ${className}`}
     >
       {children}
       {count != null && (
