@@ -76,6 +76,5 @@ export const COLECCIONES = [
 export const NAV_LINKS = [
   { href: "/calculadora", label: "Calculadora" },
   { href: "/instaladores", label: "Instaladores" },
-  { href: "/inspecciones", label: "Inspecciones" },
   { href: "/nosotros", label: "Nosotros" },
 ] as const
