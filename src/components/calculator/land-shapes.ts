@@ -255,11 +255,49 @@ function parseSideList(raw: string): number[] {
     .filter((n) => Number.isFinite(n) && n > 0 && n <= LAND_MAX_SIDE)
 }
 
+/** Una forma resuelta: los metros, la cuenta y cómo se cuenta por WhatsApp. */
+export interface LandDescription {
+  shape: LandShape
+  meters: number
+  operation: string
+  note: string
+  /**
+   * La línea que se le manda al asesor: de qué forma salen los metros y con qué
+   * cuenta. No es decoración. Es lo que permite a quien recibe el mensaje ver
+   * que el cliente se dejó un lado ANTES de cortar material.
+   */
+  summary: string
+}
+
+/**
+ * Resuelve una forma con sus medidas, en una sola llamada.
+ *
+ * La usan los dos lados —el servidor al leer la URL y la isla en cada tecla—,
+ * así que la operación que se pinta, la que se manda por WhatsApp y la que
+ * rellena el campo de metros salen siempre del mismo sitio.
+ */
+export function describeLand(selection: LandSelection): LandDescription | null {
+  const shape = findLandShape(selection.shapeId)
+  if (!shape) return null
+
+  const result = solveLand(shape, selection.sides)
+  if (result.kind !== "ok") return null
+
+  return {
+    shape,
+    meters: result.meters,
+    operation: result.operation,
+    note: result.note,
+    summary: `${shape.name} · ${result.operation}`,
+  }
+}
+
 export interface LandFromUrl {
   selection: LandSelection
   meters: number
   operation: string
   note: string
+  summary: string
 }
 
 /**
@@ -282,25 +320,17 @@ export function parseLand(
   const sides = parseSideList(lados)
   if (sides.length !== shape.sides.length) return null
 
-  const result = solveLand(shape, sides)
-  if (result.kind !== "ok") return null
+  const selection: LandSelection = { shapeId: shape.id, sides }
+  const described = describeLand(selection)
+  if (!described) return null
 
   return {
-    selection: { shapeId: shape.id, sides },
-    meters: result.meters,
-    operation: result.operation,
-    note: result.note,
+    selection,
+    meters: described.meters,
+    operation: described.operation,
+    note: described.note,
+    summary: described.summary,
   }
-}
-
-/**
- * La línea que se le manda al asesor por WhatsApp: de qué forma salen los
- * metros y con qué cuenta. No es decoración; es lo que le permite a quien
- * recibe el mensaje detectar que el cliente olvidó un lado antes de cortar
- * material.
- */
-export function landSummary(shape: LandShape, operation: string): string {
-  return `${shape.name} · ${operation}`
 }
 
 /* ── Configuraciones listas ──────────────────────────────────────────────── */

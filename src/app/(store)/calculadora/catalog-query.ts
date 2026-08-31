@@ -38,12 +38,17 @@ import { loadListing, type ListingQuery } from "../productos/listing"
 
 /**
  * Parámetros propios del precotizador, ajenos a las facetas del catálogo:
- * `producto` es el modelo con el que se llega desde una ficha y `metros` la
- * medida que ya traía. Se arrastran al cambiar de faceta porque quien llega
- * desde una ficha con 120 m escritos no quiere volver a escribirlos por haber
- * tocado un filtro.
+ * `producto` es el modelo con el que se llega desde una ficha, `metros` la
+ * medida que ya traía y `forma` + `lados` el terreno del que sale esa medida
+ * (ver `components/calculator/land-shapes.ts`). Se arrastran al cambiar de
+ * faceta porque quien llega con 120 m escritos —o con su lote de 20 × 30 ya
+ * dibujado— no quiere volver a medirlo por haber tocado un filtro.
+ *
+ * Los cuatro son lista blanca, como las facetas: lo que no esté aquí no
+ * sobrevive a un cambio de filtro, y `forma`/`lados` se validan enteros antes
+ * de reescribirse (media forma no reproduce ninguna pantalla).
  */
-export const QUOTE_KEYS = ["producto", "metros"] as const
+export const QUOTE_KEYS = ["producto", "metros", "forma", "lados"] as const
 
 /** URL del precotizador con las facetas actuales más un parche. */
 export function quoteHref(

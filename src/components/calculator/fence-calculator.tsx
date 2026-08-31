@@ -6,7 +6,14 @@ import { Check, ChevronLeft, ChevronRight, Minus, Phone, Plus } from "lucide-rea
 
 import type { ProductUnit } from "@/types"
 import type { QuoteModel } from "./quote-models"
+import type { LandSelection } from "./land-shapes"
 
+import { LandPlanner } from "./land-planner"
+/* `meterLabel` se importa y ya no se define aquí: la operación que pinta el
+   planificador («2 × (20 + 30) = 100 m») y el texto que acaba en el campo de
+   metros tienen que salir del mismo formateador, o el mismo número se leería de
+   dos maneras («100» arriba, «100.00» abajo) en la misma pantalla. */
+import { describeLand, meterLabel } from "./land-shapes"
 import { CONTACT, WA_MESSAGE } from "@/components/layout/nav-data"
 import { Button } from "@/components/ui/button"
 import { IconWhatsApp, whatsappHref } from "@/components/ui/icon-whatsapp"
@@ -38,6 +45,20 @@ import { Label } from "@/components/ui/label"
  * pintan si el modelo trae el dato — ver los `!= null` de más abajo y
  * `quote-models.ts`. El día que el admin cargue `panelWidth`, `postSpacing` o
  * `gatePrice` en una ficha, aparecen solas.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * DE DÓNDE SALEN LOS METROS
+ *
+ * El paso 2 pedía una cifra que mucha gente no tiene: el perímetro. Se sabe que
+ * el lote es de 20 × 30, o que hay 15 metros de frente, no que hay que cercar
+ * 100 m. Debajo del campo hay ahora un `<details>` plegado con cuatro formas de
+ * parcela (`land-planner.tsx`): se eligen los lados, se ve la operación
+ * —«2 × (20 + 30) = 100 m»— y el resultado se escribe en el campo.
+ *
+ * Escribir a mano sigue siendo el camino por defecto y sigue mandando: quien ya
+ * sabe sus metros no abre nada, y quien corrige el número a mano después de usar
+ * una plantilla no ve cómo se lo pisan. Sólo aritmética verificable sobre lo que
+ * el propio visitante mide; ni un dato inventado de su terreno.
  *
  * ─────────────────────────────────────────────────────────────────────────
  * POR QUÉ ESTA ISLA ES TAN PEQUEÑA
@@ -93,11 +114,6 @@ const MIN_METERS = 10
 function money(n: number): string {
   const [whole, cents] = Math.max(0, n).toFixed(2).split(".")
   return `$${whole.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}.${cents}`
-}
-
-/** «45» y no «45.00»; «12.5» cuando el decimal dice algo. */
-function meterLabel(n: number): string {
-  return n.toFixed(2).replace(/\.?0+$/, "")
 }
 
 /**
@@ -179,6 +195,7 @@ export function FenceCalculator({
   models,
   initialModel = null,
   initialMeters = MIN_METERS,
+  initialLand = null,
   filters,
 }: {
   /** Los modelos que coinciden con la URL, NO el catálogo. Ver cabecera. */
@@ -191,6 +208,13 @@ export function FenceCalculator({
   initialModel?: QuoteModel | null
   /** Metros resueltos en el servidor desde `?metros=<n>`. */
   initialMeters?: number
+  /**
+   * Forma del terreno y medidas de sus lados, resueltas en el servidor desde
+   * `?forma=&lados=`. Cuando viene, `initialMeters` ES su perímetro: la cuenta
+   * ya está hecha en el primer HTML y esto sólo sirve para que el planificador
+   * abra con la misma forma y las mismas medidas que se compartieron.
+   */
+  initialLand?: LandSelection | null
   /** Buscador y facetas, ya pintados en el servidor. */
   filters?: React.ReactNode
 }) {
@@ -203,6 +227,14 @@ export function FenceCalculator({
      golpe bajo los dedos. */
   const [metersText, setMetersText] = useState(meterLabel(initialMeters))
   const [gates, setGates] = useState(0)
+  /* De dónde salen esos metros, si salen de una forma de terreno: «Terreno
+     rectangular · 2 × (20 + 30) = 100 m». Viaja al mensaje de WhatsApp para que
+     el asesor pueda ver la cuenta y detectar un lado olvidado antes de cortar
+     material. Se borra en cuanto se corrige el número a mano, porque entonces
+     ya no es cierto que salga de esa forma. */
+  const [landLine, setLandLine] = useState<string | null>(
+    () => (initialLand ? (describeLand(initialLand)?.summary ?? null) : null),
+  )
 
   const copy = UNIT_COPY[model?.unit ?? "METRO"]
 
@@ -246,6 +278,7 @@ export function FenceCalculator({
         `• Modelo: ${model.name}`,
         ...(model.height ? [`• Altura disponible: ${model.height}`] : []),
         `• ${copy.short}: ${meterLabel(meters)} ${copy.abbr}`,
+        ...(landLine ? [`• Perímetro: ${landLine}`] : []),
         ...(model.gatePrice != null && gates > 0 ? [`• Puertas: ${gates}`] : []),
         `• Material: ${money(materialCost)}`,
         `• ITBMS (7%): ${money(tax)}`,
@@ -255,6 +288,7 @@ export function FenceCalculator({
     : [
         "Hola Intemperie, quiero cotizar mi cerca:",
         `• ${copy.short}: ${meterLabel(meters)} ${copy.abbr}`,
+        ...(landLine ? [`• Perímetro: ${landLine}`] : []),
         "Todavía no sé qué modelo me conviene. ¿Me recomiendan uno?",
       ]
 
@@ -484,7 +518,13 @@ export function FenceCalculator({
                 inputMode="decimal"
                 autoComplete="off"
                 value={metersText}
-                onChange={(e) => setMetersText(e.target.value.replace(/[^\d.,]/g, ""))}
+                onChange={(e) => {
+                  setMetersText(e.target.value.replace(/[^\d.,]/g, ""))
+                  /* Escribir a mano sigue siendo el camino por defecto y manda
+                     sobre la plantilla: el número deja de venir de una forma de
+                     terreno, así que deja de decirse que viene de ella. */
+                  setLandLine(null)
+                }}
                 aria-describedby={`${metersHintId}${overStock ? ` ${stockHintId}` : ""}`}
                 className="h-12 pr-16 text-lg font-semibold"
               />
@@ -514,6 +554,26 @@ export function FenceCalculator({
                 existencia. Para <span className="tabular">{meterLabel(meters)}</span> {copy.abbr} hay
                 que confirmar el plazo de fabricación con un asesor.
               </p>
+            )}
+
+            {/* Plantillas de terreno: la ayuda para quien no sabe cuántos
+                metros son. Va DEBAJO del campo y plegada, porque el camino por
+                defecto es escribirlos, no pasar por aquí.
+
+                Sólo con unidad de venta por metro: un perímetro no dice cuántos
+                paneles ni cuántas unidades hay que pedir —eso necesitaría el
+                ancho de panel, que ninguna ficha trae (ver `quote-models.ts`)—,
+                y ofrecerlo sería fingir una cuenta que no se puede hacer. */}
+            {(model?.unit ?? "METRO") === "METRO" && (
+              <LandPlanner
+                initial={initialLand}
+                metersText={metersText}
+                fieldName={copy.field}
+                onMeasure={(value, summary) => {
+                  setMetersText(value)
+                  setLandLine(summary)
+                }}
+              />
             )}
           </div>
 
