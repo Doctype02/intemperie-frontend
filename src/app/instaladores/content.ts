@@ -43,7 +43,7 @@ export const META = {
  * único que hoy está abierto de verdad, que es el alta. */
 export const HERO = {
   eyebrow: "Programa de instaladores",
-  title: "¿Se dedica al montaje de cercas?",
+  title: "Instale cercas Intemperie en su zona",
   lead: "Compre el material al precio de instalador, aprenda a montar los sistemas de Intemperie y quédese con el margen de la obra. El alta no cuesta nada: el tiempo lo pone usted.",
   aside:
     "El alta está abierta desde hoy. El directorio público de instaladores no: vuelve cuando haya fichas verificadas una a una, con su teléfono comprobado.",
