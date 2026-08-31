@@ -157,32 +157,33 @@ function ColaDeTrabajo({
         </p>
       ) : (
         <ul className="divide-y divide-hairline">
+          {/* Dos líneas fijas por fila en lugar de una que se parte sola: con
+              `flex-wrap` el orden de corte dependía del ancho del texto de cada
+              estado, y a 360px la fila salía distinta en cada pedido. */}
           {pendientes.map((order) => (
-            <li
-              key={order.id}
-              className="flex min-h-tap flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3"
-            >
-              {/* El identificador corto es lo que se busca luego en Pedidos:
-                  tabular para que las ocho cifras se alineen entre filas. */}
-              <span className="tabular font-mono text-xs text-muted-foreground">
-                #{order.id.slice(0, 8)}
-              </span>
+            <li key={order.id} className="flex min-h-tap flex-col justify-center gap-1 px-4 py-3">
+              <div className="flex items-center gap-2">
+                {/* El identificador corto es lo que se busca luego en Pedidos:
+                    tabular para que las ocho cifras se alineen entre filas. */}
+                <span className="tabular font-mono text-xs text-muted-foreground">
+                  #{order.id.slice(0, 8)}
+                </span>
+                <EstadoBadge status={order.status} />
+                <span className="tabular ml-auto text-sm font-semibold text-foreground">
+                  {formatMoney(order.total)}
+                </span>
+              </div>
 
-              <EstadoBadge status={order.status} />
-
-              {/* La acción, escrita. Un estado dice dónde está el pedido; esto
-                  dice qué se hace con él, que es la pregunta real. */}
-              <span className="text-sm font-medium text-foreground">
-                {PENDING_ACTION[order.status]}
-              </span>
-
-              <span className="tabular ml-auto text-sm font-semibold text-foreground">
-                {formatMoney(order.total)}
-              </span>
-
-              <span className="w-full text-xs text-muted-foreground sm:w-auto sm:pl-3">
-                {formatAge(order.createdAt)}
-              </span>
+              <div className="flex items-baseline gap-2">
+                {/* La acción, escrita. El estado dice dónde está el pedido;
+                    esto dice qué se hace con él, que es la pregunta real. */}
+                <span className="text-sm font-medium text-foreground">
+                  {PENDING_ACTION[order.status]}
+                </span>
+                <span className="ml-auto shrink-0 text-xs text-muted-foreground">
+                  {formatAge(order.createdAt)}
+                </span>
+              </div>
             </li>
           ))}
         </ul>
@@ -198,7 +199,10 @@ function ColaDeTrabajo({
         </p>
         <Link
           href="/admin/pedidos"
-          className="inline-flex min-h-tap items-center gap-1.5 rounded-lg px-1 font-heading text-sm font-semibold text-primary transition-colors hover:text-brand-green-deep"
+          /* El realce al pasar el cursor es subrayado, no un verde más oscuro:
+             `brand-green-deep` se aclara en modo oscuro por debajo del fondo de
+             esta banda y el enlace se apagaba justo al señalarlo. */
+          className="inline-flex min-h-tap items-center gap-1.5 rounded-lg px-1 font-heading text-sm font-semibold text-primary underline-offset-4 hover:underline"
         >
           Ver todos los pedidos
           <ArrowRight className="size-4" aria-hidden="true" />
@@ -236,10 +240,15 @@ function Totales({ stats }: { stats: AdminStats }) {
       </h2>
 
       {/* Los iconos van en tinta apagada, sin pastilla de color: cuatro chips de
-          colores distintos sugerían una codificación que no significaba nada. */}
-      <dl className="grid grid-cols-2 divide-hairline sm:grid-cols-4 sm:divide-x">
+          colores distintos sugerían una codificación que no significaba nada.
+
+          Las divisiones son `gap-px` sobre el color de línea, no `divide-x`:
+          en una retícula, `divide-x` reparte el borde por orden del DOM y en
+          dos columnas se lo pone también a la primera celda de la segunda fila.
+          Con el hueco pintado, las reglas salen correctas en 2 y en 4 columnas. */}
+      <dl className="grid grid-cols-2 gap-px bg-hairline sm:grid-cols-4">
         {celdas.map((celda) => (
-          <div key={celda.label} className="px-4 py-4">
+          <div key={celda.label} className="bg-card px-4 py-4">
             <dt className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
               <celda.icon className="size-3.5 shrink-0" aria-hidden="true" />
               {celda.label}
@@ -382,11 +391,16 @@ function TableroSkeleton() {
           </div>
           <div className="divide-y divide-hairline">
             {[0, 1, 2].map((i) => (
-              <div key={i} className="flex min-h-tap items-center gap-3 px-4 py-3">
-                <div className="h-3 w-16 rounded-sm bg-muted" />
-                <div className="h-5 w-20 rounded-sm bg-muted" />
-                <div className="h-4 w-32 rounded-sm bg-muted" />
-                <div className="ml-auto h-4 w-16 rounded-sm bg-muted" />
+              <div key={i} className="flex min-h-tap flex-col justify-center gap-1 px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <div className="h-3 w-16 rounded-sm bg-muted" />
+                  <div className="h-5 w-20 rounded-sm bg-muted" />
+                  <div className="ml-auto h-4 w-16 rounded-sm bg-muted" />
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-4 w-36 rounded-sm bg-muted" />
+                  <div className="ml-auto h-3 w-12 rounded-sm bg-muted" />
+                </div>
               </div>
             ))}
           </div>
@@ -396,9 +410,9 @@ function TableroSkeleton() {
         </div>
 
         <div className="overflow-hidden rounded-xl border border-hairline bg-card shadow-xs">
-          <div className="grid grid-cols-2 divide-hairline sm:grid-cols-4 sm:divide-x">
+          <div className="grid grid-cols-2 gap-px bg-hairline sm:grid-cols-4">
             {[0, 1, 2, 3].map((i) => (
-              <div key={i} className="px-4 py-4">
+              <div key={i} className="bg-card px-4 py-4">
                 <div className="h-3 w-20 rounded-sm bg-muted" />
                 <div className="mt-2 h-7 w-24 rounded-sm bg-muted" />
               </div>
