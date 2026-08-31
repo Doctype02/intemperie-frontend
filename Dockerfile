@@ -31,10 +31,24 @@ ARG INTERNAL_API_URL
 ENV INTERNAL_API_URL=$INTERNAL_API_URL
 ARG NEXT_PUBLIC_SITE_URL
 ARG NEXT_PUBLIC_WHATSAPP_NUMBER
+# Estas tres las inyecta Ansible como build args desde hace un cambio en el
+# repo de infraestructura. Sin declararlas aqui, Docker las descarta con un
+# aviso que nadie lee y el bundle sale con los valores por defecto del codigo:
+# el sitio se publicaria indexable, o con otro limite de subida del que dice
+# el backend. Un build arg que no se declara no falla, miente.
+ARG NEXT_PUBLIC_ALLOW_INDEXING
+ARG NEXT_PUBLIC_UPLOAD_MAX_IMAGE_BYTES
+# Base de lectura del Object Storage. Tiene valor por defecto en el codigo
+# (src/lib/image-utils.ts), asi que sirve para apuntar a otro bucket en
+# pruebas sin tocar fuente.
+ARG NEXT_PUBLIC_MEDIA_BASE
 
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
     NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL \
     NEXT_PUBLIC_WHATSAPP_NUMBER=$NEXT_PUBLIC_WHATSAPP_NUMBER \
+    NEXT_PUBLIC_ALLOW_INDEXING=$NEXT_PUBLIC_ALLOW_INDEXING \
+    NEXT_PUBLIC_UPLOAD_MAX_IMAGE_BYTES=$NEXT_PUBLIC_UPLOAD_MAX_IMAGE_BYTES \
+    NEXT_PUBLIC_MEDIA_BASE=$NEXT_PUBLIC_MEDIA_BASE \
     NEXT_TELEMETRY_DISABLED=1 \
     NODE_ENV=production
 
