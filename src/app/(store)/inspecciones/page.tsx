@@ -1,8 +1,11 @@
 "use client";
 
-import { useRef, useEffect, useState, useCallback, useSyncExternalStore } from "react";
+import { useRef, useEffect, useId, useState, useCallback, useSyncExternalStore } from "react";
+import { ChevronDown, ClipboardList, Eraser, Grid3x3, Minus, Pencil, RectangleHorizontal, Redo2, Send, Trash2, Type, Undo2 } from "lucide-react";
+
 import { useAuthStore } from "@/lib/store/auth-store";
-import { ChevronDown, Minus, Pencil, RectangleHorizontal, Eraser, Type, Undo2, Redo2, Grid3x3, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 
 /* Ficha de inspección — sistema «Perímetro».
  *
@@ -67,6 +70,9 @@ const PLAN_TOKENS = {
 
 type PlanPalette = Record<keyof typeof PLAN_TOKENS, string> & { font: string };
 
+/** Las tintas que se ofrecen para dibujar; ni el papel ni la cuadrícula lo son. */
+type PlanInk = Exclude<keyof typeof PLAN_TOKENS, "paper" | "grid">;
+
 /* Se lee una vez por carga: son siete lecturas de estilo calculado y siete
    lienzos de usar y tirar, y el resultado no cambia mientras viva la página. */
 let planPalette: PlanPalette | null = null;
@@ -103,13 +109,10 @@ function readPlanPalette(): PlanPalette {
    cuanto hidrata. Es lo que `useSyncExternalStore` hace bien y un efecto con
    setState hace mal. No hay suscripción porque la paleta no cambia. */
 const neverChanges = () => () => {};
+const noPaletteOnServer = () => null;
 
-export function usePlanInk(): string {
-  return useSyncExternalStore(
-    neverChanges,
-    () => readPlanPalette().ink,
-    () => ""
-  );
+function usePlanPalette(): PlanPalette | null {
+  return useSyncExternalStore(neverChanges, readPlanPalette, noPaletteOnServer);
 }
 
 /* ══ DRAWING ENGINE ═════════════════════════════════════════ */
@@ -277,6 +280,15 @@ export default function InspeccionesPage() {
   const { user } = useAuthStore();
   const isAdmin  = user?.role === "ADMIN";
 
+  /* Identificadores propios de esta instancia: los mismos que cosen cada
+     etiqueta con su campo y el lienzo con su alternativa de texto. */
+  const uid = useId();
+  const planoTituloId = `${uid}-plano`;
+  const planoAyudaId = `${uid}-plano-ayuda`;
+  const planoAlternativaId = `${uid}-plano-alternativa`;
+  const colorId = `${uid}-color`;
+  const grosorId = `${uid}-grosor`;
+
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const sig1Ref   = useRef<HTMLCanvasElement | null>(null);
   const sig2Ref   = useRef<HTMLCanvasElement | null>(null);
@@ -285,9 +297,9 @@ export default function InspeccionesPage() {
   const [activeTool, setActiveTool] = useState<Tool>("pencil");
   /* La tinta de fábrica es la del sistema y llega vacía en el servidor; en
      cuanto el visitante elige un color, manda el suyo. */
-  const defaultInk = usePlanInk();
+  const palette = usePlanPalette();
   const [customInk,  setCustomInk]  = useState("");
-  const color = customInk || defaultInk;
+  const color = customInk || palette?.ink || "";
   const [strokeW,    setStrokeW]    = useState(2);
   const [gridOn,     setGridOn]     = useState(true);
   const [showForm,   setShowForm]   = useState(false);
@@ -332,8 +344,8 @@ export default function InspeccionesPage() {
         const s = "touches" in e ? e.touches[0] : e;
         return { x: s.clientX - r.left, y: s.clientY - r.top };
       };
-      const d = (e: MouseEvent | TouchEvent) => { e.preventDefault(); pen = true; const p = getP(e); lx=p.x; ly=p.y; g.beginPath(); g.arc(lx,ly,0.8,0,Math.PI*2); g.fillStyle="#111"; g.fill(); };
-      const m = (e: MouseEvent | TouchEvent) => { if(!pen) return; e.preventDefault(); const {x,y}=getP(e); g.beginPath(); g.moveTo(lx,ly); g.lineTo(x,y); g.strokeStyle="#111"; g.lineWidth=1.5; g.lineCap="round"; g.stroke(); lx=x; ly=y; };
+      const d = (e: MouseEvent | TouchEvent) => { e.preventDefault(); pen = true; const p = getP(e); lx=p.x; ly=p.y; g.beginPath(); g.arc(lx,ly,0.8,0,Math.PI*2); g.fillStyle=readPlanPalette().ink; g.fill(); };
+      const m = (e: MouseEvent | TouchEvent) => { if(!pen) return; e.preventDefault(); const {x,y}=getP(e); g.beginPath(); g.moveTo(lx,ly); g.lineTo(x,y); g.strokeStyle=readPlanPalette().ink; g.lineWidth=1.5; g.lineCap="round"; g.stroke(); lx=x; ly=y; };
       const u = () => { pen=false; };
       c.addEventListener("mousedown",d); c.addEventListener("mousemove",m); c.addEventListener("mouseup",u); c.addEventListener("mouseleave",u);
       c.addEventListener("touchstart",d,{passive:false}); c.addEventListener("touchmove",m,{passive:false}); c.addEventListener("touchend",u);
@@ -347,17 +359,24 @@ export default function InspeccionesPage() {
   useEffect(() => { draw.setStrokeWidth(strokeW);  }, [strokeW, draw]);
 
   const TOOLS: { id: Tool; label: string; icon: React.ReactNode }[] = [
-    { id: "pencil",  label: "Lápiz",     icon: <Pencil className="h-3.5 w-3.5" /> },
-    { id: "line",    label: "Línea",     icon: <Minus  className="h-3.5 w-3.5" /> },
-    { id: "rect",    label: "Rectángulo",icon: <RectangleHorizontal className="h-3.5 w-3.5" /> },
-    { id: "text",    label: "Texto",     icon: <Type   className="h-3.5 w-3.5" /> },
-    { id: "eraser",  label: "Borrador",  icon: <Eraser className="h-3.5 w-3.5" /> },
+    { id: "pencil",  label: "Lápiz",      icon: <Pencil className="size-4" aria-hidden="true" /> },
+    { id: "line",    label: "Línea",      icon: <Minus  className="size-4" aria-hidden="true" /> },
+    { id: "rect",    label: "Rectángulo", icon: <RectangleHorizontal className="size-4" aria-hidden="true" /> },
+    { id: "text",    label: "Texto",      icon: <Type   className="size-4" aria-hidden="true" /> },
+    { id: "eraser",  label: "Borrador",   icon: <Eraser className="size-4" aria-hidden="true" /> },
   ];
 
-  const btnBase = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all border";
-  const toolBtn = (t: Tool) => `${btnBase} ${activeTool === t
-    ? "bg-green-700 text-white border-green-700 shadow-sm"
-    : "bg-white text-gray-600 border-gray-200 hover:border-green-400 hover:text-green-700"}`;
+  /* Las cinco tintas del sistema, a un toque. Abrir la rueda de color del
+     sistema operativo con guantes y a pleno sol es un gesto imposible, y son
+     de todas formas los colores con los que se marca un plano: el contorno, el
+     portón, el obstáculo y el aviso. La rueda sigue estando para el resto. */
+  const INKS: { key: PlanInk; label: string; swatch: string }[] = [
+    { key: "ink",      label: "Tinta",  swatch: "bg-plan-ink" },
+    { key: "inkGreen", label: "Verde",  swatch: "bg-plan-ink-green" },
+    { key: "inkNavy",  label: "Azul",   swatch: "bg-plan-ink-navy" },
+    { key: "inkAmber", label: "Ámbar",  swatch: "bg-plan-ink-amber" },
+    { key: "inkRed",   label: "Rojo",   swatch: "bg-plan-ink-red" },
+  ];
 
   const generatePDF = () => {
     const next = (+inspNum || 0) + 1;
@@ -370,95 +389,176 @@ export default function InspeccionesPage() {
   const qCls     = "w-10 border-0 border-b border-gray-200 text-[9.5px] text-center outline-none bg-transparent py-0.5 focus:border-green-600";
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="bg-background">
 
-      {/* ── HERO / CANVAS SECTION ─────────────────────────────────────── */}
-      <div className="bg-white border-b border-gray-100">
-        <div className="mx-auto max-w-7xl px-4 py-6">
-
-          {/* Title */}
-          <div className="mb-4">
-            <h1 className="text-2xl font-extrabold text-gray-900">Solicitar inspección</h1>
-            <p className="text-sm text-gray-500 mt-1">
-              Dibuja el contorno de tu propiedad para que nuestro equipo planifique tu instalación.
-            </p>
-          </div>
-
-          {/* Tools */}
-          <div className="flex flex-wrap items-center gap-2 mb-3 bg-gray-50 rounded-xl px-3 py-2 border border-gray-100">
-            {TOOLS.map(t => (
-              <button key={t.id} onClick={() => setActiveTool(t.id)} className={toolBtn(t.id)}>
-                {t.icon} {t.label}
-              </button>
-            ))}
-
-            <div className="w-px h-6 bg-gray-200 mx-1" />
-
-            <div className="flex items-center gap-2">
-              <label className="text-xs text-gray-500">Color</label>
-              <input type="color" value={color} onChange={e => setCustomInk(e.target.value)}
-                className="w-7 h-7 rounded-lg border border-gray-200 cursor-pointer p-0.5" />
-            </div>
-
-            <div className="flex items-center gap-2">
-              <label className="text-xs text-gray-500">Grosor</label>
-              <input type="range" min={1} max={12} value={strokeW} onChange={e => setStrokeW(+e.target.value)} className="w-20" />
-              <span className="text-xs text-gray-400 w-3">{strokeW}</span>
-            </div>
-
-            <div className="w-px h-6 bg-gray-200 mx-1" />
-
-            <button onClick={draw.undo} className={`${btnBase} bg-white text-gray-600 border-gray-200 hover:border-gray-400`}>
-              <Undo2 className="h-3.5 w-3.5" />
-            </button>
-            <button onClick={draw.redo} className={`${btnBase} bg-white text-gray-600 border-gray-200 hover:border-gray-400`}>
-              <Redo2 className="h-3.5 w-3.5" />
-            </button>
-            <button onClick={() => { const on = draw.toggleGrid(); setGridOn(on); }}
-              className={`${btnBase} ${gridOn ? "bg-green-50 text-green-700 border-green-200" : "bg-white text-gray-500 border-gray-200"}`}>
-              <Grid3x3 className="h-3.5 w-3.5" /> Grilla
-            </button>
-            <button onClick={draw.clear}
-              className={`${btnBase} bg-white text-red-500 border-red-200 hover:bg-red-50`}>
-              <Trash2 className="h-3.5 w-3.5" /> Limpiar
-            </button>
-          </div>
-
-          {/* Canvas */}
-          <canvas
-            ref={canvasRef}
-            width={1180}
-            height={420}
-            className="block w-full rounded-xl border-2 border-blue-200 bg-white touch-none shadow-sm"
-            style={{ cursor: activeTool === "eraser" ? "cell" : activeTool === "text" ? "text" : "crosshair", maxHeight: "60vh" }}
-          />
-
-          <p className="text-xs text-gray-400 mt-2">
-            💡 Marca los límites de tu propiedad, portones, accesos y zonas especiales.
+      {/* ── Encabezado de la página ───────────────────────────────────── */}
+      <div className="border-b border-border bg-surface">
+        <div className="shell py-section-sm">
+          <p className="eyebrow text-brand-green">Inspección en sitio</p>
+          <h1 className="mt-2 text-3xl font-bold text-foreground">Solicitar inspección</h1>
+          <p className="mt-2 max-w-2xl text-base text-muted-foreground">
+            Dibuja el contorno de tu propiedad para que nuestro equipo planifique tu instalación.
           </p>
         </div>
       </div>
 
-      {/* ── GENERATE BUTTON ───────────────────────────────────────────── */}
-      <div className="mx-auto max-w-7xl px-4 py-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+      {/* ── Sección 1: el plano ───────────────────────────────────────── */}
+      <section aria-labelledby={planoTituloId} className="shell pt-section-sm">
+        <h2 id={planoTituloId} className="font-heading text-xl font-bold text-foreground">
+          Plano del terreno
+        </h2>
+        <p id={planoAyudaId} className="mt-1.5 max-w-2xl text-sm text-muted-foreground">
+          Marca los límites de tu propiedad, los portones, los accesos y las zonas
+          especiales. No hace falta que sea exacto: sirve para que el inspector
+          llegue sabiendo qué va a encontrarse.
+        </p>
+
+        {/* Barra de herramientas. Tres grupos con nombre porque son tres
+            decisiones distintas —con qué dibujo, de qué color y grosor, y qué
+            hago con lo dibujado—, y en un móvil se apilan en ese orden. */}
+        <div className="mt-4 flex flex-col gap-3 rounded-xl border border-border bg-surface-2 p-3">
+
+          <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Herramienta de dibujo">
+            {TOOLS.map(t => (
+              <Button
+                key={t.id}
+                type="button"
+                variant={activeTool === t.id ? "default" : "outline"}
+                aria-pressed={activeTool === t.id}
+                onClick={() => setActiveTool(t.id)}
+              >
+                {t.icon} {t.label}
+              </Button>
+            ))}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
+            <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Color de la tinta">
+              {INKS.map(i => (
+                <button
+                  key={i.key}
+                  type="button"
+                  aria-label={i.label}
+                  aria-pressed={palette !== null && color === palette[i.key]}
+                  onClick={() => setCustomInk(readPlanPalette()[i.key])}
+                  className={`size-11 rounded-lg border-2 transition-colors ${
+                    palette !== null && color === palette[i.key]
+                      ? "border-primary"
+                      : "border-border-strong hover:border-foreground"
+                  }`}
+                >
+                  {/* La muestra vive dentro para que el borde de selección se
+                      vea siempre, también sobre una tinta oscura. */}
+                  <span className={`block size-full rounded-[3px] border border-plan-ink/20 ${i.swatch}`} />
+                </button>
+              ))}
+
+              <Label htmlFor={colorId} className="sr-only">Otro color</Label>
+              <input
+                id={colorId}
+                type="color"
+                value={color}
+                onChange={e => setCustomInk(e.target.value)}
+                className="size-11 cursor-pointer rounded-lg border border-border-strong bg-surface p-1"
+              />
+            </div>
+
+            <div className="flex min-h-tap items-center gap-2">
+              <Label htmlFor={grosorId} className="text-sm text-muted-foreground">Grosor</Label>
+              <input
+                id={grosorId}
+                type="range"
+                min={1}
+                max={12}
+                value={strokeW}
+                onChange={e => setStrokeW(+e.target.value)}
+                className="h-11 w-28 accent-primary"
+              />
+              <span className="tabular w-5 text-sm text-muted-foreground" aria-hidden="true">{strokeW}</span>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Acciones sobre el plano">
+            <Button type="button" variant="outline" size="icon" aria-label="Deshacer" title="Deshacer" onClick={draw.undo}>
+              <Undo2 className="size-4" aria-hidden="true" />
+            </Button>
+            <Button type="button" variant="outline" size="icon" aria-label="Rehacer" title="Rehacer" onClick={draw.redo}>
+              <Redo2 className="size-4" aria-hidden="true" />
+            </Button>
+            <Button
+              type="button"
+              variant={gridOn ? "secondary" : "outline"}
+              aria-pressed={gridOn}
+              onClick={() => { const on = draw.toggleGrid(); setGridOn(on); }}
+            >
+              <Grid3x3 className="size-4" aria-hidden="true" /> Cuadrícula
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="border-destructive/40 text-destructive hover:border-destructive hover:bg-destructive/10 hover:text-destructive"
+              onClick={draw.clear}
+            >
+              <Trash2 className="size-4" aria-hidden="true" /> Limpiar
+            </Button>
+          </div>
+        </div>
+
+        {/* La hoja. `bg-plan-paper` y no `bg-surface`: es papel, y el papel no
+            cambia de color porque la pantalla esté a oscuras (ver la paleta). */}
+        <canvas
+          ref={canvasRef}
+          width={1180}
+          height={420}
+          aria-label="Plano del terreno, para dibujar a mano alzada"
+          aria-describedby={`${planoAyudaId} ${planoAlternativaId}`}
+          className="mt-3 block max-h-[60svh] w-full touch-none rounded-xl border-2 border-border-strong bg-plan-paper shadow-sm"
+          style={{ cursor: activeTool === "eraser" ? "cell" : activeTool === "text" ? "text" : "crosshair" }}
+        >
+          Aquí se dibuja a mano alzada el contorno del terreno que se va a cercar.
+        </canvas>
+
+        {/* Alternativa honesta: un dibujo a mano no se puede describir, así que
+            no se finge una descripción. Se dice qué es, para qué sirve y por
+            dónde se hace lo mismo sin dibujar. Está a la vista de todos y no
+            escondida en un sr-only, porque a quien dibuja con el dedo en una
+            pantalla de 5 pulgadas también le sirve saberlo. */}
+        <p id={planoAlternativaId} className="mt-2 text-sm text-muted-foreground">
+          El plano se dibuja con el dedo o con el ratón y no tiene equivalente con
+          teclado. Si no puedes dibujarlo, descríbelo por escrito al pedir la
+          inspección: un inspector de Intemperie levanta el plano en sitio.
+        </p>
+      </section>
+
+      {/* ── Sección 2: qué hacer con el plano ─────────────────────────── */}
+      <div className="shell flex flex-col items-start gap-4 py-section-sm sm:flex-row sm:items-center">
         {isAdmin ? (
-          <button onClick={generatePDF}
-            className="flex items-center gap-2 bg-green-700 hover:bg-green-800 text-white px-6 py-3 rounded-xl font-bold text-sm shadow transition-colors">
-            📋 Generar informe de inspección (PDF)
-          </button>
+          <Button type="button" size="lg" onClick={generatePDF}>
+            <ClipboardList className="size-4" aria-hidden="true" />
+            Generar informe de inspección (PDF)
+          </Button>
         ) : (
-          <button onClick={() => alert("Tu solicitud fue enviada. Un inspector de Intemperie se contactará contigo pronto.")}
-            className="flex items-center gap-2 bg-green-700 hover:bg-green-800 text-white px-6 py-3 rounded-xl font-bold text-sm shadow transition-colors">
-            ✅ Enviar solicitud de inspección
-          </button>
+          <Button
+            type="button"
+            size="lg"
+            onClick={() => alert("Tu solicitud fue enviada. Un inspector de Intemperie se contactará contigo pronto.")}
+          >
+            <Send className="size-4" aria-hidden="true" />
+            Enviar solicitud de inspección
+          </Button>
         )}
 
         {isAdmin && (
-          <button onClick={() => setShowForm(v => !v)}
-            className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 underline">
+          <Button
+            type="button"
+            variant="link"
+            aria-expanded={showForm}
+            aria-controls="printForm"
+            onClick={() => setShowForm(v => !v)}
+          >
             {showForm ? "Ocultar formulario" : "Ver formulario completo"}
-            <ChevronDown className={`h-4 w-4 transition-transform ${showForm ? "rotate-180" : ""}`} />
-          </button>
+            <ChevronDown className={`size-4 transition-transform ${showForm ? "rotate-180" : ""}`} aria-hidden="true" />
+          </Button>
         )}
       </div>
 
