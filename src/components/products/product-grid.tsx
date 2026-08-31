@@ -59,11 +59,16 @@ export function ProductGrid({ products }: { products: GridProduct[] }) {
             category={product.category}
             collection={product.collection}
             images={product.images}
-            /* `priority` implica `<link rel="preload" fetchpriority="high">`:
-               la imagen se pide antes que el CSS y el JS, y sin `lazy`. Sólo la
-               primera tarjeta, que es la única candidata a LCP; con dos, los
-               dos preloads compiten entre sí y con lo que bloquea el render. */
-            priority={i === 0}
+            /* `preload` —el sustituto de `priority` en Next 16— inserta un
+               `<link rel="preload" fetchpriority="high">`: la imagen se pide
+               antes que el CSS y el JS, y sin `lazy`. Sólo la primera tarjeta,
+               que es la única candidata a LCP; con dos, los dos preloads
+               compiten entre sí y con lo que bloquea el render.
+
+               Es también la única foto de la parrilla que NO se desvanece al
+               entrar: animar la opacidad del elemento LCP retrasa la métrica
+               exactamente lo que dure la transición. */
+            preload={i === 0}
           />
         </li>
       ))}

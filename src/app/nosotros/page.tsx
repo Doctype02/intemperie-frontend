@@ -15,6 +15,7 @@ import {
   Wrench,
 } from "lucide-react"
 
+import { FadeInImage } from "@/components/shared/fade-in-image"
 import { Footer } from "@/components/layout/footer"
 import { Header } from "@/components/layout/header"
 import { CONTACT, WA_MESSAGE } from "@/components/layout/nav-data"
@@ -196,7 +197,7 @@ export default function NosotrosPage() {
                 fija en los dos anchos: no hay salto de maquetación. */}
             {firstShot && (
               <figure className="min-w-0">
-                <div className="relative aspect-[16/10] overflow-hidden rounded-xl lg:aspect-[4/3]">
+                <div className="relative aspect-[16/10] overflow-hidden rounded-xl bg-surface-2 lg:aspect-[4/3]">
                   <Image
                     src={firstShot.src}
                     alt={firstShot.alt}
@@ -340,8 +341,11 @@ export default function NosotrosPage() {
 
             {secondShot && (
               <figure className="min-w-0">
-                <div className="relative aspect-[4/3] overflow-hidden rounded-xl border border-border">
-                  <Image
+                {/* Bajo el pliegue y perezosa: cuando el visitante llega
+                    aquí la foto puede tardar. `FadeInImage` la funde sobre el
+                    tono del recuadro en vez de encajarla de golpe. */}
+                <div className="relative aspect-[4/3] overflow-hidden rounded-xl border border-border bg-surface-2">
+                  <FadeInImage
                     src={secondShot.src}
                     alt={secondShot.alt}
                     fill
@@ -406,8 +410,8 @@ export default function NosotrosPage() {
                   className="rounded-xl border border-border bg-surface p-5"
                 >
                   {member.photo ? (
-                    <div className="relative mb-4 aspect-[4/3] overflow-hidden rounded-lg">
-                      <Image
+                    <div className="relative mb-4 aspect-[4/3] overflow-hidden rounded-lg bg-surface-2">
+                      <FadeInImage
                         src={member.photo.src}
                         alt={member.photo.alt}
                         fill
@@ -515,8 +519,8 @@ export default function NosotrosPage() {
               {PROJECTS.map((project) => (
                 <li key={`${project.location}-${project.deliveredOn}`}>
                   <figure className="h-full overflow-hidden rounded-xl border border-border bg-surface">
-                    <div className="relative aspect-[4/3]">
-                      <Image
+                    <div className="relative aspect-[4/3] bg-surface-2">
+                      <FadeInImage
                         src={project.image.src}
                         alt={project.image.alt}
                         fill

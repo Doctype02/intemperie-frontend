@@ -133,8 +133,14 @@ export function Hero({
 
         {/* La única imagen que descarga el primer viewport de la portada.
             `preload` es el sustituto de `priority` en Next 16. Relación de
-            aspecto fija en ambos anchos: no hay salto de maquetación. */}
-        <div className="relative aspect-[16/10] overflow-hidden rounded-xl lg:aspect-[4/3]">
+            aspecto fija en ambos anchos: no hay salto de maquetación, y
+            `bg-surface-2` da el tono de espera mientras la foto viaja.
+
+            Entra directa, sin desvanecido: ésta es la candidata a LCP de la
+            portada y animarle la opacidad retrasaría la métrica justo lo que
+            durase el fundido. Un efecto de carga que hace ver la foto más
+            tarde no es un efecto de carga, es una cortina. */}
+        <div className="relative aspect-[16/10] overflow-hidden rounded-xl bg-surface-2 lg:aspect-[4/3]">
           <Image
             src={mediaUrl("/products/cerca-pvc-afrodita-401/1-imagen-principal.jpg")}
             alt="Cerca de PVC blanca instalada en el frente de una vivienda"
