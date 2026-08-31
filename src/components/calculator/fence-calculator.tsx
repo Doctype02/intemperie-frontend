@@ -200,7 +200,7 @@ export function FenceCalculator({
       ? { spacing: model.postSpacing, count: Math.ceil(meters / model.postSpacing) + 1 }
       : null
 
-  const belowMinimum = model?.unit === "METRO" && meters > 0 && meters < MIN_METERS
+  const belowMinimum = (model?.unit ?? "METRO") === "METRO" && meters > 0 && meters < MIN_METERS
   const overStock = model != null && model.stock > 0 && meters > model.stock
 
   const metersId = `${uid}-meters`
@@ -305,7 +305,7 @@ export function FenceCalculator({
                 <li key={m.id} className="w-60 shrink-0 snap-start sm:w-64">
                   <article
                     className={`flex h-full flex-col overflow-hidden rounded-lg border bg-surface transition-colors ${
-                      selected ? "border-primary" : "border-border"
+                      selected ? "border-primary ring-1 ring-primary" : "border-border"
                     }`}
                   >
                     <div className="relative aspect-[4/3] overflow-hidden bg-surface-2">
