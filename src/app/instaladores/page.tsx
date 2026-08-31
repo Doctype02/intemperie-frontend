@@ -194,55 +194,88 @@ export default function InstaladoresPage() {
           <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {BENEFITS.map((benefit) => (
               <li key={benefit.title} className="rounded-xl border border-border bg-surface p-5">
-                {/* `bg-secondary` y no `bg-brand-green-soft`: en modo oscuro el
-                    verde suave y el verde profundo caen a la misma luminosidad
-                    y el icono desaparece dentro de su propia caja. */}
-                <span className="flex size-11 items-center justify-center rounded-lg bg-secondary">
-                  <benefit.Icon className="size-5 text-secondary-foreground" aria-hidden="true" />
-                </span>
-                <h3 className="mt-4 text-base font-bold text-foreground">{benefit.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{benefit.body}</p>
+                {/* El icono iba encima del título, y sus 44 px más los 16 de
+                    separación eran 60 px de una tarjeta de 175 en móvil: un
+                    tercio del alto sin una palabra. Puesto al lado, ocupa la
+                    misma línea que el título, que ahí sobra ancho —318 px de
+                    contenido para un rótulo de tres palabras. */}
+                <div className="flex items-center gap-3">
+                  {/* `bg-secondary` y no `bg-brand-green-soft`: en modo oscuro
+                      el verde suave y el verde profundo caen a la misma
+                      luminosidad y el icono desaparece dentro de su caja. */}
+                  <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-secondary">
+                    <benefit.Icon className="size-5 text-secondary-foreground" aria-hidden="true" />
+                  </span>
+                  <h3 className="text-base font-bold text-balance text-foreground">
+                    {benefit.title}
+                  </h3>
+                </div>
+                <p className="mt-3 text-sm text-muted-foreground">{benefit.body}</p>
               </li>
             ))}
           </ul>
         </Section>
 
-        {/* ── 4. Requisitos ───────────────────────────────────────────────── */}
+        {/* ── 4. Requisitos y cómo funciona, en paralelo ──────────────────
+            Eran dos secciones apiladas. Los requisitos son cinco renglones de
+            22 px dentro de un `max-w-prose`: en 1440 px ocupaban 596 px de los
+            1216 útiles —el 49 %— y estiraban la sección a 471 px de alto para
+            110 px de texto; la mitad derecha de la pantalla quedaba en blanco
+            de arriba abajo. Los pasos, en cambio, ya llenaban el ancho con sus
+            cuatro columnas, pero sólo medían 330 px. Juntas sumaban 801 px.
+
+            Puestas en paralelo la lista deja de ser una columna estrecha con un
+            desierto al lado, los pasos pasan a 2×2 —la misma tarjeta de 289 px
+            de ancho que tenían en cuatro columnas, no se aprietan— y la banda
+            entera baja a ~470 px. En móvil siguen una debajo de otra y en el
+            mismo orden: primero qué se pide, después cómo se entra.
+
+            Se fusionan en una sola superficie, así que el corte entre las dos
+            lo marca ahora una línea: en móvil arriba de los pasos, en escritorio
+            entre las dos columnas. Sin ella, al perder el cambio de fondo, los
+            dos encabezados se leerían como uno solo. */}
         <Section surface="sunk">
-          <SectionHead {...SECTIONS.requirements} />
-          <ul className="max-w-prose space-y-3">
-            {REQUIREMENTS.map((requirement) => (
-              <li key={requirement} className="flex items-start gap-2.5">
-                <Check className="mt-0.5 size-5 shrink-0 text-brand-green" aria-hidden="true" />
-                <span className="text-sm text-foreground">{requirement}</span>
-              </li>
-            ))}
-          </ul>
-          <Link
-            href="/instaladores/registro"
-            className="mt-6 inline-flex h-12 items-center gap-2 rounded-lg bg-primary px-5 font-heading font-semibold text-primary-foreground transition-colors hover:bg-brand-green-deep"
-          >
-            {HERO.cta}
-            <ArrowRight className="size-4" aria-hidden="true" />
-          </Link>
-        </Section>
+          <div className="grid gap-8 lg:grid-cols-2 lg:gap-0">
+            <div className="min-w-0 lg:pr-14">
+              <SectionHead {...SECTIONS.requirements} />
+              <ul className="space-y-3">
+                {REQUIREMENTS.map((requirement) => (
+                  <li key={requirement} className="flex items-start gap-2.5">
+                    <Check
+                      className="mt-0.5 size-5 shrink-0 text-brand-green"
+                      aria-hidden="true"
+                    />
+                    <span className="text-sm text-foreground">{requirement}</span>
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="/instaladores/registro"
+                className="mt-6 inline-flex h-12 items-center gap-2 rounded-lg bg-primary px-5 font-heading font-semibold text-primary-foreground transition-colors hover:bg-brand-green-deep"
+              >
+                {HERO.cta}
+                <ArrowRight className="size-4" aria-hidden="true" />
+              </Link>
+            </div>
 
-        {/* ── 5. Cómo funciona ────────────────────────────────────────────
-            Lista ordenada de verdad: son cuatro pasos con un orden que importa,
-            y el número que se ve es el mismo que anuncia el lector de pantalla. */}
-        <Section surface="raised">
-          <SectionHead {...SECTIONS.steps} />
-          <ol className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {STEPS.map((step) => (
-              <li key={step.num} className="border-t-2 border-brand-green pt-4">
-                <p className="eyebrow text-brand-green-deep tabular dark:text-brand-green">
-                  Paso {step.num}
-                </p>
-                <h3 className="mt-1 text-base font-bold text-foreground">{step.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{step.body}</p>
-              </li>
-            ))}
-          </ol>
+            {/* Lista ordenada de verdad: son cuatro pasos con un orden que
+                importa, y el número que se ve es el mismo que anuncia el lector
+                de pantalla. */}
+            <div className="min-w-0 border-t border-border pt-8 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-14">
+              <SectionHead {...SECTIONS.steps} />
+              <ol className="grid gap-5 sm:grid-cols-2">
+                {STEPS.map((step) => (
+                  <li key={step.num} className="border-t-2 border-brand-green pt-4">
+                    <p className="eyebrow text-brand-green-deep tabular dark:text-brand-green">
+                      Paso {step.num}
+                    </p>
+                    <h3 className="mt-1 text-base font-bold text-foreground">{step.title}</h3>
+                    <p className="mt-2 text-sm text-muted-foreground">{step.body}</p>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </div>
         </Section>
 
         {/* ── 6. Preguntas frecuentes ─────────────────────────────────────
@@ -250,9 +283,9 @@ export default function InstaladoresPage() {
             buscan con Ctrl+F y las indexa el buscador. Cero JavaScript. */}
         <Section surface="base">
           <SectionHead {...SECTIONS.faq} />
-          <dl className="grid gap-4 sm:grid-cols-2">
+          <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {FAQ.map((item) => (
-              <div key={item.q} className="rounded-xl border border-border bg-surface p-5">
+              <div key={item.q} className="rounded-xl border border-border bg-surface p-4 sm:p-5">
                 <dt className="text-sm font-bold text-foreground">{item.q}</dt>
                 <dd className="mt-2 text-sm text-muted-foreground">{item.a}</dd>
               </div>
@@ -263,7 +296,15 @@ export default function InstaladoresPage() {
         {/* ── 7. Cierre ───────────────────────────────────────────────────── */}
         <section className="defer-paint bg-brand-navy-deep text-on-dark">
           <div className="picket-rule" aria-hidden="true" />
-          <div className="shell py-10 sm:py-12 lg:py-14">
+          {/* El texto de cierre iba en un `max-w-prose` de 596 px y los tres
+              botones en una fila propia debajo, a todo lo ancho: en 1440 px la
+              banda medía 298 px de alto y usaba 596 de los 1216 útiles —el
+              49 %— para el argumento, con la mitad derecha en blanco. Ahora el
+              texto va a la izquierda y la botonera a la derecha, limitada a
+              32 rem para que caiga en dos filas y no estire la columna. La
+              banda pasa a la altura del bloque más alto de los dos en vez de
+              sumarlos. */}
+          <div className="shell grid gap-6 py-10 sm:py-12 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:gap-16 lg:py-14">
             <div className="max-w-prose">
               <p className="eyebrow text-brand-green">{CLOSING.eyebrow}</p>
               <h2 className="mt-2 text-2xl font-bold tracking-tight text-balance sm:text-3xl">
@@ -272,7 +313,7 @@ export default function InstaladoresPage() {
               <p className="mt-2 text-sm text-on-dark-soft">{CLOSING.body}</p>
             </div>
 
-            <div className="mt-6 flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 lg:max-w-lg">
               <Link
                 href="/instaladores/registro"
                 className="flex h-12 items-center gap-2 rounded-lg bg-primary px-5 font-heading font-semibold text-primary-foreground transition-colors hover:bg-brand-green-deep"
