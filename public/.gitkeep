@@ -1,0 +1,29 @@
+Este directorio se queda vacio a proposito.
+
+El Dockerfile hace `COPY --from=builder /app/public ./public`: si el
+directorio no existe, el build se rompe. Por eso hay un archivo aqui.
+
+Ninguna imagen del sitio vive ya en el contenedor. Las fotos de producto,
+las de categorias y colecciones y los iconos de los bloques de contenido
+salen todas del Object Storage, y sus direcciones las guarda la base de
+datos. Las fotos escritas a mano en el codigo pasan por `mediaUrl()`
+(src/lib/image-utils.ts), que apunta al mismo sitio.
+
+Lo que habia aqui y por que se fue:
+
+  products/          65 JPG, 12 MB que viajaban dentro de la imagen de
+                     Docker en cada build siendo una segunda copia de unos
+                     archivos que ya estaban en el bucket.
+  images/icons/      shield, sparkles y wrench. No los referenciaba ni una
+                     linea de codigo: los referenciaba la base de datos,
+                     en content_blocks. Eso los hace contenido, no assets
+                     de la aplicacion, asi que estan en el bucket bajo
+                     site/icons/ como todo lo demas.
+  next.svg           Restos de `create-next-app`. Nadie los usaba.
+  vercel.svg
+  file.svg
+  globe.svg
+  window.svg
+
+Antes de volver a poner una imagen aqui: si la referencia la base de datos
+o la edita alguien desde el admin, es contenido y va al bucket.
