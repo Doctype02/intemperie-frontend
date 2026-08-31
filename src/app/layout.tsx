@@ -4,8 +4,6 @@ import "./globals.css";
 import { Toaster } from "sonner";
 import { WhatsAppButton } from "@/components/shared/whatsapp-button";
 import { ScrollToTop } from "@/components/shared/scroll-to-top";
-import { ImageLoadProvider } from "@/lib/image-load-context";
-import { PageLoadingOverlay } from "@/components/shared/page-loading-overlay";
 
 /* Tipografía — una sola voz, un solo archivo.
  *
@@ -98,10 +96,7 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col font-sans">
-        <ImageLoadProvider>
-          {children}
-          <PageLoadingOverlay />
-        </ImageLoadProvider>
+        {children}
         <WhatsAppButton />
         <ScrollToTop />
         <Toaster position="bottom-center" richColors closeButton />
