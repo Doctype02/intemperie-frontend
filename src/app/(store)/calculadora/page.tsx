@@ -3,6 +3,7 @@ import Link from "next/link"
 import { ArrowRight, ChevronRight, Phone } from "lucide-react"
 
 import { FenceCalculator } from "@/components/calculator/fence-calculator"
+import { parseLand, serializeSides } from "@/components/calculator/land-shapes"
 import { parseMeters } from "@/components/calculator/quote-models"
 import { CONTACT, WA_MESSAGE } from "@/components/layout/nav-data"
 import { IconWhatsApp, whatsappHref } from "@/components/ui/icon-whatsapp"
@@ -49,6 +50,13 @@ import { CatalogPicker } from "./catalog-search"
  * viajan además en cada enlace de faceta (ver `quoteHref`), para que tocar un
  * filtro no borre el modelo ni los metros con los que se llegó.
  *
+ * `?forma=<rectangulo|frente-abierto|ele|frente>` y `?lados=<20x30>` son la
+ * forma del terreno con la que se calculó el perímetro. También se resuelven
+ * aquí: quien comparte la URL comparte el lote dibujado, no sólo la cifra, y el
+ * asesor que la abre ve la misma operación que vio el cliente. Son todo o nada
+ * —media forma se descarta entera— y, cuando vienen, mandan sobre `?metros=`,
+ * porque son el dato del que ese número sale.
+ *
  * A eso se suman las facetas del catálogo —`search`, `category`, `height`—, que
  * son literalmente las del listado: mismo nombre de parámetro, mismas franjas
  * de altura, mismas categorías. Un sitio no puede llamar «1.8 – 2.1 m» a una
@@ -87,11 +95,24 @@ export default async function CalculadoraPage({
     if (first) params[key] = first
   }
 
-  const meters = parseMeters(params.metros, 10)
-  /* Se reescribe ya normalizado: los enlaces de faceta arrastran `metros`, y
-     arrastrar `?metros=-5` o `?metros=1e9` sería propagar basura por toda la
-     navegación en lugar de cortarla en la puerta. */
+  /* La forma del terreno, si viene. `parseLand` es lista blanca y todo o nada:
+     `?forma=ele` sin las cuatro medidas, o con una negativa, devuelve `null` y
+     la pantalla se comporta como si nunca hubiera venido. */
+  const land = parseLand(params.forma, params.lados)
+
+  /* Cuando hay forma válida, los metros SON su perímetro y `?metros=` no pinta
+     nada: la forma es el dato del que sale el número, y dejar que un `metros`
+     pegado a mano contradijera a la cuenta que se está pintando debajo sería
+     enseñar dos cifras distintas para lo mismo. Sin forma, manda `?metros=`,
+     que es el contrato de siempre con la ficha de producto. */
+  const meters = land ? land.meters : parseMeters(params.metros, 10)
+
+  /* Se reescriben ya normalizados: los enlaces de faceta arrastran los tres, y
+     arrastrar `?metros=-5`, `?metros=1e9` o media forma sería propagar basura
+     por toda la navegación en lugar de cortarla en la puerta. */
   params.metros = String(meters)
+  params.forma = land?.selection.shapeId
+  params.lados = land ? serializeSides(land.selection.sides) : undefined
 
   /* Sin `catch` que devuelva `[]`: un fallo de la API tiene que romper y
      reintentarse, no publicar un precotizador sin catálogo con el que no se
@@ -140,8 +161,9 @@ export default async function CalculadoraPage({
           </h1>
           <p className="mt-3 max-w-prose text-sm text-on-dark-soft">
             Elige el modelo, escribe los metros lineales del perímetro y mira el total con ITBMS.
-            Son los precios del catálogo, los mismos que ves en cada ficha. Sin dejar el correo y
-            sin esperar a nadie.
+            ¿No sabes cuántos metros son? Dinos la forma de tu terreno y sus medidas, y los
+            calculamos contigo delante. Son los precios del catálogo, los mismos que ves en cada
+            ficha. Sin dejar el correo y sin esperar a nadie.
           </p>
         </div>
       </div>
@@ -151,6 +173,7 @@ export default async function CalculadoraPage({
           models={models}
           initialModel={chosen}
           initialMeters={meters}
+          initialLand={land?.selection ?? null}
           filters={
             <CatalogPicker
               params={params}
@@ -185,6 +208,12 @@ export default async function CalculadoraPage({
                   : "No incluye instalación, transporte, puertas ni accesorios. Se cotizan aparte, con la medida tomada."}
               </li>
               <li>Pedido mínimo 10 m lineales, el mismo de cada ficha de producto.</li>
+              <li>
+                {/* La plantilla de terreno no adivina nada: suma los lados que escribe el
+                    visitante y enseña la operación entera para que pueda comprobarla. */}
+                Si usas una forma de terreno, el perímetro sale de tus propias medidas y la
+                operación se enseña completa: «2 × (20 + 30) = 100 m».
+              </li>
               <li>
                 Es un estimado, no una oferta en firme: el precio se confirma al pasar el pedido.
               </li>
