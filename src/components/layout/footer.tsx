@@ -72,7 +72,6 @@ const columns: Array<{ title: string; links: Array<{ label: string; href: string
     links: [
       { label: "Quiénes somos", href: "/nosotros" },
       { label: "Instaladores", href: "/instaladores" },
-      { label: "Inspecciones", href: "/inspecciones" },
       { label: "Términos y condiciones", href: "/terminos" },
       { label: "Privacidad", href: "/privacidad" },
     ],

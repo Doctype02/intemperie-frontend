@@ -2,7 +2,12 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 
-const protectedPaths = ["/cuenta", "/admin"];
+/* `/inspecciones` es la herramienta de campo del inspector: lleva la tabla
+   de materiales de la empresa —cemento, postes, tapas, cerraduras— y las
+   firmas del cliente y del vendedor. Estaba abierta sin sesion, y ademas
+   anunciada en el menu, en el pie y en el sitemap: se le ofrecia al publico
+   y a los buscadores. No es una pagina de tienda. */
+const protectedPaths = ["/cuenta", "/admin", "/inspecciones"];
 const adminPaths = ["/admin"];
 
 interface JwtPayload {
@@ -69,5 +74,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/cuenta/:path*", "/admin/:path*"],
+  matcher: ["/cuenta/:path*", "/admin/:path*", "/inspecciones/:path*"],
 };
