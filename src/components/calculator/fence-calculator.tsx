@@ -245,8 +245,13 @@ export function FenceCalculator({
     <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-10">
       <div className="min-w-0 space-y-8">
         {/* ── Paso 1 · Catálogo ─────────────────────────────────────────── */}
-        <section aria-labelledby={`${uid}-step1`}>
-          <p className="eyebrow text-muted-foreground">Paso 1 · Catálogo</p>
+        <section aria-labelledby={`${uid}-eyebrow1 ${uid}-step1`}>
+          {/* El antetítulo entra en el nombre accesible de la sección: quien
+              navega por regiones oye «Paso 1 · Catálogo, Elige el modelo de tu
+              cerca» y sabe por dónde va, no sólo qué hay. */}
+          <p id={`${uid}-eyebrow1`} className="eyebrow text-muted-foreground">
+            Paso 1 · Catálogo
+          </p>
 
           <div className="mt-1 flex items-end justify-between gap-4">
             <h2 id={`${uid}-step1`} className="text-xl font-bold text-foreground sm:text-2xl">
@@ -384,8 +389,10 @@ export function FenceCalculator({
         </section>
 
         {/* ── Paso 2 · Medidas ──────────────────────────────────────────── */}
-        <section aria-labelledby={`${uid}-step2`}>
-          <p className="eyebrow text-muted-foreground">Paso 2 · Medidas</p>
+        <section aria-labelledby={`${uid}-eyebrow2 ${uid}-step2`}>
+          <p id={`${uid}-eyebrow2`} className="eyebrow text-muted-foreground">
+            Paso 2 · Medidas
+          </p>
           <h2 id={`${uid}-step2`} className="mt-1 text-xl font-bold text-foreground sm:text-2xl">
             Dinos cuánto vas a cercar
           </h2>
@@ -511,9 +518,11 @@ export function FenceCalculator({
       </div>
 
       {/* ── Resumen ─────────────────────────────────────────────────────── */}
-      <aside aria-labelledby={`${uid}-summary`} className="min-w-0 lg:sticky lg:top-20 lg:self-start">
+      <aside aria-labelledby={`${uid}-eyebrow3 ${uid}-summary`} className="min-w-0 lg:sticky lg:top-20 lg:self-start">
         <div className="rounded-xl border border-border bg-surface p-4 sm:p-5">
-          <p className="eyebrow text-muted-foreground">Resumen</p>
+          <p id={`${uid}-eyebrow3`} className="eyebrow text-muted-foreground">
+            Resumen
+          </p>
           <h2 id={`${uid}-summary`} className="mt-1 text-lg font-bold text-foreground">
             Tu estimado
           </h2>

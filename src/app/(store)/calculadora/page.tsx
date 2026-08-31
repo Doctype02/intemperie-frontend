@@ -114,8 +114,12 @@ export default async function CalculadoraPage({
                 ITBMS del 7 %.
               </li>
               <li>
-                No incluye instalación, transporte, puertas ni accesorios. Se cotizan aparte, con la
-                medida tomada.
+                {/* Si algún modelo llega a traer `gatePrice`, sus puertas SÍ entran en el
+                    estimado y esta nota dejaría de ser cierta. Se lee del catálogo en vez
+                    de quedarse escrita. */}
+                {models.some((m) => m.gatePrice != null)
+                  ? "No incluye instalación, transporte ni accesorios. Se cotizan aparte, con la medida tomada."
+                  : "No incluye instalación, transporte, puertas ni accesorios. Se cotizan aparte, con la medida tomada."}
               </li>
               <li>Pedido mínimo 10 m lineales, el mismo de cada ficha de producto.</li>
               <li>
