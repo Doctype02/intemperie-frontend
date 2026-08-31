@@ -207,42 +207,66 @@ export default function InstaladoresPage() {
           </ul>
         </Section>
 
-        {/* ── 4. Requisitos ───────────────────────────────────────────────── */}
-        <Section surface="sunk">
-          <SectionHead {...SECTIONS.requirements} />
-          <ul className="max-w-prose space-y-3">
-            {REQUIREMENTS.map((requirement) => (
-              <li key={requirement} className="flex items-start gap-2.5">
-                <Check className="mt-0.5 size-5 shrink-0 text-brand-green" aria-hidden="true" />
-                <span className="text-sm text-foreground">{requirement}</span>
-              </li>
-            ))}
-          </ul>
-          <Link
-            href="/instaladores/registro"
-            className="mt-6 inline-flex h-12 items-center gap-2 rounded-lg bg-primary px-5 font-heading font-semibold text-primary-foreground transition-colors hover:bg-brand-green-deep"
-          >
-            {HERO.cta}
-            <ArrowRight className="size-4" aria-hidden="true" />
-          </Link>
-        </Section>
+        {/* ── 4. Requisitos y cómo funciona, en paralelo ──────────────────
+            Eran dos secciones apiladas. Los requisitos son cinco renglones de
+            22 px dentro de un `max-w-prose`: en 1440 px ocupaban 596 px de los
+            1216 útiles —el 49 %— y estiraban la sección a 471 px de alto para
+            110 px de texto; la mitad derecha de la pantalla quedaba en blanco
+            de arriba abajo. Los pasos, en cambio, ya llenaban el ancho con sus
+            cuatro columnas, pero sólo medían 330 px. Juntas sumaban 801 px.
 
-        {/* ── 5. Cómo funciona ────────────────────────────────────────────
-            Lista ordenada de verdad: son cuatro pasos con un orden que importa,
-            y el número que se ve es el mismo que anuncia el lector de pantalla. */}
-        <Section surface="raised">
-          <SectionHead {...SECTIONS.steps} />
-          <ol className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {STEPS.map((step) => (
-              <li key={step.num} className="border-t-2 border-brand-green pt-4">
-                <p className="eyebrow text-brand-green-deep tabular dark:text-brand-green">
-                  Paso {step.num}
-                </p>
-                <h3 className="mt-1 text-base font-bold text-foreground">{step.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{step.body}</p>
-              </li>
-            ))}
-          </ol>
+            Puestas en paralelo la lista deja de ser una columna estrecha con un
+            desierto al lado, los pasos pasan a 2×2 —la misma tarjeta de 289 px
+            de ancho que tenían en cuatro columnas, no se aprietan— y la banda
+            entera baja a ~470 px. En móvil siguen una debajo de otra y en el
+            mismo orden: primero qué se pide, después cómo se entra.
+
+            Se fusionan en una sola superficie, así que el corte entre las dos
+            lo marca ahora una línea: en móvil arriba de los pasos, en escritorio
+            entre las dos columnas. Sin ella, al perder el cambio de fondo, los
+            dos encabezados se leerían como uno solo. */}
+        <Section surface="sunk">
+          <div className="grid gap-8 lg:grid-cols-2 lg:gap-0">
+            <div className="min-w-0 lg:pr-14">
+              <SectionHead {...SECTIONS.requirements} />
+              <ul className="space-y-3">
+                {REQUIREMENTS.map((requirement) => (
+                  <li key={requirement} className="flex items-start gap-2.5">
+                    <Check
+                      className="mt-0.5 size-5 shrink-0 text-brand-green"
+                      aria-hidden="true"
+                    />
+                    <span className="text-sm text-foreground">{requirement}</span>
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="/instaladores/registro"
+                className="mt-6 inline-flex h-12 items-center gap-2 rounded-lg bg-primary px-5 font-heading font-semibold text-primary-foreground transition-colors hover:bg-brand-green-deep"
+              >
+                {HERO.cta}
+                <ArrowRight className="size-4" aria-hidden="true" />
+              </Link>
+            </div>
+
+            {/* Lista ordenada de verdad: son cuatro pasos con un orden que
+                importa, y el número que se ve es el mismo que anuncia el lector
+                de pantalla. */}
+            <div className="min-w-0 border-t border-border pt-8 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-14">
+              <SectionHead {...SECTIONS.steps} />
+              <ol className="grid gap-5 sm:grid-cols-2">
+                {STEPS.map((step) => (
+                  <li key={step.num} className="border-t-2 border-brand-green pt-4">
+                    <p className="eyebrow text-brand-green-deep tabular dark:text-brand-green">
+                      Paso {step.num}
+                    </p>
+                    <h3 className="mt-1 text-base font-bold text-foreground">{step.title}</h3>
+                    <p className="mt-2 text-sm text-muted-foreground">{step.body}</p>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </div>
         </Section>
 
         {/* ── 6. Preguntas frecuentes ─────────────────────────────────────
