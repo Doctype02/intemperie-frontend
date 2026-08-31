@@ -48,6 +48,26 @@ import { Label } from "@/components/ui/label"
  * garantía, colores, los tres campos futuros— ocurre también en el servidor
  * (`quote-models.ts`), del que aquí sólo se importa el tipo, que se borra al
  * compilar. El navegador recibe el catálogo ya masticado y este archivo.
+ *
+ * El buscador y las facetas tampoco están aquí: llegan pintados desde el
+ * servidor por la ranura `filters` y se cuelgan dentro del paso 1, que es donde
+ * hay que leerlos. Filtrar en el cliente habría obligado a mandarle el catálogo
+ * entero al navegador, que es el problema que veníamos a quitar.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * `models` YA NO ES EL CATÁLOGO
+ *
+ * Es la página de modelos que coinciden con la URL, resuelta en el servidor
+ * (`calculadora/catalog-query.ts`). Su tamaño no depende del catálogo, así que
+ * el peso de esta isla es el mismo con quince modelos que con quinientos. Antes
+ * llegaban los cien primeros del catálogo, se pintaran o no.
+ *
+ * El modelo elegido se guarda como OBJETO y no como identificador: al cambiar
+ * de faceta, `models` pasa a ser otro conjunto y el modelo que el visitante ya
+ * había elegido puede no estar dentro. Con un identificador, buscarlo en la
+ * lista nueva devolvería `null` y el resumen se vaciaría solo, borrando una
+ * cotización a medio hacer por haber tocado un filtro. Con el objeto, la
+ * elección sobrevive al filtro que la deja fuera de pantalla.
  */
 
 /** El mismo que aplica el carrito y el checkout. Un solo impuesto, un valor. */
@@ -157,26 +177,33 @@ function Spec({ label, value }: { label: string; value: string }) {
 
 export function FenceCalculator({
   models,
-  initialModelId = null,
+  initialModel = null,
   initialMeters = MIN_METERS,
+  filters,
 }: {
+  /** Los modelos que coinciden con la URL, NO el catálogo. Ver cabecera. */
   models: QuoteModel[]
-  /** Modelo resuelto en el servidor desde `?producto=<slug>`. */
-  initialModelId?: string | null
+  /**
+   * Modelo resuelto en el servidor desde `?producto=<slug>`, pidiéndolo por su
+   * slug y no buscándolo en `models`: así el enlace profundo desde una ficha
+   * funciona aunque ese modelo no caiga en la página que se está pintando.
+   */
+  initialModel?: QuoteModel | null
   /** Metros resueltos en el servidor desde `?metros=<n>`. */
   initialMeters?: number
+  /** Buscador y facetas, ya pintados en el servidor. */
+  filters?: React.ReactNode
 }) {
   const uid = useId()
   const railRef = useRef<HTMLUListElement | null>(null)
 
-  const [modelId, setModelId] = useState<string | null>(initialModelId)
+  const [model, setModel] = useState<QuoteModel | null>(initialModel)
   /* La cantidad se guarda como texto y no como número: si se guardara como
      número, borrar el campo para escribir otra cifra lo repondría a «0» de
      golpe bajo los dedos. */
   const [metersText, setMetersText] = useState(meterLabel(initialMeters))
   const [gates, setGates] = useState(0)
 
-  const model = models.find((m) => m.id === modelId) ?? null
   const copy = UNIT_COPY[model?.unit ?? "METRO"]
 
   const meters = Math.max(0, parseFloat(metersText.replace(",", ".")) || 0)
@@ -259,46 +286,52 @@ export function FenceCalculator({
             </h2>
 
             {/* Flechas sólo para ratón: en móvil se arrastra y con teclado el
-                navegador ya trae a la vista la ficha que recibe el foco. */}
-            <div className="hidden shrink-0 gap-2 sm:flex">
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                aria-label="Ver los modelos anteriores"
-                aria-controls={railId}
-                onClick={() => scrollRail(-1)}
-              >
-                <ChevronLeft aria-hidden="true" />
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                aria-label="Ver los modelos siguientes"
-                aria-controls={railId}
-                onClick={() => scrollRail(1)}
-              >
-                <ChevronRight aria-hidden="true" />
-              </Button>
-            </div>
+                navegador ya trae a la vista la ficha que recibe el foco. Con
+                una sola ficha en pantalla no hay nada que desplazar y dos
+                botones muertos son dos promesas incumplidas. */}
+            {models.length > 1 && (
+              <div className="hidden shrink-0 gap-2 sm:flex">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  aria-label="Ver los modelos anteriores"
+                  aria-controls={railId}
+                  onClick={() => scrollRail(-1)}
+                >
+                  <ChevronLeft aria-hidden="true" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  aria-label="Ver los modelos siguientes"
+                  aria-controls={railId}
+                  onClick={() => scrollRail(1)}
+                >
+                  <ChevronRight aria-hidden="true" />
+                </Button>
+              </div>
+            )}
           </div>
 
-          <p className="mt-1 text-sm text-muted-foreground">
-            <span className="tabular">{models.length}</span> modelos del catálogo, con su precio por
-            metro lineal y las existencias de fábrica.
-          </p>
+          {/* Buscador, facetas, recuento y vacío: HTML de servidor, colgado
+              aquí porque es donde se lee, no porque lo necesite esta isla. */}
+          {filters}
 
           {/* Carrusel: un contenedor con desbordamiento y anclaje. El foco de
               teclado entra ficha por ficha y el navegador desplaza solo; no hay
-              nada que atrape el tabulador. */}
+              nada que atrape el tabulador. Sin coincidencias no se pinta: la
+              salida la ofrece el vacío que llega por `filters`, con un enlace
+              para quitar cada filtro por separado. */}
           <ul
             ref={railRef}
             id={railId}
+            hidden={models.length === 0}
             className="-mx-1 mt-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 py-1"
           >
             {models.map((m) => {
-              const selected = m.id === modelId
+              const selected = m.id === model?.id
               const stock = availability(m)
 
               return (
@@ -370,7 +403,7 @@ export function FenceCalculator({
                         type="button"
                         variant={selected ? "default" : "outline"}
                         aria-pressed={selected}
-                        onClick={() => setModelId(selected ? null : m.id)}
+                        onClick={() => setModel(selected ? null : m)}
                         className="mt-3 w-full"
                       >
                         {selected && <Check aria-hidden="true" />}
@@ -415,6 +448,18 @@ export function FenceCalculator({
                   <Spec label="Colores" value={model.colors.join(", ")} />
                 )}
               </dl>
+
+              {/* El modelo elegido puede quedar fuera de los resultados: o se
+                  llegó por `?producto=` desde una ficha, o se filtró después de
+                  elegirlo. La elección se respeta —no se borra una cotización a
+                  medias por tocar un filtro—, pero se dice, porque si no parece
+                  que el buscador de arriba se ha equivocado. */}
+              {!models.some((m) => m.id === model.id) && (
+                <p className="mt-3 text-xs text-muted-foreground">
+                  Este modelo no está entre los resultados de arriba, pero sigue elegido y es el
+                  que se está cotizando. Quita un filtro para volver a verlo en la lista.
+                </p>
+              )}
             </div>
           ) : (
             <p className="mt-4 rounded-lg border border-dashed border-border-strong bg-surface-sunk px-4 py-3 text-sm text-muted-foreground">

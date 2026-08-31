@@ -189,8 +189,13 @@ const chipOff =
   "border-border bg-surface text-muted-foreground hover:border-brand-green hover:text-brand-green-deep"
 const chipOn = "border-brand-green-deep bg-brand-green-deep text-on-dark"
 
-/** Chip de faceta. Pulsar el chip activo lo apaga: es su propio «quitar». */
-function FacetChip({
+/**
+ * Chip de faceta. Pulsar el chip activo lo apaga: es su propio «quitar».
+ *
+ * Exportado porque el precotizador filtra por las mismas facetas y un chip de
+ * «uso» no puede verse de dos maneras según la pantalla en la que se toque.
+ */
+export function FacetChip({
   href,
   active,
   children,
