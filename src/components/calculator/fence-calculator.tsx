@@ -85,10 +85,31 @@ function meterLabel(n: number): string {
  * venden por metro lineal, pero el enum de la base admite tres valores y una
  * ficha por panel pediría «Metros lineales totales» sin sentido.
  */
-const UNIT_COPY: Record<ProductUnit, { field: string; suffix: string; per: string; abbr: string }> = {
-  METRO: { field: "Metros lineales totales a cercar", suffix: "ML", per: "Precio por metro lineal", abbr: "m" },
-  PANEL: { field: "Paneles que necesitas", suffix: "uds", per: "Precio por panel", abbr: "paneles" },
-  UNIDAD: { field: "Unidades que necesitas", suffix: "uds", per: "Precio por unidad", abbr: "u" },
+const UNIT_COPY: Record<
+  ProductUnit,
+  { field: string; short: string; suffix: string; per: string; abbr: string }
+> = {
+  METRO: {
+    field: "Metros lineales totales a cercar",
+    short: "Metros lineales",
+    suffix: "ML",
+    per: "Precio por metro lineal",
+    abbr: "m",
+  },
+  PANEL: {
+    field: "Paneles que necesitas",
+    short: "Paneles",
+    suffix: "uds",
+    per: "Precio por panel",
+    abbr: "paneles",
+  },
+  UNIDAD: {
+    field: "Unidades que necesitas",
+    short: "Unidades",
+    suffix: "uds",
+    per: "Precio por unidad",
+    abbr: "u",
+  },
 }
 
 /** Existencias reales, escritas como las lee un comprador de 80 m de cerca. */
@@ -197,7 +218,7 @@ export function FenceCalculator({
         "Hola Intemperie, quiero cotizar mi cerca:",
         `• Modelo: ${model.name}`,
         ...(model.height ? [`• Altura disponible: ${model.height}`] : []),
-        `• ${copy.field}: ${meterLabel(meters)} ${copy.abbr}`,
+        `• ${copy.short}: ${meterLabel(meters)} ${copy.abbr}`,
         ...(model.gatePrice != null && gates > 0 ? [`• Puertas: ${gates}`] : []),
         `• Material: ${money(materialCost)}`,
         `• ITBMS (7%): ${money(tax)}`,
@@ -206,7 +227,7 @@ export function FenceCalculator({
       ]
     : [
         "Hola Intemperie, quiero cotizar mi cerca:",
-        `• ${copy.field}: ${meterLabel(meters)} ${copy.abbr}`,
+        `• ${copy.short}: ${meterLabel(meters)} ${copy.abbr}`,
         "Todavía no sé qué modelo me conviene. ¿Me recomiendan uno?",
       ]
 
@@ -390,8 +411,8 @@ export function FenceCalculator({
             </div>
           ) : (
             <p className="mt-4 rounded-lg border border-dashed border-border-strong bg-surface-sunk px-4 py-3 text-sm text-muted-foreground">
-              Elige un modelo arriba para ver su precio. Mientras tanto puedes escribir tus metros:
-              se guardan.
+              Elige un modelo arriba y el estimado se calcula solo. Los metros que escribas se
+              mantienen al cambiar de modelo.
             </p>
           )}
 
