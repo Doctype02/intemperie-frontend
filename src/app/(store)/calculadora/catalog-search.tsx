@@ -99,7 +99,11 @@ function UseFacet({
     <nav aria-label="Filtrar por uso" className="-mx-gutter px-gutter">
       <ul className="scrollbar-hide flex gap-2 overflow-x-auto pb-1">
         <li className="shrink-0">
-          <FacetChip href={quoteHref(params, { category: null })} active={!active}>
+          <FacetChip
+            href={quoteHref(params, { category: null })}
+            active={!active}
+            className="min-h-tap"
+          >
             Cualquier uso
           </FacetChip>
         </li>
@@ -109,6 +113,7 @@ function UseFacet({
               href={quoteHref(params, { category: active === cat.slug ? null : cat.slug })}
               active={active === cat.slug}
               count={cat._count?.products}
+              className="min-h-tap"
             >
               {cat.name}
             </FacetChip>

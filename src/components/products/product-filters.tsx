@@ -200,17 +200,26 @@ export function FacetChip({
   active,
   children,
   count,
+  className = "",
 }: {
   href: string
   active: boolean
   children: React.ReactNode
   count?: number
+  /**
+   * Añadidos del sitio que lo usa. El precotizador sube el chip a 44 px de
+   * alto: allí es el único control de faceta a mano en móvil, no hay barra
+   * lateral donde reintentar, y se toca con el pulgar mientras se mira una
+   * cerca. Va como parche y no como cambio del chip base para no mover el
+   * listado, donde el chip lleva su tamaño desde el rediseño.
+   */
+  className?: string
 }) {
   return (
     <Link
       href={href}
       aria-current={active ? "true" : undefined}
-      className={`${chip} ${active ? chipOn : chipOff}`}
+      className={`${chip} ${active ? chipOn : chipOff} ${className}`}
     >
       {children}
       {count != null && (
