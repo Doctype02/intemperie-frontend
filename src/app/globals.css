@@ -142,6 +142,16 @@
   --color-whatsapp: var(--whatsapp);
   --color-whatsapp-deep: var(--whatsapp-deep);
 
+  /* ── Color: el plano de inspección ────────────────────────────────────────
+     Papel, no interfaz. La declaración y el porqué están en :root. */
+  --color-plan-paper: var(--plan-paper);
+  --color-plan-ink: var(--plan-ink);
+  --color-plan-grid: var(--plan-grid);
+  --color-plan-ink-green: var(--plan-ink-green);
+  --color-plan-ink-navy: var(--plan-ink-navy);
+  --color-plan-ink-amber: var(--plan-ink-amber);
+  --color-plan-ink-red: var(--plan-ink-red);
+
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -220,6 +230,22 @@
   --input: oklch(0.64 0.015 150);
   --ring: var(--brand-green);
   --focus-halo: oklch(1 0 0);
+
+  /* El plano de la ficha de inspección: tinta sobre papel.
+     El lienzo se exporta con toDataURL, se pega en el informe y se imprime.
+     Es un documento en papel, no una superficie de la aplicación, y por eso
+     estos siete valores se declaran una sola vez y NO se redefinen en .dark:
+     si siguieran al tema, un plano levantado de noche saldría en tinta casi
+     blanca sobre un PNG transparente y la hoja llegaría en blanco a la obra.
+     Son los mismos primitivos del sistema en su versión clara, copiados aquí
+     porque su trabajo es sobrevivir al cambio de tema. */
+  --plan-paper: oklch(1 0 0);                  /* = --surface claro           */
+  --plan-ink: oklch(0.24 0.032 245);           /* = --foreground claro        */
+  --plan-grid: oklch(0.92 0.045 155);          /* = --brand-green-soft claro  */
+  --plan-ink-green: oklch(0.36 0.085 158);     /* = --brand-green-deep claro  */
+  --plan-ink-navy: oklch(0.28 0.07 254);       /* = --brand-navy claro        */
+  --plan-ink-amber: oklch(0.55 0.155 45);      /* = --brand-amber-deep claro  */
+  --plan-ink-red: oklch(0.52 0.19 27);         /* = --destructive claro       */
 
   /* Tintes de sombra: derivados de la tinta, nunca negro puro */
   --shadow-tint: oklch(0.24 0.032 245 / 0.1);
