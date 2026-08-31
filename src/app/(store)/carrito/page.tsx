@@ -4,10 +4,11 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useCartStore } from "@/lib/store/cart-store";
+import { useCartQuote } from "@/hooks/use-cart-quote";
 import { Button } from "@/components/ui/button";
-import { Minus, Plus, Trash2, ArrowLeft, ShoppingCart, Check } from "lucide-react";
-
-const FREE_SHIPPING_THRESHOLD = 50;
+import { FreeShippingProgress } from "@/components/cart/free-shipping-progress";
+import { OrderTotals } from "@/components/cart/order-totals";
+import { Minus, Plus, Trash2, ArrowLeft, ShoppingCart } from "lucide-react";
 
 /* El marco redondeado lo pone el grupo y no cada paso, así los dos botones
  * pueden ser cuadrados de 44 px sin costura visible entre ellos. */
@@ -37,6 +38,11 @@ export default function CartPage() {
   const removeItem = useCartStore((s) => s.removeItem);
   const subtotal = useCartStore((s) => s.subtotal);
   const itemCount = useCartStore((s) => s.itemCount);
+
+  /* Antes de los retornos tempranos: los hooks no pueden quedar detrás de un
+     `if`. Con el carrito vacío o sin rehidratar la clave sale vacía y el hook
+     no llega a pedir nada. */
+  const { quote, isUpdating, error, retry } = useCartQuote(items);
 
   useEffect(() => { setReady(true); }, []);
 
@@ -92,11 +98,8 @@ export default function CartPage() {
     );
   }
 
-  const total = subtotal();
+  const cartSubtotal = subtotal();
   const count = itemCount();
-  const tax = total * 0.07;
-  const shippingProgress = Math.min((total / FREE_SHIPPING_THRESHOLD) * 100, 100);
-  const remaining = Math.max(FREE_SHIPPING_THRESHOLD - total, 0);
 
   return (
     /* El layout de la tienda ya aporta el <main>; aquí sólo el destino del
@@ -120,33 +123,14 @@ export default function CartPage() {
           </Link>
         </div>
 
-        {/* Cuánto falta para el envío gratis. El dato está en el texto; la barra
-            sólo lo ilustra, así que no se anuncia un porcentaje aparte. */}
-        <div className="mb-4 rounded-xl border border-border bg-surface px-4 py-3.5">
-          {remaining > 0 ? (
-            <p className="mb-2 text-sm text-muted-foreground">
-              Agrega{" "}
-              <span className="font-bold text-foreground tabular">
-                ${remaining.toFixed(2)}
-              </span>{" "}
-              más para <span className="font-bold text-success">envío gratis</span>
-            </p>
-          ) : (
-            <p className="mb-2 flex items-center gap-1.5 text-sm font-bold text-success">
-              <Check className="size-4" aria-hidden="true" />
-              ¡Envío gratuito incluido en tu pedido!
-            </p>
-          )}
-          <div
-            aria-hidden="true"
-            className="h-2 w-full overflow-hidden rounded-full bg-surface-sunk"
-          >
-            <div
-              className="h-full rounded-full bg-primary transition-all duration-500"
-              style={{ width: `${shippingProgress}%` }}
-            />
-          </div>
-        </div>
+        {/* Cuánto falta para el envío gratis, con el umbral que dicta el
+            servidor: esta pantalla lo tenía fijado en $50 cuando la tienda lo
+            regala a partir de $500. */}
+        <FreeShippingProgress
+          quote={quote}
+          isUpdating={isUpdating}
+          className="mb-4 rounded-xl border border-border bg-surface px-4 py-3.5"
+        />
 
         <div className="overflow-hidden rounded-xl border border-border bg-surface">
           <ul>
@@ -246,30 +230,19 @@ export default function CartPage() {
               <div className="w-full sm:w-72">
                 {/* Los pasos de cantidad quedan arriba y estas cifras abajo:
                     sin anuncio, quien no ve la pantalla no sabe que acaba de
-                    cambiar el total de su pedido. */}
-                <div
-                  role="status"
-                  aria-live="polite"
-                  aria-atomic="true"
-                  className="space-y-2"
-                >
-                  <div className="flex justify-between gap-4 text-sm">
-                    <span className="text-muted-foreground">Subtotal</span>
-                    <span className="font-medium text-foreground tabular">
-                      ${total.toFixed(2)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between gap-4 text-sm">
-                    <span className="text-muted-foreground">ITBMS (7%)</span>
-                    <span className="font-medium text-foreground tabular">
-                      ${tax.toFixed(2)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between gap-4 border-t border-border pt-2 text-lg font-bold text-foreground">
-                    <span>Total</span>
-                    <span className="tabular">${(total + tax).toFixed(2)}</span>
-                  </div>
-                </div>
+                    cambiar el total de su pedido. La región viva la pone el
+                    propio bloque de importes.
+
+                    Antes el total era subtotal + 7 % y jamás incluía el envío,
+                    de modo que no coincidía con el del checkout. */}
+                <OrderTotals
+                  subtotal={cartSubtotal}
+                  quote={quote}
+                  isUpdating={isUpdating}
+                  error={error}
+                  onRetry={retry}
+                  subtotalLabel={`Subtotal (${count} ${count === 1 ? "producto" : "productos"})`}
+                />
 
                 {/* Una acción por pantalla: en móvil el botón ocupa el ancho
                     completo y 52 px de alto, que es lo que pide un pulgar. */}

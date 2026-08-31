@@ -6,6 +6,10 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/lib/store/cart-store";
 import { useAuthStore } from "@/lib/store/auth-store";
+import { useCartQuote } from "@/hooks/use-cart-quote";
+import { OrderTotals } from "@/components/cart/order-totals";
+import { formatMoney } from "@/lib/utils";
+import type { CartQuote } from "@/lib/api/cart";
 import {
   createOrder,
   initiateTilopay,
@@ -119,6 +123,14 @@ export default function CheckoutPage() {
   const items = useCartStore((s) => s.items);
   const subtotal = useCartStore((s) => s.subtotal());
   const clearCart = useCartStore((s) => s.clearCart);
+
+  /* Impuesto, envío y total salen del API, no de una fórmula local. Esta
+     pantalla los calculaba bien —7 % y $5.99 sobre $500— pero acertar copiando
+     la regla no es lo mismo que ser correcto: el día que cambie la tarifa, el
+     checkout mentiría igual que mentían el carrito y el panel. Con la
+     cotización del servidor las cuatro pantallas no pueden discrepar.
+     Va con el resto de hooks, antes de los retornos tempranos. */
+  const { quote, isUpdating, error: quoteError, retry: retryQuote } = useCartQuote(items);
 
   const stepHeadingRef = useRef<HTMLHeadingElement>(null);
   const previousStepRef = useRef<Step | null>(null);
@@ -416,9 +428,9 @@ export default function CheckoutPage() {
 
   if (items.length === 0) return null;
 
-  const tax = subtotal * 0.07;
-  const shipping = subtotal > 500 ? 0 : 5.99;
-  const total = subtotal + tax + shipping;
+  /* Mientras no haya cotización no hay importe que enseñar ni que cobrar: los
+     botones de pago se bloquean en lugar de anunciar una cifra propia. */
+  const total = quote ? formatMoney(quote.total) : null;
 
   const updateField = (name: keyof GuestAddress, value: string) => {
     setAddress((prev) => ({ ...prev, [name]: value }));
@@ -490,6 +502,10 @@ export default function CheckoutPage() {
   };
 
   const handleWhatsApp = async () => {
+    // El mensaje lleva el importe: sin cotización del servidor no se manda una
+    // cifra al equipo de ventas. El botón ya está bloqueado, esto es el cierre.
+    if (!total) return;
+
     setLoading(true);
     setError("");
     try {
@@ -500,7 +516,7 @@ export default function CheckoutPage() {
       const orderLines = items
         .map((i) => `• ${i.product?.name} — ${i.quantity} ${i.product?.unit === "METRO" ? "m" : "unid."}`)
         .join("%0A");
-      const msg = `Hola%2C quiero confirmar mi pedido:%0A%0A${orderLines}%0A%0ARef: ${order.id.slice(0, 8).toUpperCase()}%0ATotal: $${total.toFixed(2)}%0AEnvío a: ${address.street}, ${address.city}, ${address.province}%0AContacto: ${address.phone}`;
+      const msg = `Hola%2C quiero confirmar mi pedido:%0A%0A${orderLines}%0A%0ARef: ${order.id.slice(0, 8).toUpperCase()}%0ATotal: ${total}%0AEnvío a: ${address.street}, ${address.city}, ${address.province}%0AContacto: ${address.phone}`;
       window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`, "_blank");
 
       // 3. Clear state and go to success
@@ -515,7 +531,15 @@ export default function CheckoutPage() {
     }
   };
 
-  const totals = { subtotal, tax, shipping, total };
+  /* Lo que necesitan los tres sitios donde se pinta el resumen. El subtotal es
+     local (suma instantánea al cambiar cantidades); lo demás, del servidor. */
+  const summary = {
+    subtotal,
+    quote,
+    isUpdating,
+    error: quoteError,
+    onRetry: retryQuote,
+  };
 
   return (
     <>
@@ -628,10 +652,12 @@ export default function CheckoutPage() {
               Resumen del pedido
               <span className="text-muted-foreground tabular">({items.length})</span>
             </span>
-            <span className="text-base font-bold text-foreground tabular">${total.toFixed(2)}</span>
+            <span className="text-base font-bold text-foreground tabular">
+              {total ?? "—"}
+            </span>
           </summary>
           <div className="border-t border-hairline px-4 py-3">
-            <SummaryLines items={items} totals={totals} />
+            <SummaryLines items={items} summary={summary} />
           </div>
         </details>
 
@@ -813,7 +839,7 @@ export default function CheckoutPage() {
                     ))}
                   </ul>
                   <div className="mt-4">
-                    <SummaryLines items={items} totals={totals} hideItems />
+                    <SummaryLines items={items} summary={summary} hideItems />
                   </div>
                   <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                     <Button variant="outline" onClick={() => setStep("address")}>
@@ -847,13 +873,15 @@ export default function CheckoutPage() {
                           se puede comprobar cuánto se va a cobrar. */}
                       <Button
                         onClick={handleTilopay}
-                        disabled={loading}
+                        disabled={loading || !total}
                         aria-busy={loading}
                         size="block"
                       >
                         {loading
                           ? <><Loader2 className="animate-spin" aria-hidden="true" />Preparando pago…</>
-                          : <>Pagar <span className="tabular">${total.toFixed(2)}</span></>}
+                          : total
+                            ? <>Pagar <span className="tabular">{total}</span></>
+                            : "Calculando el total…"}
                       </Button>
                       <p className="mt-2 flex items-center justify-center gap-1 text-2xs text-muted-foreground">
                         <Lock className="h-3 w-3" aria-hidden="true" /> Pago seguro con Tilopay · PCI DSS
@@ -875,7 +903,7 @@ export default function CheckoutPage() {
                       <Button
                         variant="outline"
                         className="w-full"
-                        disabled={loading}
+                        disabled={loading || !total}
                         aria-busy={loading}
                         onClick={handleWhatsApp}
                       >
@@ -909,7 +937,7 @@ export default function CheckoutPage() {
             <h2 id="order-summary-title" className="mb-4 font-heading font-bold text-foreground">
               Resumen del pedido
             </h2>
-            <SummaryLines items={items} totals={totals} />
+            <SummaryLines items={items} summary={summary} />
 
             <div className="mt-4 rounded-lg border border-hairline bg-surface-sunk p-3">
               <p className="eyebrow mb-2.5 flex items-center gap-1.5 text-muted-foreground">
@@ -967,14 +995,22 @@ function ErrorAlert({ children, className = "" }: { children: React.ReactNode; c
 
 /* Conceptos e importes del pedido. Se pinta en tres sitios (resumen plegable de
    móvil, paso de revisión y columna de escritorio) y por eso vive aquí: tres
-   copias de la misma suma acaban divergiendo. */
+   copias de la misma suma acaban divergiendo. Ya no suma nada: los artículos
+   son suyos, y las cuatro cifras las delega en `OrderTotals`, que las toma de
+   la cotización del servidor. */
 function SummaryLines({
   items,
-  totals,
+  summary,
   hideItems = false,
 }: {
   items: { id: string; quantity: number; product?: { name?: string; basePrice?: number | string } }[];
-  totals: { subtotal: number; tax: number; shipping: number; total: number };
+  summary: {
+    subtotal: number;
+    quote: CartQuote | null;
+    isUpdating: boolean;
+    error: string | null;
+    onRetry: () => void;
+  };
   hideItems?: boolean;
 }) {
   return (
@@ -992,26 +1028,18 @@ function SummaryLines({
           ))}
         </ul>
       )}
-      <dl className={`space-y-2 ${hideItems ? "" : "border-t border-hairline pt-3"}`}>
-        <div className="flex justify-between gap-3">
-          <dt className="text-muted-foreground">Subtotal</dt>
-          <dd className="text-foreground tabular">${totals.subtotal.toFixed(2)}</dd>
-        </div>
-        <div className="flex justify-between gap-3">
-          <dt className="text-muted-foreground">ITBMS (7%)</dt>
-          <dd className="text-foreground tabular">${totals.tax.toFixed(2)}</dd>
-        </div>
-        <div className="flex justify-between gap-3">
-          <dt className="text-muted-foreground">Envío</dt>
-          <dd className="text-foreground tabular">
-            {totals.shipping === 0 ? "Gratis" : `$${totals.shipping.toFixed(2)}`}
-          </dd>
-        </div>
-        <div className="flex justify-between gap-3 border-t border-hairline pt-2 text-base font-bold">
-          <dt className="text-foreground">Total</dt>
-          <dd className="text-foreground tabular">${totals.total.toFixed(2)}</dd>
-        </div>
-      </dl>
+      {/* Las cuatro cifras las pinta el bloque compartido del embudo: mismo
+          origen y mismo formato que el carrito y que el panel, que es la única
+          forma de que no vuelvan a discrepar entre pantallas. */}
+      <OrderTotals
+        subtotal={summary.subtotal}
+        quote={summary.quote}
+        isUpdating={summary.isUpdating}
+        error={summary.error}
+        onRetry={summary.onRetry}
+        size="sm"
+        className={hideItems ? "" : "border-t border-hairline pt-3"}
+      />
     </div>
   );
 }

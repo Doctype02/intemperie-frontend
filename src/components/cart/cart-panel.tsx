@@ -3,11 +3,12 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useCartStore } from "@/lib/store/cart-store";
+import { useCartQuote } from "@/hooks/use-cart-quote";
 import { Button } from "@/components/ui/button";
+import { FreeShippingProgress } from "@/components/cart/free-shipping-progress";
+import { OrderTotals } from "@/components/cart/order-totals";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { ShoppingCart, Minus, Plus, Trash2, Check } from "lucide-react";
-
-const FREE_SHIPPING_THRESHOLD = 50;
+import { ShoppingCart, Minus, Plus, Trash2 } from "lucide-react";
 
 /* Panel del carrito.
  *
@@ -33,6 +34,13 @@ const FREE_SHIPPING_THRESHOLD = 50;
  *   · Los importes cambian al pulsar los pasos, pero el cambio ocurre a media
  *     pantalla de distancia del dedo. El bloque de totales es región viva y
  *     las cifras van con `.tabular` para que se comparen en columna.
+ *
+ * ── Importes ──────────────────────────────────────────────────────────────
+ * Este panel enseñaba `subtotal × 1.07` como total: nunca sumaba el envío, así
+ * que prometía un total que no era el que se iba a cobrar. Ahora impuesto,
+ * envío y total salen de `POST /cart/quote`, igual que en /carrito y en el
+ * checkout, y el subtotal se sigue calculando aquí para que el paso de cantidad
+ * responda sin esperar a la red.
  */
 export interface CartPanelProps {
   open: boolean;
@@ -50,9 +58,8 @@ export function CartPanel({ open, onOpenChange, finalFocus }: CartPanelProps) {
   const { items, updateQuantity, removeItem, subtotal, itemCount } = useCartStore();
   const setOpen = onOpenChange;
   const count = itemCount();
-  const total = subtotal();
-  const shippingProgress = Math.min((total / FREE_SHIPPING_THRESHOLD) * 100, 100);
-  const remaining = Math.max(FREE_SHIPPING_THRESHOLD - total, 0);
+  const cartSubtotal = subtotal();
+  const { quote, isUpdating, error, retry } = useCartQuote(items);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -92,34 +99,15 @@ export function CartPanel({ open, onOpenChange, finalFocus }: CartPanelProps) {
           </div>
         ) : (
           <>
-            {/* Cuánto falta para el envío gratis. El texto lleva el dato; la
-                barra sólo lo ilustra, así que se oculta al lector de pantalla
-                en lugar de anunciar un porcentaje que nadie pidió. */}
-            <div className="border-b border-hairline bg-surface-2 px-5 py-3">
-              {remaining > 0 ? (
-                <p className="mb-1.5 text-xs text-muted-foreground">
-                  Agrega{" "}
-                  <span className="font-bold text-foreground tabular">
-                    ${remaining.toFixed(2)}
-                  </span>{" "}
-                  más para envío gratis
-                </p>
-              ) : (
-                <p className="mb-1.5 flex items-center gap-1 text-xs font-bold text-success">
-                  <Check className="size-3.5" aria-hidden="true" />
-                  Envío gratuito incluido en tu pedido
-                </p>
-              )}
-              <div
-                aria-hidden="true"
-                className="h-1.5 w-full overflow-hidden rounded-full bg-surface-sunk"
-              >
-                <div
-                  className="h-full rounded-full bg-primary transition-all duration-500"
-                  style={{ width: `${shippingProgress}%` }}
-                />
-              </div>
-            </div>
+            {/* Cuánto falta para el envío gratis, con el umbral que dicta el
+                servidor: la versión anterior lo fijaba en $50 y prometía envío
+                gratis diez veces antes de tiempo. */}
+            <FreeShippingProgress
+              quote={quote}
+              isUpdating={isUpdating}
+              size="sm"
+              className="border-b border-hairline bg-surface-2 px-5 py-3"
+            />
 
             <ul className="flex-1 space-y-4 overflow-y-auto px-5 py-4">
               {items.map((item) => {
@@ -216,30 +204,17 @@ export function CartPanel({ open, onOpenChange, finalFocus }: CartPanelProps) {
             <div className="border-t border-hairline bg-surface px-5 py-4">
               {/* Los pasos de cantidad están arriba y estas cifras abajo: sin
                   anuncio, quien no ve la pantalla no se entera de que acaba de
-                  cambiar el total de su pedido. */}
-              <div
-                role="status"
-                aria-live="polite"
-                aria-atomic="true"
-                className="mb-4 space-y-1.5"
-              >
-                <div className="flex justify-between gap-4 text-sm text-muted-foreground">
-                  <span>Subtotal</span>
-                  <span className="font-medium text-foreground tabular">
-                    ${total.toFixed(2)}
-                  </span>
-                </div>
-                <div className="flex justify-between gap-4 text-sm text-muted-foreground">
-                  <span>ITBMS (7%)</span>
-                  <span className="font-medium text-foreground tabular">
-                    ${(total * 0.07).toFixed(2)}
-                  </span>
-                </div>
-                <div className="flex justify-between gap-4 border-t border-hairline pt-1.5 text-base font-bold text-foreground">
-                  <span>Total</span>
-                  <span className="tabular">${(total * 1.07).toFixed(2)}</span>
-                </div>
-              </div>
+                  cambiar el total de su pedido. La región viva la pone el
+                  propio bloque de importes. */}
+              <OrderTotals
+                subtotal={cartSubtotal}
+                quote={quote}
+                isUpdating={isUpdating}
+                error={error}
+                onRetry={retry}
+                size="sm"
+                className="mb-4"
+              />
 
               {/* Una acción por pantalla: pagar ocupa el ancho completo y 52 px
                   de alto; volver al carrito es el enlace secundario debajo. */}

@@ -74,3 +74,50 @@ export function generateOrderWhatsAppMessage(orderId: string): string {
 export function generateProductWhatsAppMessage(productName: string): string {
   return `¡Hola! Me interesa cotizar el producto: ${productName}. ¿Podrían darme más información?`;
 }
+
+/* ─── Dinero que viene del servidor ───────────────────────────────────────────
+ *
+ * `POST /cart/quote` devuelve los importes como cadena decimal ("5.99") porque
+ * el backend los calcula en decimal exacto. Pasarlos por `Number` para
+ * enseñarlos reintroduce el error binario del punto flotante justo en la
+ * pantalla donde el comprador comprueba cuánto se le va a cobrar, así que aquí
+ * sólo se maquilla el texto: se separan los miles y se deja la parte decimal
+ * intacta, sin aritmética de por medio.
+ */
+export function formatMoney(amount: string): string {
+  const negative = amount.startsWith("-");
+  const [whole = "0", decimals = "00"] = amount.replace(/^[-+]/, "").split(".");
+  const grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return `${negative ? "-" : ""}$${grouped}.${decimals.padEnd(2, "0").slice(0, 2)}`;
+}
+
+/**
+ * "0.07" → "7%". La tasa la manda el servidor para que el rótulo no mienta si
+ * el ITBMS cambia; aquí sí se puede usar `Number` porque el resultado es una
+ * etiqueta, no un importe que nadie va a pagar.
+ */
+export function formatTaxRatePercent(rate: string): string {
+  const percent = Math.round(Number(rate) * 10000) / 100;
+  return `${Number.isFinite(percent) ? percent : 0}%`;
+}
+
+/* Los importes del servidor se comparan y se restan en céntimos enteros.
+ *
+ * Hace falta para lo que el API no manda: cuánto le falta al carrito para el
+ * envío gratis. `500.00 - 449.10` en punto flotante da 50.900000000000006, y esa
+ * cifra acaba impresa en «Agrega $X más para envío gratis». En enteros no hay
+ * arrastre posible. Nunca para recalcular impuesto, envío o total: esos vienen
+ * dados y no se tocan. */
+export function moneyToCents(amount: string): number {
+  const [whole = "0", decimals = "0"] = amount.replace(/^\+/, "").split(".");
+  const sign = whole.startsWith("-") ? -1 : 1;
+  const wholeCents = Math.abs(parseInt(whole, 10) || 0) * 100;
+  const fraction = parseInt(decimals.padEnd(2, "0").slice(0, 2), 10) || 0;
+  return sign * (wholeCents + fraction);
+}
+
+export function centsToMoney(cents: number): string {
+  const sign = cents < 0 ? "-" : "";
+  const absolute = Math.abs(Math.round(cents));
+  return `${sign}${Math.floor(absolute / 100)}.${String(absolute % 100).padStart(2, "0")}`;
+}
