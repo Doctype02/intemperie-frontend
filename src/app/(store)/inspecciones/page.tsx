@@ -5,7 +5,9 @@ import { ChevronDown, ClipboardList, Eraser, Grid3x3, Minus, Pencil, RectangleHo
 
 import { useAuthStore } from "@/lib/store/auth-store";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 /* Ficha de inspección — sistema «Perímetro».
  *
@@ -288,8 +290,17 @@ export default function InspeccionesPage() {
   const planoAlternativaId = `${uid}-plano-alternativa`;
   const colorId = `${uid}-color`;
   const grosorId = `${uid}-grosor`;
+  const fichaTituloId = `${uid}-ficha`;
+  const inspNumId = `${uid}-numero`;
+  const datosId = `${uid}-datos`;
+  const planoFichaId = `${uid}-plano-ficha`;
+  const materialesId = `${uid}-materiales`;
+  const observacionesId = `${uid}-observaciones`;
+  const observacionesCampoId = `${uid}-observaciones-campo`;
+  const firmasId = `${uid}-firmas`;
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const planoImgRef = useRef<HTMLImageElement | null>(null);
   const sig1Ref   = useRef<HTMLCanvasElement | null>(null);
   const sig2Ref   = useRef<HTMLCanvasElement | null>(null);
   const draw      = useCanvas(canvasRef);
@@ -317,12 +328,21 @@ export default function InspeccionesPage() {
   const [nombreInspector, setNombreInspector] = useState("");
   const [nombreVendedor,  setNombreVendedor]  = useState("");
 
+  /* Los tres avisos del compilador de React que vienen a continuación son
+     correctos: son estados que se fijan desde un efecto y encadenan un render
+     de más. Quitarlos es rehacer el contador de inspecciones y la manera en
+     que la ficha se rellena con la sesión, o sea, lógica —y este encargo es de
+     diseño y usabilidad—. Se silencian uno a uno, señalados, en vez de
+     dejarlos sueltos o de tocar lo que no toca. Están en el informe. */
   useEffect(() => {
     const n = localStorage.getItem("insp_counter");
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- el contador vive en localStorage y sólo puede leerse ya hidratado
     if (n) setInspNum(String(+n).padStart(4, "0"));
   }, []);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- la sesión llega tarde y rellena la ficha; no se rehace aquí
   useEffect(() => { if (user?.name)  setClientName(user.name);   }, [user?.name]);
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- ídem
   useEffect(() => { if (user?.email) setCorreo(user.email);      }, [user?.email]);
 
   /* init canvases */
@@ -353,6 +373,17 @@ export default function InspeccionesPage() {
     });
     return () => cleanups.forEach(fn => fn());
   }, [showForm]);
+
+  /* La instantánea del plano para la hoja impresa se recoge después de pintar
+     y no durante el render: leer un ref mientras se renderiza no es seguro.
+     Sin lista de dependencias a propósito —se recogía en cada render antes y
+     se sigue recogiendo igual—, para que quien abra el formulario y siga
+     dibujando vea el trazo nuevo en la hoja. */
+  useEffect(() => {
+    const img = planoImgRef.current;
+    const data = canvasRef.current?.toDataURL();
+    if (img && data) img.src = data;
+  });
 
   useEffect(() => { draw.setTool(activeTool);      }, [activeTool, draw]);
   useEffect(() => { draw.setInk(color);            }, [color, draw]);
@@ -385,8 +416,20 @@ export default function InspeccionesPage() {
     setTimeout(() => window.print(), 300);
   };
 
-  const inputCls = "w-full border-0 border-b border-gray-300 text-[10.5px] outline-none bg-transparent px-1 py-0.5 focus:border-green-600 font-sans";
-  const qCls     = "w-10 border-0 border-b border-gray-200 text-[9.5px] text-center outline-none bg-transparent py-0.5 focus:border-green-600";
+  /* Los datos del cliente, en el orden en que se preguntan de pie en un
+     terreno. Cada uno con su etiqueta, su tipo y su autocompletado: en un
+     móvil, `tel` abre el teclado numérico y `email` el que trae la arroba. */
+  const DATOS: {
+    id: string; label: string; value: string; set: (v: string) => void;
+    type: string; autoComplete: string; inputMode?: "tel" | "email";
+  }[] = [
+    { id: `${uid}-nombre`,     label: "Nombre del cliente",  value: clientName, set: setClientName, type: "text",  autoComplete: "name" },
+    { id: `${uid}-fecha`,      label: "Fecha",               value: fecha,      set: setFecha,      type: "date",  autoComplete: "off" },
+    { id: `${uid}-direccion`,  label: "Dirección",           value: direccion,  set: setDireccion,  type: "text",  autoComplete: "street-address" },
+    { id: `${uid}-referencia`, label: "Punto de referencia", value: referencia, set: setReferencia, type: "text",  autoComplete: "off" },
+    { id: `${uid}-telefono`,   label: "Teléfono",            value: telefono,   set: setTelefono,   type: "tel",   autoComplete: "tel",   inputMode: "tel" },
+    { id: `${uid}-correo`,     label: "Correo",              value: correo,     set: setCorreo,     type: "email", autoComplete: "email", inputMode: "email" },
+  ];
 
   return (
     <div className="bg-background">
@@ -562,106 +605,175 @@ export default function InspeccionesPage() {
         )}
       </div>
 
-      {/* ══ FULL INSPECTION FORM (admin only, collapsible + printable) ══ */}
+      {/* ══ LA FICHA IMPRESA (sólo administración, plegable) ══════════ */}
       {(showForm || false) && isAdmin && (
-        <div id="printForm" className="mx-auto bg-white shadow-lg mb-8 px-5 py-4 print:shadow-none print:m-0"
-          style={{ width: "min(1020px, 100%)" }}>
+        <section
+          id="printForm"
+          aria-labelledby={fichaTituloId}
+          className="mx-auto mb-8 w-[min(1020px,100%)] bg-surface px-5 py-4 shadow-lg print:m-0 print:shadow-none"
+        >
 
-          {/* HEADER */}
-          <div className="flex items-center justify-between mb-2">
+          {/* ── Cabecera de la hoja ─────────────────────────────────── */}
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <svg width="44" height="44" viewBox="0 0 60 60">
-                <polygon points="30,5 55,52 5,52" fill="none" stroke="#1a6b2e" strokeWidth="3"/>
-                <polygon points="30,18 44,42 16,42" fill="#1a6b2e"/>
+              {/* El triángulo del logotipo hereda el color del texto: así el
+                  sistema decide la tinta y no el atributo `fill`. */}
+              <svg width="44" height="44" viewBox="0 0 60 60" aria-hidden="true" className="text-brand-green-deep">
+                <polygon points="30,5 55,52 5,52" fill="none" stroke="currentColor" strokeWidth="3" />
+                <polygon points="30,18 44,42 16,42" fill="currentColor" />
               </svg>
               <div className="leading-tight">
-                <div className="text-sm font-black text-green-800">INTEMPERIE</div>
-                <div className="text-[10px] text-gray-500">ESPECIALISTAS EN CERCAS</div>
+                <p className="font-heading text-sm font-bold text-brand-green-deep">INTEMPERIE</p>
+                <p className="text-2xs text-muted-foreground">ESPECIALISTAS EN CERCAS</p>
               </div>
             </div>
-            <h2 className="text-xl font-black tracking-widest uppercase">Control de Inspecciones</h2>
-            <div className="text-right">
-              <div className="text-xs">Nº inspección:&nbsp;
-                <input value={inspNum} onChange={e => setInspNum(e.target.value)}
-                  className="w-14 text-center font-black text-red-600 text-lg border-0 border-b-2 border-red-500 outline-none bg-transparent" maxLength={6}/>
+
+            <h2 id={fichaTituloId} className="font-heading text-xl font-bold uppercase tracking-widest text-foreground">
+              Control de inspecciones
+            </h2>
+
+            <div className="flex flex-col items-end gap-1">
+              <div className="flex items-center gap-2">
+                <Label htmlFor={inspNumId} className="whitespace-nowrap text-xs">Nº inspección</Label>
+                <Input
+                  id={inspNumId}
+                  value={inspNum}
+                  onChange={e => setInspNum(e.target.value)}
+                  maxLength={6}
+                  inputMode="numeric"
+                  className="w-24 text-center font-bold text-brand-amber-deep"
+                />
               </div>
-              <div className="text-base font-black text-blue-900 border-2 border-blue-900 px-2 inline-block mt-0.5">GRUPOVAZ</div>
+              <p className="inline-block border-2 border-brand-navy px-2 font-heading text-base font-bold text-brand-navy">
+                GRUPOVAZ
+              </p>
             </div>
           </div>
 
-          {/* CLIENT INFO */}
-          <div className="border-b border-gray-400 pb-1 mb-2 space-y-1 text-[10.5px]">
-            {[
-              [["NOMBRE DEL CLIENTE:", clientName, setClientName, "text"], ["Fecha:", fecha, setFecha, "date"]],
-              [["Dirección:", direccion, setDireccion, "text"], ["Pto de referencia:", referencia, setReferencia, "text"]],
-              [["Teléfono:", telefono, setTelefono, "tel"], ["Correo:", correo, setCorreo, "email"]],
-            ].map((row, ri) => (
-              <div key={ri} className="flex gap-4">
-                {row.map(([lbl, val, setter, type]) => (
-                  <div key={lbl as string} className="flex items-baseline gap-1 flex-1">
-                    <label className="font-bold whitespace-nowrap text-[10px]">{lbl as string}</label>
-                    <input type={type as string} value={val as string} onChange={e => (setter as (v:string)=>void)(e.target.value)} className={inputCls} />
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
+          {/* ── Datos del cliente ───────────────────────────────────── */}
+          <section aria-labelledby={datosId} className="mt-5 border-t border-border pt-4">
+            <h3 id={datosId} className="eyebrow text-muted-foreground">Datos del cliente</h3>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              {DATOS.map(f => (
+                <div key={f.id} className="min-w-0">
+                  <Label htmlFor={f.id} className="mb-1.5">{f.label}</Label>
+                  <Input
+                    id={f.id}
+                    type={f.type}
+                    inputMode={f.inputMode}
+                    autoComplete={f.autoComplete}
+                    value={f.value}
+                    onChange={e => f.set(e.target.value)}
+                  />
+                </div>
+              ))}
+            </div>
+          </section>
 
-          {/* CANVAS SNAPSHOT */}
-          <div className="mb-2">
+          {/* ── El plano, tal y como se imprime ─────────────────────── */}
+          <section aria-labelledby={planoFichaId} className="mt-5 border-t border-border pt-4">
+            <h3 id={planoFichaId} className="eyebrow text-muted-foreground">Plano del terreno</h3>
+            {/* `width` y `height` en el atributo: el navegador reserva la caja
+                antes de tener la imagen y la hoja no da el salto al abrirse.
+                El `src` lo pone el efecto, ya con el lienzo pintado. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={canvasRef.current?.toDataURL() ?? ""}
-              alt="Plano de inspección"
-              className="w-full border-2 border-blue-800"
+              ref={planoImgRef}
+              width={1180}
+              height={420}
+              alt="Plano del terreno dibujado a mano para esta inspección."
+              className="mt-2 block w-full border-2 border-border-strong bg-plan-paper"
               style={{ imageRendering: "pixelated" }}
             />
-          </div>
+          </section>
 
-          {/* SPECS TABLE */}
-          <SpecsTable qCls={qCls} />
+          {/* ── Materiales ──────────────────────────────────────────── */}
+          <section aria-labelledby={materialesId} className="mt-5 border-t border-border pt-4">
+            <h3 id={materialesId} className="eyebrow text-muted-foreground">Materiales y especificaciones</h3>
+            <SpecsTable />
+          </section>
 
-          {/* BOTTOM */}
-          <div className="grid grid-cols-2 gap-2 mt-2">
+          {/* ── Consultas y observaciones ───────────────────────────── */}
+          <div className="mt-5 grid gap-3 border-t border-border pt-4 md:grid-cols-2">
             <ConsultasBox />
-            <div className="border border-gray-400">
-              <div className="bg-green-800 text-white text-center text-[9.5px] font-bold py-1">OBSERVACIONES ADICIONALES</div>
-              <textarea value={observaciones} onChange={e => setObservaciones(e.target.value)}
-                className="w-full min-h-[90px] p-2 text-[10.5px] outline-none resize-none border-0 font-sans"
-                placeholder="Observaciones sobre la inspección..." />
-            </div>
+            <section aria-labelledby={observacionesId} className="rounded-lg border border-border">
+              <h3 id={observacionesId} className="rounded-t-[7px] bg-brand-green-deep px-3 py-1.5 text-center text-2xs font-bold text-on-dark">
+                OBSERVACIONES ADICIONALES
+              </h3>
+              <div className="p-3">
+                <Label htmlFor={observacionesCampoId} className="sr-only">Observaciones adicionales</Label>
+                <Textarea
+                  id={observacionesCampoId}
+                  value={observaciones}
+                  onChange={e => setObservaciones(e.target.value)}
+                  placeholder="Qué se encontró en el terreno, qué falta, qué hay que tener en cuenta el día del montaje."
+                  className="min-h-28 border-0 px-0 hover:border-0"
+                />
+              </div>
+            </section>
           </div>
 
-          {/* SIGNATURES */}
-          <div className="grid grid-cols-3 gap-2 mt-2">
-            {([
-              { title: "FIRMA DEL CLIENTE", ref: sig1Ref, nameVal: clientName, setName: setClientName, ph: "Nombre del cliente" },
-              { title: "NOMBRE DEL INSPECTOR", ref: sig2Ref, nameVal: nombreInspector, setName: setNombreInspector, ph: "Inspector" },
-              { title: "VENDEDOR QUE COTIZA", ref: null, nameVal: nombreVendedor, setName: setNombreVendedor, ph: "Vendedor" },
-            ]).map(({ title, ref, nameVal, setName, ph }) => (
-              <div key={title} className="border border-gray-400">
-                <div className="bg-red-700 text-white text-center text-[8.5px] font-bold py-1 uppercase">{title}</div>
-                <div className="p-2 flex flex-col items-center gap-1.5">
-                  {ref ? (
-                    <canvas ref={ref} width={280} height={65}
-                      className="border border-dashed border-gray-300 rounded bg-gray-50 block touch-none w-full" style={{ cursor: "crosshair" }} />
-                  ) : (
-                    <div className="w-full h-[65px] border border-dashed border-gray-200 rounded bg-gray-50" />
-                  )}
-                  {ref && (
-                    <button onClick={() => ref.current?.getContext("2d")?.clearRect(0,0,280,65)}
-                      className="print:hidden text-[10px] text-red-500 bg-transparent border-none cursor-pointer underline self-end">
-                      ✕ Limpiar
-                    </button>
-                  )}
-                  <input value={nameVal} onChange={e => setName(e.target.value)}
-                    className="w-full border-0 border-b border-gray-300 text-[10.5px] text-center outline-none bg-transparent pb-0.5"
-                    placeholder={ph} />
+          {/* ── Firmas ──────────────────────────────────────────────── */}
+          <section aria-labelledby={firmasId} className="mt-5 border-t border-border pt-4">
+            <h3 id={firmasId} className="eyebrow text-muted-foreground">Firmas</h3>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {([
+                { title: "FIRMA DEL CLIENTE",    ref: sig1Ref, nameVal: clientName,      setName: setClientName,      ph: "Nombre del cliente" },
+                { title: "NOMBRE DEL INSPECTOR", ref: sig2Ref, nameVal: nombreInspector, setName: setNombreInspector, ph: "Inspector" },
+                { title: "VENDEDOR QUE COTIZA",  ref: null,    nameVal: nombreVendedor,  setName: setNombreVendedor,  ph: "Vendedor" },
+              ]).map(({ title, ref, nameVal, setName, ph }, fi) => (
+                <div key={title} className="rounded-lg border border-border">
+                  <p className="rounded-t-[7px] bg-brand-navy px-2 py-1.5 text-center text-2xs font-bold uppercase text-on-dark">
+                    {title}
+                  </p>
+                  <div className="flex flex-col gap-2 p-3">
+                    {ref ? (
+                      <canvas
+                        ref={ref}
+                        width={280}
+                        height={65}
+                        aria-label={`Recuadro para firmar: ${title.toLowerCase()}`}
+                        className="block w-full touch-none rounded-md border border-dashed border-border-strong bg-plan-paper"
+                        style={{ cursor: "crosshair" }}
+                      >
+                        Se firma con el dedo o con el ratón dentro de este recuadro.
+                      </canvas>
+                    ) : (
+                      /* Sin lienzo: esta casilla se rellena a mano sobre el
+                         papel una vez impresa. Se declara para que no parezca
+                         un recuadro roto. */
+                      <div
+                        className="h-[65px] w-full rounded-md border border-dashed border-border bg-surface-2"
+                        role="img"
+                        aria-label="Espacio para firmar a mano sobre la hoja impresa"
+                      />
+                    )}
+                    {ref && (
+                      <Button
+                        type="button"
+                        variant="link"
+                        className="self-end text-destructive decoration-destructive/35 hover:decoration-destructive print:hidden"
+                        onClick={() => ref.current?.getContext("2d")?.clearRect(0, 0, 280, 65)}
+                      >
+                        Limpiar firma
+                      </Button>
+                    )}
+                    <div>
+                      <Label htmlFor={`${uid}-firma-${fi}`} className="mb-1.5 text-xs">{ph}</Label>
+                      <Input
+                        id={`${uid}-firma-${fi}`}
+                        value={nameVal}
+                        onChange={e => setName(e.target.value)}
+                        placeholder={ph}
+                        className="text-center"
+                      />
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
+              ))}
+            </div>
+          </section>
+        </section>
       )}
 
       <style>{`
@@ -675,8 +787,27 @@ export default function InspeccionesPage() {
   );
 }
 
-/* ══ SUB-COMPONENTS (specs + consultas, admin-form only) ════ */
-function SpecsTable({ qCls }: { qCls: string }) {
+/* ══ LA TABLA DE MATERIALES ═════════════════════════════════
+ *
+ * Once columnas —cinco pares de concepto y cantidad, más puerta y portón— que
+ * en la hoja impresa caben y en un teléfono no caben de ninguna manera. Antes
+ * la tabla estiraba el ancho de la página entera y había que apartarla con dos
+ * dedos para leer cualquier otra cosa; ahora rueda dentro de su caja y el
+ * resto de la ficha se queda quieto.
+ *
+ * Los campos miden 44 px de alto y 16 px de cuerpo. Por debajo de 16, Safari
+ * en iOS hace zoom al enfocar el campo y deja la página descolocada: escribir
+ * doce cantidades seguidas se convierte en doce zooms y doce reencuadres. En
+ * papel se compactan con las variantes `print:`, que es donde la densidad sí
+ * hace falta.
+ *
+ * Cada cantidad lleva `aria-label` con su grupo y su concepto —«Accesorios,
+ * CERRADURAS MAGNÉTICAS, puerta»—: en una rejilla de once columnas, el nombre
+ * del campo leído en voz alta es lo único que dice qué se está rellenando.
+ *
+ * Los conceptos, las claves y la suma de postes no se tocan.
+ */
+function SpecsTable() {
   type Vals = Record<string, string>;
   const [v, setV] = useState<Vals>({});
   const s = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) => setV(p => ({ ...p, [k]: e.target.value }));
@@ -692,41 +823,76 @@ function SpecsTable({ qCls }: { qCls: string }) {
     { s1:"",               s1k:"",       s1t:"",       p2:"TOTAL POSTES",      p2k:null,   a3:"OREJA DE PERRO",       a3k:"oPer", a4:"TAPA SOLAR",          a4k:"tSol", ac:"CERRADURAS SENC. PEQUEÑA",ap:"aSPp", at:"aSPt" },
   ];
 
+  const qCls = [
+    "h-11 w-16 rounded-md border border-input bg-surface px-1",
+    "text-center text-[1rem] tabular-nums text-foreground",
+    "transition-colors outline-none hover:border-foreground/35 focus-visible:border-ring",
+    "print:h-6 print:w-12 print:text-xs",
+  ].join(" ");
+  const labelCell = "border border-border px-2 py-1 text-xs font-semibold text-foreground";
+  const inputCell = "border border-border p-1";
+  const headCell = "border border-border-strong px-2 py-1 text-2xs font-bold";
+
   return (
-    <table className="w-full border-collapse text-[9px]">
-      <thead>
-        <tr className="text-white text-center font-bold text-[9px]">
-          <th colSpan={2} className="border border-gray-600 bg-green-800 py-0.5">1) ESPECIFICACIONES</th>
-          <th colSpan={2} className="border border-gray-600 bg-blue-900 py-0.5">2) POSTES ADICIONALES</th>
-          <th colSpan={2} className="border border-gray-600 bg-blue-900 py-0.5">3) ADICIONALES</th>
-          <th colSpan={2} className="border border-gray-600 bg-red-800 py-0.5">3) ADICIONALES</th>
-          <th className="border border-gray-600 bg-green-800 py-0.5">4) ACCESORIOS</th>
-          <th className="border border-gray-600 bg-green-800 py-0.5">PRTA</th>
-          <th className="border border-gray-600 bg-green-800 py-0.5">PRTON</th>
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((r,i) => (
-          <tr key={i} className={i%2===0?"bg-white":"bg-slate-50"}>
-            <td className="border border-gray-200 px-1 py-0.5 text-[9px] font-semibold bg-indigo-50 whitespace-nowrap">{r.s1}</td>
-            <td className="border border-gray-200 p-0.5">{r.s1k && <input type={r.s1t} value={v[r.s1k]??""} onChange={s(r.s1k)} className={qCls} />}</td>
-            <td className="border border-gray-200 px-1 py-0.5 text-[9px]">{r.p2}</td>
-            <td className="border border-gray-200 p-0.5">{r.p2k ? <input type="number" min={0} value={v[r.p2k]??""} onChange={s(r.p2k)} className={qCls} /> : <input readOnly value={totalPostes||""} className={`${qCls} bg-gray-100`} />}</td>
-            <td className="border border-gray-200 px-1 py-0.5 text-[9px]">{r.a3}</td>
-            <td className="border border-gray-200 p-0.5">{r.a3k && <input type="number" min={0} value={v[r.a3k]??""} onChange={s(r.a3k)} className={qCls} />}</td>
-            <td className="border border-gray-200 px-1 py-0.5 text-[9px]">{r.a4}</td>
-            <td className="border border-gray-200 p-0.5">{r.a4k && <input type="number" min={0} value={v[r.a4k]??""} onChange={s(r.a4k)} className={qCls} />}</td>
-            <td className="border border-gray-200 px-1 py-0.5 text-[9px]">{r.ac}</td>
-            <td className="border border-gray-200 p-0.5"><input type="number" min={0} value={v[r.ap]??""} onChange={s(r.ap)} className={qCls} /></td>
-            <td className="border border-gray-200 p-0.5"><input type="number" min={0} value={v[r.at]??""} onChange={s(r.at)} className={qCls} /></td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <>
+      <p className="mt-2 text-xs text-muted-foreground print:hidden">
+        La tabla rueda en horizontal: arrástrala con el dedo para llegar a las
+        últimas columnas.
+      </p>
+      <div className="mt-2 overflow-x-auto print:overflow-visible">
+        <table className="w-full min-w-[64rem] border-collapse text-xs print:min-w-0">
+          <caption className="sr-only">
+            Materiales y accesorios de la inspección, en cinco bloques: especificaciones,
+            postes adicionales, dos de adicionales y accesorios con su cantidad en puerta y portón.
+          </caption>
+          <thead>
+            <tr className="text-center">
+              <th colSpan={2} scope="colgroup" className={`${headCell} bg-brand-green-deep text-on-dark`}>1) ESPECIFICACIONES</th>
+              <th colSpan={2} scope="colgroup" className={`${headCell} bg-brand-navy text-on-dark`}>2) POSTES ADICIONALES</th>
+              <th colSpan={2} scope="colgroup" className={`${headCell} bg-brand-navy text-on-dark`}>3) ADICIONALES</th>
+              <th colSpan={2} scope="colgroup" className={`${headCell} bg-brand-amber-deep text-on-dark`}>3) ADICIONALES</th>
+              <th scope="col" className={`${headCell} bg-brand-green-deep text-on-dark`}>4) ACCESORIOS</th>
+              <th scope="col" className={`${headCell} bg-brand-green-deep text-on-dark`}>PRTA</th>
+              <th scope="col" className={`${headCell} bg-brand-green-deep text-on-dark`}>PRTON</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r,i) => (
+              <tr key={i} className={i%2===0 ? "bg-surface" : "bg-surface-2"}>
+                <td className={`${labelCell} whitespace-nowrap bg-brand-navy-soft`}>{r.s1}</td>
+                <td className={inputCell}>{r.s1k && <input type={r.s1t} value={v[r.s1k]??""} onChange={s(r.s1k)} aria-label={`Especificaciones, ${r.s1}`} className={qCls} />}</td>
+                <td className={labelCell}>{r.p2}</td>
+                <td className={inputCell}>{r.p2k
+                  ? <input type="number" min={0} value={v[r.p2k]??""} onChange={s(r.p2k)} aria-label={`Postes adicionales, ${r.p2}`} className={qCls} />
+                  : <input readOnly value={totalPostes||""} aria-label="Total de postes, calculado" className={`${qCls} bg-surface-sunk`} />}</td>
+                <td className={labelCell}>{r.a3}</td>
+                <td className={inputCell}>{r.a3k && <input type="number" min={0} value={v[r.a3k]??""} onChange={s(r.a3k)} aria-label={`Adicionales, ${r.a3}`} className={qCls} />}</td>
+                <td className={labelCell}>{r.a4}</td>
+                <td className={inputCell}>{r.a4k && <input type="number" min={0} value={v[r.a4k]??""} onChange={s(r.a4k)} aria-label={`Adicionales, ${r.a4}`} className={qCls} />}</td>
+                <td className={labelCell}>{r.ac}</td>
+                <td className={inputCell}><input type="number" min={0} value={v[r.ap]??""} onChange={s(r.ap)} aria-label={`Accesorios, ${r.ac}, puerta`} className={qCls} /></td>
+                <td className={inputCell}><input type="number" min={0} value={v[r.at]??""} onChange={s(r.at)} aria-label={`Accesorios, ${r.ac}, portón`} className={qCls} /></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 }
 
+/* ══ CONSULTAS FRECUENTES ═══════════════════════════════════
+ *
+ * Son cuatro preguntas encadenadas y una franja horaria. Van en <fieldset> con
+ * <legend> porque «SÍ / NO» leído en voz alta sin la pregunta delante no
+ * significa nada, y cada opción es una fila pulsable de 44 px: se contestan de
+ * pie, con el teléfono en una mano.
+ *
+ * Las respuestas, la exclusividad de «NINGUNO» y el desplegado condicional no
+ * se tocan.
+ */
 function ConsultasBox() {
+  const uid = useId();
   const [inst,    setInst]    = useState("");
   const [pase,    setPase]    = useState("");
   const [terreno, setTerreno] = useState("");
@@ -741,24 +907,94 @@ function ConsultasBox() {
     set(next);
   };
 
+  const rowCls = "flex min-h-11 cursor-pointer items-center gap-2.5 rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground transition-colors hover:border-border-strong has-checked:border-primary has-checked:bg-secondary has-checked:text-secondary-foreground";
+  const controlCls = "size-5 shrink-0 accent-primary";
+  const legendCls = "mb-2 font-heading text-xs font-bold text-foreground";
+
   return (
-    <div className="border border-gray-400">
-      <div className="bg-blue-900 text-white text-center text-[9.5px] font-bold py-1">CONSULTAS FRECUENTES</div>
-      <div className="p-2 space-y-1.5 text-[9.5px]">
-        <div>
-          <strong>CON INSTALACIÓN:</strong>&nbsp;
-          {["si","no"].map(v => <label key={v} className="inline-flex items-center gap-1 mr-2 cursor-pointer"><input type="radio" name="inst" value={v} checked={inst===v} onChange={() => setInst(v)} />{v.toUpperCase()}</label>)}
-        </div>
+    <section aria-labelledby={`${uid}-titulo`} className="rounded-lg border border-border">
+      <h3 id={`${uid}-titulo`} className="rounded-t-[7px] bg-brand-navy px-3 py-1.5 text-center text-2xs font-bold text-on-dark">
+        CONSULTAS FRECUENTES
+      </h3>
+      <div className="space-y-4 p-3">
+        <fieldset>
+          <legend className={legendCls}>¿Con instalación?</legend>
+          <div className="flex flex-wrap gap-2">
+            {["si","no"].map(val => (
+              <label key={val} className={rowCls}>
+                <input type="radio" name={`${uid}-inst`} value={val} checked={inst===val} onChange={() => setInst(val)} className={controlCls} />
+                {val.toUpperCase()}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
         {inst==="si" && (
-          <div className="pl-3 border-l-2 border-green-300 space-y-1.5">
-            <div><strong>PASE DE ACCESO:</strong>&nbsp;{["si","no"].map(v => <label key={v} className="inline-flex items-center gap-1 mr-2 cursor-pointer"><input type="radio" name="pase" value={v} checked={pase===v} onChange={() => setPase(v)} />{v.toUpperCase()}</label>)}</div>
-            <div><strong>TIPO DE TERRENO:</strong>&nbsp;{[["optimo","ÓPTIMO"],["regular","REGULAR"],["desfavorable","DESFAVORABLE"]].map(([v,l]) => <label key={v} className="inline-flex items-center gap-1 mr-2 cursor-pointer"><input type="radio" name="ter" value={v} checked={terreno===v} onChange={() => setTerreno(v)} />{l}</label>)}</div>
-            <div><strong>AGREGADOS:</strong>&nbsp;{[["arena","ARENA"],["piedra","PIEDRA"],["cemento","CEMENTO"],["ninguno","NINGUNO"]].map(([v,l]) => <label key={v} className="inline-flex items-center gap-1 mr-2 cursor-pointer"><input type="checkbox" checked={agg.includes(v)} onChange={() => toggleArr(agg, v, setAgg, "ninguno")} />{l}</label>)}</div>
-            <div><strong>LUGAR CUENTA CON:</strong>&nbsp;{[["agua","AGUA"],["electrica","ELÉCTRICA"],["ninguno","NINGUNO"]].map(([v,l]) => <label key={v} className="inline-flex items-center gap-1 mr-2 cursor-pointer"><input type="checkbox" checked={svc.includes(v)} onChange={() => toggleArr(svc, v, setSvc, "ninguno")} />{l}</label>)}</div>
-            <div className="flex items-center gap-2"><strong>ENTRADA:</strong><input type="time" value={entrada} onChange={e=>setEntrada(e.target.value)} className="border-0 border-b border-gray-300 text-[9.5px] outline-none bg-transparent" /><strong>SALIDA:</strong><input type="time" value={salida} onChange={e=>setSalida(e.target.value)} className="border-0 border-b border-gray-300 text-[9.5px] outline-none bg-transparent" /></div>
+          <div className="space-y-4 border-l-2 border-primary pl-3">
+            <fieldset>
+              <legend className={legendCls}>¿Hay pase de acceso?</legend>
+              <div className="flex flex-wrap gap-2">
+                {["si","no"].map(val => (
+                  <label key={val} className={rowCls}>
+                    <input type="radio" name={`${uid}-pase`} value={val} checked={pase===val} onChange={() => setPase(val)} className={controlCls} />
+                    {val.toUpperCase()}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+
+            <fieldset>
+              <legend className={legendCls}>Tipo de terreno</legend>
+              <div className="flex flex-wrap gap-2">
+                {[["optimo","ÓPTIMO"],["regular","REGULAR"],["desfavorable","DESFAVORABLE"]].map(([val,lbl]) => (
+                  <label key={val} className={rowCls}>
+                    <input type="radio" name={`${uid}-ter`} value={val} checked={terreno===val} onChange={() => setTerreno(val)} className={controlCls} />
+                    {lbl}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+
+            <fieldset>
+              <legend className={legendCls}>Agregados</legend>
+              <div className="flex flex-wrap gap-2">
+                {[["arena","ARENA"],["piedra","PIEDRA"],["cemento","CEMENTO"],["ninguno","NINGUNO"]].map(([val,lbl]) => (
+                  <label key={val} className={rowCls}>
+                    <input type="checkbox" checked={agg.includes(val)} onChange={() => toggleArr(agg, val, setAgg, "ninguno")} className={controlCls} />
+                    {lbl}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+
+            <fieldset>
+              <legend className={legendCls}>El lugar cuenta con</legend>
+              <div className="flex flex-wrap gap-2">
+                {[["agua","AGUA"],["electrica","ELÉCTRICA"],["ninguno","NINGUNO"]].map(([val,lbl]) => (
+                  <label key={val} className={rowCls}>
+                    <input type="checkbox" checked={svc.includes(val)} onChange={() => toggleArr(svc, val, setSvc, "ninguno")} className={controlCls} />
+                    {lbl}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+
+            <fieldset>
+              <legend className={legendCls}>Horario de trabajo en sitio</legend>
+              <div className="flex flex-wrap items-end gap-3">
+                <div>
+                  <Label htmlFor={`${uid}-entrada`} className="mb-1.5 text-xs">Entrada</Label>
+                  <Input id={`${uid}-entrada`} type="time" value={entrada} onChange={e=>setEntrada(e.target.value)} className="w-36" />
+                </div>
+                <div>
+                  <Label htmlFor={`${uid}-salida`} className="mb-1.5 text-xs">Salida</Label>
+                  <Input id={`${uid}-salida`} type="time" value={salida} onChange={e=>setSalida(e.target.value)} className="w-36" />
+                </div>
+              </div>
+            </fieldset>
           </div>
         )}
       </div>
-    </div>
+    </section>
   );
 }
