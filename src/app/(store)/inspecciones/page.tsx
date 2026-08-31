@@ -4,6 +4,15 @@ import { useRef, useEffect, useId, useState, useCallback, useSyncExternalStore }
 import { ChevronDown, ClipboardList, Eraser, Grid3x3, Minus, Pencil, RectangleHorizontal, Redo2, Send, Trash2, Type, Undo2 } from "lucide-react";
 
 import { useAuthStore } from "@/lib/store/auth-store";
+import {
+  MOLDES,
+  drawMolde,
+  drawMoldeIcon,
+  findMolde,
+  isMolde,
+  placeMolde,
+  type MoldeId,
+} from "./moldes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,9 +46,34 @@ import { Textarea } from "@/components/ui/textarea";
  *
  * NO se toca qué dibuja cada herramienta, ni el historial de deshacer, ni el
  * contador de localStorage, ni los cálculos de la tabla, ni las firmas.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * LOS MOLDES
+ *
+ * Encima de todo eso hay ahora cinco piezas prefabricadas (`moldes.ts`): un
+ * tramo de cerca, una esquina, un portón de carro, una puerta de persona y un
+ * poste. Dibujar un portón a mano alzada con el dedo, de pie y a pleno sol, da
+ * un garabato que sólo entiende quien lo hizo; y esta hoja se imprime y se la
+ * lleva otra persona a la obra.
+ *
+ * Se colocan con EL MISMO gesto que ya hace la herramienta «Línea»: se toca
+ * donde empieza la pieza y se arrastra hasta donde termina, con vista previa
+ * bajo el dedo. Un toque sin arrastre deja la pieza del tamaño de fábrica, así
+ * que colocar un poste es un toque y no un gesto de precisión. Al soltar, la
+ * pieza se pinta en el mapa de bits y entra en el historial: «deshacer» la
+ * retira como cualquier trazo, y el PDF y las firmas no se enteran de que
+ * existe.
+ *
+ * Un molde ES una herramienta y comparte el estado `activeTool` con las cinco
+ * de trazo libre, no un modo aparte: son excluyentes —o dibujas a mano o
+ * colocas una pieza— y así elegir un molde apaga el lápiz sin una sola línea
+ * de coordinación, y sin añadir un render por encima de los que ya cuesta
+ * cambiar de herramienta hoy.
  */
 
-type Tool = "pencil" | "line" | "rect" | "text" | "eraser";
+/** Las cinco de trazo libre. Los moldes son herramientas, pero no de éstas. */
+type TrazoTool = "pencil" | "line" | "rect" | "text" | "eraser";
+type Tool = TrazoTool | MoldeId;
 
 /* ══ PALETA DEL PLANO ════════════════════════════════════════
  *
@@ -127,6 +161,45 @@ function usePlanPalette(): PlanPalette | null {
   return useSyncExternalStore(neverChanges, readPlanPalette, noPaletteOnServer);
 }
 
+/* ══ LA MINIATURA DE UN MOLDE ═══════════════════════════════
+ *
+ * Un lienzo diminuto pintado con la MISMA función que pinta la pieza en el
+ * plano (`drawMoldeIcon` -> `drawMolde`). Dibujar el icono aparte, a mano y en
+ * SVG, sería garantizar que dentro de tres meses el botón prometa una figura y
+ * la hoja reciba otra.
+ *
+ * Va sobre `bg-plan-paper` y con tinta `--plan-ink` —papel y tinta, los mismos
+ * tokens del plano— y no sobre la superficie de la interfaz: la miniatura es
+ * una muestra de lo que va a salir impreso, y el papel no cambia de color
+ * porque la pantalla de alrededor esté a oscuras.
+ *
+ * `aria-hidden` porque es un dibujo: qué es cada pieza y cómo se coloca va en
+ * el texto del botón y en su `sr-only`, no aquí.
+ */
+function MoldeIcon({ id }: { id: MoldeId }) {
+  const ref = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    const c = ref.current; if (!c) return;
+    const g = c.getContext("2d"); if (!g) return;
+    g.clearRect(0, 0, c.width, c.height);
+    /* Siempre en tinta base, no en la que el inspector tenga elegida: la
+       paleta es una leyenda de formas, y una fila de miniaturas que cambian de
+       color al tocar el selector se lee como si algo se hubiera roto. */
+    drawMoldeIcon(g, id, { color: readPlanPalette().ink, width: 1.5 });
+  }, [id]);
+
+  return (
+    <canvas
+      ref={ref}
+      width={48}
+      height={30}
+      aria-hidden="true"
+      className="pointer-events-none block rounded-sm border border-plan-ink/15 bg-plan-paper"
+    />
+  );
+}
+
 /* ══ EL MOTOR DE DIBUJO ═════════════════════════════════════ */
 function useCanvas(ref: React.RefObject<HTMLCanvasElement | null>) {
   const tool     = useRef<Tool>("pencil");
@@ -211,6 +284,24 @@ function useCanvas(ref: React.RefObject<HTMLCanvasElement | null>) {
     if (!color.current) color.current = paint.ink;
     drawGrid(); push();
 
+    /* Vista previa de un molde bajo el dedo. Repone la instantánea antes de
+       cada repintado —igual que ya hacen la línea y el rectángulo—, así que
+       mientras se arrastra no queda rastro de las posiciones intermedias.
+       Colocación y dibujo salen de `moldes.ts`: la pieza de la vista previa y
+       la que queda al soltar son literalmente la misma cuenta, o la figura
+       daría un salto al levantar el dedo. */
+    const stampMolde = (id: MoldeId, x: number, y: number) => {
+      const molde = findMolde(id);
+      if (!molde) return;
+      if (snap.current) g.putImageData(snap.current, 0, 0);
+      drawMolde(
+        g,
+        id,
+        placeMolde(molde, { startX: start.current.x, startY: start.current.y, x, y }),
+        { color: color.current, width: width.current },
+      );
+    };
+
     const down = (e: PointerEvent) => {
       e.preventDefault();
       /* Un trazo cada vez: el segundo dedo que se apoya en la hoja mientras se
@@ -239,6 +330,11 @@ function useCanvas(ref: React.RefObject<HTMLCanvasElement | null>) {
           g.fillText(t, p.x, p.y);
           push();
         }
+      } else if (isMolde(tool.current)) {
+        /* Se pinta ya en el toque y no sólo al arrastrar: si tocar y levantar
+           el dedo no dejara nada, el molde parecería roto justo en el gesto
+           más corto, que es el que se hace con guantes. */
+        stampMolde(tool.current, p.x, p.y);
       }
     };
 
@@ -261,6 +357,8 @@ function useCanvas(ref: React.RefObject<HTMLCanvasElement | null>) {
         g.putImageData(snap.current!, 0, 0);
         g.beginPath(); g.rect(start.current.x, start.current.y, x - start.current.x, y - start.current.y);
         g.strokeStyle = color.current; g.lineWidth = width.current; g.stroke();
+      } else if (isMolde(tool.current)) {
+        stampMolde(tool.current, x, y);
       }
     };
 
@@ -401,7 +499,7 @@ export default function InspeccionesPage() {
   useEffect(() => { draw.setInk(color);            }, [color, draw]);
   useEffect(() => { draw.setStrokeWidth(strokeW);  }, [strokeW, draw]);
 
-  const TOOLS: { id: Tool; label: string; icon: React.ReactNode }[] = [
+  const TOOLS: { id: TrazoTool; label: string; icon: React.ReactNode }[] = [
     { id: "pencil",  label: "Lápiz",      icon: <Pencil className="size-4" aria-hidden="true" /> },
     { id: "line",    label: "Línea",      icon: <Minus  className="size-4" aria-hidden="true" /> },
     { id: "rect",    label: "Rectángulo", icon: <RectangleHorizontal className="size-4" aria-hidden="true" /> },
@@ -465,7 +563,9 @@ export default function InspeccionesPage() {
         <p id={planoAyudaId} className="mt-1.5 max-w-2xl text-sm text-muted-foreground">
           Marca los límites de tu propiedad, los portones, los accesos y las zonas
           especiales. No hace falta que sea exacto: sirve para que el inspector
-          llegue sabiendo qué va a encontrarse.
+          llegue sabiendo qué va a encontrarse. Los tramos, las esquinas, los portones
+          y los postes tienen molde: se colocan tocando la hoja y salen siempre
+          iguales, sin dibujarlos a pulso.
         </p>
 
         {/* Barra de herramientas. Tres grupos con nombre porque son tres
@@ -485,6 +585,39 @@ export default function InspeccionesPage() {
                 {t.icon} {t.label}
               </Button>
             ))}
+          </div>
+
+          {/* Los moldes. Van en su propio grupo y debajo de las herramientas
+              de trazo porque son la otra manera de poner algo en la hoja, no
+              una variante del lápiz. Comparten `activeTool` con ellas: elegir
+              un molde apaga la herramienta de arriba, que es lo correcto —o
+              dibujas a mano o colocas una pieza—. */}
+          <div className="border-t border-border pt-3">
+            <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Moldes de cerca">
+              {MOLDES.map(m => (
+                <Button
+                  key={m.id}
+                  type="button"
+                  variant={activeTool === m.id ? "default" : "outline"}
+                  aria-pressed={activeTool === m.id}
+                  title={m.hint}
+                  onClick={() => setActiveTool(m.id)}
+                  className="h-auto flex-col gap-1 px-2.5 py-2 text-xs"
+                >
+                  <MoldeIcon id={m.id} />
+                  {m.label}
+                  {/* El dibujo de la miniatura es `aria-hidden`: lo que la
+                      pieza es y cómo se coloca sólo existe como texto aquí. */}
+                  <span className="sr-only"> — {m.hint}</span>
+                </Button>
+              ))}
+            </div>
+            <p className="mt-2 max-w-2xl text-xs text-muted-foreground">
+              Toca el plano y la pieza aparece del tamaño de fábrica; arrastra sin levantar el
+              dedo para darle el largo y el giro. Los ángulos rectos se ajustan solos. Se
+              coloca con la tinta y el grosor de aquí abajo, y «deshacer» la retira como
+              cualquier otro trazo.
+            </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
@@ -580,7 +713,8 @@ export default function InspeccionesPage() {
             pantalla de 5 pulgadas también le sirve saberlo. */}
         <p id={planoAlternativaId} className="mt-2 text-sm text-muted-foreground">
           El plano se dibuja con el dedo o con el ratón y no tiene equivalente con
-          teclado. Si no puedes dibujarlo, descríbelo por escrito al pedir la
+          teclado; los moldes tampoco, porque hay que decir en qué punto de la hoja
+          va cada pieza. Si no puedes dibujarlo, descríbelo por escrito al pedir la
           inspección: un inspector de Intemperie levanta el plano en sitio.
         </p>
       </section>
