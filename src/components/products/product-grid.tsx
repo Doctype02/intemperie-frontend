@@ -1,44 +1,72 @@
-"use client";
+import type { Product } from "@/types"
 
-import { ProductCard } from "./product-card";
-import type { ProductUnit, ProductImage } from "@/types";
+import { ProductCard } from "./product-card"
 
-interface Product {
-  id: string;
-  name: string;
-  slug: string;
-  basePrice: number;
-  comparePrice?: number;
-  unit: ProductUnit;
-  stock: number;
-  isNew?: boolean;
-  reviewCount?: number;
-  rating?: number;
-  category?: { name: string } | null;
-  collection?: { name: string } | null;
-  images?: ProductImage[];
-  isActive?: boolean;
-}
+/* Parrilla del catálogo — sistema «Perímetro».
+ *
+ * Era `"use client"` sin necesitarlo: no tiene estado, ni efectos, ni
+ * manejadores. Lo único interactivo es la tarjeta (carrito y favoritos), que ya
+ * es su propia isla. Al quitar la directiva, la parrilla se queda en el
+ * servidor y sólo cruza la frontera lo que la tarjeta necesita.
+ *
+ * También llevaba una copia a mano del tipo `Product` —doce campos redeclarados—
+ * que se había quedado corta: no incluía `attributes`, así que la altura de cada
+ * modelo (el primer dato que pregunta quien compra cerca) nunca llegaba a la
+ * tarjeta aunque la tarjeta supiera pintarla. Ahora se usa el tipo del catálogo.
+ *
+ * Es una `<ul>`: para un lector de pantalla la diferencia entre «12 resultados»
+ * y un montón de artículos sueltos es poder saltarlos de uno en uno y saber
+ * cuántos quedan.
+ */
 
-interface ProductGridProps {
-  products: Product[];
+/**
+ * Lo que la API añade sobre el tipo compartido. Ambos son opcionales, así que
+ * un `Product[]` normal encaja aquí sin conversiones.
+ */
+export interface GridProduct extends Product {
+  comparePrice?: number
+  isNew?: boolean
 }
 
 /**
- * `priority` solo en la primera tarjeta.
- *
- * `priority` implica `<link rel="preload" fetchpriority="high">`: la imagen se
- * pide antes que el CSS y el JS, y sin `lazy`. Marcando dos por parrilla se
- * emitian dos preloads que competian entre si y con los recursos que bloquean
- * el render; el candidato a LCP es uno solo, la primera tarjeta. El resto usa
- * el lazy-loading nativo de `next/image` y baja cuando entra en viewport.
+ * `attributes` es una columna `Json` en Prisma: el tipo compartido la declara
+ * como `Record<string, unknown>` porque su contenido no está garantizado. La
+ * tarjeta valida cada campo con `Array.isArray` antes de usarlo, de modo que
+ * aquí sólo hace falta darle la forma que espera.
  */
-export function ProductGrid({ products }: ProductGridProps) {
+type CardAttributes = {
+  heightOptions?: string[]
+  colors?: string[]
+  material?: string
+  warranty?: string
+}
+
+export function ProductGrid({ products }: { products: GridProduct[] }) {
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 sm:gap-4 md:gap-6 items-stretch">
+    <ul className="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2 sm:gap-4 lg:gap-5 xl:grid-cols-3">
       {products.map((product, i) => (
-        <ProductCard key={product.id} {...product} priority={i === 0} />
+        <li key={product.id} className="h-full">
+          <ProductCard
+            id={product.id}
+            name={product.name}
+            slug={product.slug}
+            basePrice={product.basePrice}
+            comparePrice={product.comparePrice}
+            unit={product.unit}
+            stock={product.stock}
+            isNew={product.isNew}
+            attributes={(product.attributes as CardAttributes | null) ?? null}
+            category={product.category}
+            collection={product.collection}
+            images={product.images}
+            /* `priority` implica `<link rel="preload" fetchpriority="high">`:
+               la imagen se pide antes que el CSS y el JS, y sin `lazy`. Sólo la
+               primera tarjeta, que es la única candidata a LCP; con dos, los
+               dos preloads compiten entre sí y con lo que bloquea el render. */
+            priority={i === 0}
+          />
+        </li>
       ))}
-    </div>
-  );
+    </ul>
+  )
 }

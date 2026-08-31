@@ -1,332 +1,389 @@
-import { Suspense } from "react";
-import Link from "next/link";
-import { ChevronRight, Grid3X3, SlidersHorizontal } from "lucide-react";
-import {
-  getCategories,
-  getCollections,
-  loadProductPage,
-  type ProductQuery,
-} from "../_data/catalog";
-import { ProductGrid } from "@/components/products/product-grid";
-import { ProductGridSkeleton } from "@/components/products/product-grid-skeleton";
-import { PaginationNav } from "./pagination-nav";
-import SearchWrapper from "./search-wrapper";
-import SortSelect from "./sort-select";
-import PriceFilter from "./price-filter";
+import { Suspense } from "react"
+import Link from "next/link"
+import { ChevronRight } from "lucide-react"
 
-/**
- * Listado de productos.
+import {
+  ActiveFilters,
+  ProductFiltersDrawer,
+  ProductFiltersRail,
+  SegmentBar,
+  countActiveFacets,
+  findHeightBand,
+  hrefWith,
+} from "@/components/products/product-filters"
+import { ProductGrid } from "@/components/products/product-grid"
+import { ProductGridSkeleton } from "@/components/products/product-grid-skeleton"
+import type { Category, Collection } from "@/types"
+
+import { getCategories, getCollections } from "../_data/catalog"
+import { loadListing, type ListingQuery } from "./listing"
+import { PaginationNav } from "./pagination-nav"
+import SearchWrapper from "./search-wrapper"
+import SortSelect from "./sort-select"
+
+/* Listado del catálogo — sistema «Perímetro».
  *
- * Antes: un solo `Promise.all` con categorías, colecciones y *cincuenta*
- * productos; el HTML no salía hasta que respondía la más lenta de las tres, y
- * el filtro de precio y la ordenación se hacían en memoria sobre esos 50 (por
- * lo que el conteo y el "orden" mentían en cuanto había más catálogo).
+ * La página no decide nada del filtrado: lee la URL, la reparte y monta las
+ * piezas. Qué se puede filtrar y cómo se escribe cada faceta vive en
+ * `components/products/product-filters.tsx`; cómo se carga, en `./listing.ts`.
  *
- * Ahora la página se parte en dos tiempos:
+ * ARMAZÓN Y STREAMING (esto ya estaba resuelto y se conserva)
+ * El armazón —cabecera, migas, buscador, facetas— sólo espera a las taxonomías,
+ * cacheadas una hora y prácticamente instantáneas, y se envía de inmediato. El
+ * contador y la parrilla cuelgan de sus propios `<Suspense>` y llegan en
+ * streaming cuando responde `/products`. Los dos piden lo mismo a `loadListing`,
+ * que está memoizado por render: una sola consulta a la API por página.
+ * La `key` del boundary es la consulta, así que al cambiar de faceta se vuelve
+ * a ver el esqueleto en lugar de la parrilla anterior congelada.
  *
- *  - El armazón (cabecera, migas, barra lateral, buscador) solo espera a las
- *    taxonomías, cacheadas 1 h y prácticamente instantáneas. Se envía de
- *    inmediato.
- *  - La parrilla y el contador cuelgan de sus propios `<Suspense>` y llegan en
- *    streaming cuando responde `/products`. Ambos piden la misma página a
- *    `loadProductPage`, que está memoizada por render: una sola consulta.
+ * LO QUE SE MONTA AHORA
+ * El uso (`SegmentBar`) está siempre a la vista sobre la parrilla, en todos los
+ * anchos. Altura, precio y línea van en la barra lateral en escritorio y en un
+ * `<details>` en móvil, con el número de filtros puestos en el resumen para que
+ * no queden escondidos. `ActiveFilters` repite lo aplicado con su «quitar» al
+ * lado. Todo son enlaces y formularios `GET`: cero JavaScript de cliente en el
+ * listado, y funciona con el JS caído.
  *
- * Filtro, orden y paginación los resuelve la API (12 por página), así que ya no
- * se descargan 50 productos para pintar 12.
+ * La barra lateral de antes listaba categorías Y colecciones como dos menús de
+ * navegación, que era la taxonomía del CMS, no la pregunta del comprador. La
+ * altura, que decide la compra y estaba en la base de datos, no aparecía por
+ * ningún lado.
  */
 
-/** La `key` del boundary: al cambiar de filtro vuelve a verse el esqueleto. */
-function queryKey(query: ProductQuery) {
-  return JSON.stringify(query);
+/**
+ * Next entrega `?height=a&height=b` como array. El listado entiende un solo
+ * valor por faceta —dos alturas a la vez no son una franja, son un error de
+ * copiar y pegar—, así que se queda con el primero en vez de pintar «a,b» por
+ * toda la interfaz. Las cadenas vacías se descartan aquí para que
+ * `params.search` sea `undefined` y no `""`.
+ */
+function firstValues(
+  raw: Record<string, string | string[] | undefined>,
+): Record<string, string | undefined> {
+  const out: Record<string, string | undefined> = {}
+  for (const [key, value] of Object.entries(raw)) {
+    const first = Array.isArray(value) ? value[0] : value
+    if (first) out[key] = first
+  }
+  return out
 }
 
-async function ResultCount({ query }: { query: ProductQuery }) {
-  const { pagination } = await loadProductPage(query);
-  const { total } = pagination;
+/** La `key` del boundary: al cambiar de filtro vuelve a verse el esqueleto. */
+function queryKey(query: ListingQuery) {
+  return JSON.stringify(query)
+}
+
+/** Título de la pantalla, en el orden en que manda cada faceta. */
+function titleFor(
+  params: Record<string, string | undefined>,
+  categories: Category[],
+  collections: Collection[],
+) {
+  if (params.search) return `Resultados para «${params.search}»`
+
+  const collection = collections.find((c) => c.slug === params.collection)
+  if (collection) return collection.name
+
+  const category = categories.find((c) => c.slug === params.category)
+  if (category) return `Cercado ${category.name.toLowerCase()}`
+
+  const band = findHeightBand(params.height)
+  if (band) return `Cercas de ${band.label.toLowerCase()}`
+
+  return "Todo el catálogo"
+}
+
+/* ── Piezas que esperan a la API ─────────────────────────────────────────── */
+
+async function ResultCount({ query }: { query: ListingQuery }) {
+  const { pagination, truncated } = await loadListing(query)
+  const { total } = pagination
+
+  /* Con la carga ancha recortada, `total` es un suelo, no un total. Se dice
+     «al menos» en vez de dar por bueno un número que sabemos incompleto. */
   return (
-    <>
-      {total} producto{total !== 1 ? "s" : ""}
-    </>
-  );
+    <span className="tabular">
+      {truncated ? "Al menos " : ""}
+      {total} {total === 1 ? "modelo" : "modelos"}
+    </span>
+  )
+}
+
+/**
+ * El filtro de altura se resuelve en memoria sobre una carga ancha (ver
+ * `listing.ts`). Si el catálogo crece por encima de ese techo, el conteo se
+ * queda corto y puede faltar algún modelo: se dice aquí, encima de la parrilla,
+ * en lugar de servir una lista incompleta con cara de completa.
+ */
+function TruncationNotice() {
+  return (
+    <p className="mb-4 rounded-md border border-brand-amber bg-brand-amber-soft px-3 py-2 text-xs text-accent-foreground">
+      El catálogo ya no cabe entero en una sola consulta, así que este filtro de
+      altura se ha resuelto sobre los primeros modelos. Puede faltar alguno:
+      afina también por uso o por precio.
+    </p>
+  )
 }
 
 async function ProductResults({
   query,
   params,
+  categories,
+  collections,
 }: {
-  query: ProductQuery;
-  params: Record<string, string>;
+  query: ListingQuery
+  params: Record<string, string | undefined>
+  categories: Category[]
+  collections: Collection[]
 }) {
-  const { products, pagination } = await loadProductPage(query);
+  const { products, pagination, truncated } = await loadListing(query)
 
-  if (products.length === 0) return <EmptyState search={query.search} />;
+  if (products.length === 0) {
+    return <EmptyState params={params} categories={categories} collections={collections} />
+  }
 
   return (
     <>
+      {truncated && <TruncationNotice />}
       <ProductGrid products={products} />
       <PaginationNav params={params} pagination={pagination} />
     </>
-  );
+  )
 }
 
-function EmptyState({ search }: { search?: string }) {
+/* ── Sin resultados ──────────────────────────────────────────────────────── */
+
+/**
+ * Una pantalla vacía con un solo botón de «ver todo el catálogo» tira por la
+ * borda los cuatro filtros que el visitante acaba de poner para castigarle por
+ * el quinto. Aquí se ofrece quitar cada filtro por separado, empezando por el
+ * más probable culpable: el texto libre falla por una tilde o un modelo que se
+ * llama de otra forma; el precio, por un tope de presupuesto; la altura ya sólo
+ * la piden tres franjas anchas. «Ver todo» se queda al final, como lo que es:
+ * la última salida.
+ */
+function EmptyState({
+  params,
+  categories,
+  collections,
+}: {
+  params: Record<string, string | undefined>
+  categories: Category[]
+  collections: Collection[]
+}) {
+  const band = findHeightBand(params.height)
+  const outs: { key: string; label: string; href: string }[] = []
+
+  if (params.search) {
+    outs.push({
+      key: "search",
+      label: `Buscar «${params.search}» en todo el catálogo`,
+      href: hrefWith(params, { search: null }),
+    })
+  }
+  if (params.minPrice || params.maxPrice) {
+    outs.push({
+      key: "price",
+      label: "Ver cualquier precio por metro",
+      href: hrefWith(params, { minPrice: null, maxPrice: null }),
+    })
+  }
+  if (band) {
+    outs.push({
+      key: "height",
+      label: `Ver cualquier altura, no sólo ${band.label.toLowerCase()}`,
+      href: hrefWith(params, { height: null }),
+    })
+  }
+  if (params.collection) {
+    const name = collections.find((c) => c.slug === params.collection)?.name ?? params.collection
+    outs.push({
+      key: "collection",
+      label: `Ver todas las líneas, no sólo ${name}`,
+      href: hrefWith(params, { collection: null }),
+    })
+  }
+  if (params.category) {
+    const name = categories.find((c) => c.slug === params.category)?.name ?? params.category
+    outs.push({
+      key: "category",
+      label: `Ver todos los usos, no sólo ${name}`,
+      href: hrefWith(params, { category: null }),
+    })
+  }
+
   return (
-    <div className="flex flex-col items-center justify-center py-24 text-center bg-white rounded-xl border border-gray-200">
-      <div className="h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
-        <Grid3X3 className="h-8 w-8 text-gray-300" />
-      </div>
-      <h3 className="text-lg font-bold text-gray-900">
-        {search
-          ? `Sin resultados para "${search}"`
-          : "No hay productos en esta categoría aún"}
-      </h3>
-      <p className="mt-1.5 text-sm text-gray-500 max-w-xs">
-        {search
-          ? "Prueba otro término o explora el catálogo completo"
-          : "Estamos ampliando nuestro catálogo constantemente"}
+    <div className="rounded-lg border border-dashed border-border-strong bg-surface px-4 py-8 text-center sm:px-8 sm:py-12">
+      {/* La misma cerca dibujada que rellena las fichas sin foto: aquí sirve de
+          marca de agua del catálogo, y no cuesta ni una petición de red. */}
+      <div aria-hidden="true" className="diagram diagram-mesh mx-auto h-16 w-28 rounded-md" />
+
+      <h2 className="mt-4 text-lg font-bold text-foreground">
+        {params.search ? `Sin resultados para «${params.search}»` : "Ningún modelo con estos filtros"}
+      </h2>
+
+      <p className="mx-auto mt-1.5 max-w-sm text-sm text-muted-foreground">
+        {outs.length > 0
+          ? "No hay ningún modelo que cumpla todo lo que has pedido a la vez. Suelta el filtro que más aprieta:"
+          : "Todavía no hay modelos publicados en el catálogo. Escríbenos y te decimos qué podemos fabricar."}
       </p>
+
+      {outs.length > 0 && (
+        <ul className="mx-auto mt-5 flex max-w-sm flex-col gap-2 text-left">
+          {outs.map((out) => (
+            <li key={out.key}>
+              <Link
+                href={out.href}
+                className="flex min-h-tap items-center justify-between gap-3 rounded-md border border-border bg-surface-2 px-3.5 py-2.5 text-sm font-semibold text-foreground transition-colors hover:border-brand-green hover:text-brand-green-deep"
+              >
+                {out.label}
+                <ChevronRight className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+
       <Link
         href="/productos"
-        className="mt-6 inline-flex items-center gap-2 rounded-xl bg-green-700 px-6 py-3 text-sm font-bold text-white hover:bg-green-800 transition-colors"
+        className="mt-5 inline-flex min-h-tap items-center rounded-lg bg-primary px-5 text-sm font-bold text-primary-foreground transition-colors hover:bg-brand-green-deep"
       >
-        Ver todos los productos
+        Ver todo el catálogo
       </Link>
     </div>
-  );
+  )
 }
+
+/* ── Página ──────────────────────────────────────────────────────────────── */
 
 export default async function ProductosPage({
   searchParams,
 }: {
-  searchParams: Promise<Record<string, string>>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>
 }) {
-  const params = await searchParams;
+  const params = firstValues(await searchParams)
 
-  // La normalización (lista blanca de `sort`, precios numéricos, página >= 1)
-  // vive en el módulo de datos; aquí solo se recogen los valores de la URL.
-  const query: ProductQuery = {
+  /* La normalización dura (lista blanca de `sort`, precios numéricos, página
+     >= 1) vive en el módulo de datos; aquí sólo se recogen los valores. */
+  const query: ListingQuery = {
     category: params.category,
     collection: params.collection,
+    height: params.height,
     search: params.search,
     sort: params.sort,
     minPrice: params.minPrice,
     maxPrice: params.maxPrice,
     page: params.page,
-  };
+  }
 
-  const [categories, collections] = await Promise.all([
-    getCategories(),
-    getCollections(),
-  ]);
+  const [categories, collections] = await Promise.all([getCategories(), getCollections()])
 
-  const activeCategory = params.category;
-  const activeCollection = params.collection;
-
-  const pageTitle = params.search
-    ? `Resultados para "${params.search}"`
-    : activeCollection
-      ? collections.find((c) => c.slug === activeCollection)?.name ||
-        "Colección"
-      : activeCategory
-        ? categories.find((c) => c.slug === activeCategory)?.name || "Categoría"
-        : "Todos los productos";
+  const title = titleFor(params, categories, collections)
+  const activeCount = countActiveFacets(params)
+  const taxonomy =
+    collections.find((c) => c.slug === params.collection) ??
+    categories.find((c) => c.slug === params.category)
 
   return (
-    <div className="flex-1 bg-gray-50 min-h-screen">
-      {/* Page header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-4 sm:py-5">
-          {/* Breadcrumb */}
-          <div className="flex items-center gap-1.5 text-xs text-gray-400 mb-3">
-            <Link href="/" className="hover:text-green-600 transition-colors">
-              Inicio
-            </Link>
-            <ChevronRight className="h-3 w-3" />
-            {(activeCategory || activeCollection) && (
-              <>
-                <Link
-                  href="/productos"
-                  className="hover:text-green-600 transition-colors"
-                >
-                  Productos
+    <div className="pb-section-sm">
+      <div className="border-b border-border bg-surface">
+        <div className="shell py-5 sm:py-6">
+          <nav aria-label="Ruta" className="mb-3">
+            <ol className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <li>
+                <Link href="/" className="transition-colors hover:text-brand-green-deep">
+                  Inicio
                 </Link>
-                <ChevronRight className="h-3 w-3" />
-              </>
-            )}
-            <span className="text-gray-600 font-medium truncate">
-              {pageTitle}
-            </span>
-          </div>
+              </li>
+              <li aria-hidden="true">
+                <ChevronRight className="size-3" />
+              </li>
+              {activeCount > 0 ? (
+                <>
+                  <li>
+                    <Link href="/productos" className="transition-colors hover:text-brand-green-deep">
+                      Catálogo
+                    </Link>
+                  </li>
+                  <li aria-hidden="true">
+                    <ChevronRight className="size-3" />
+                  </li>
+                  <li className="truncate font-semibold text-foreground" aria-current="page">
+                    {title}
+                  </li>
+                </>
+              ) : (
+                <li className="font-semibold text-foreground" aria-current="page">
+                  Catálogo
+                </li>
+              )}
+            </ol>
+          </nav>
 
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <h1 className="text-xl sm:text-2xl font-black text-gray-900 leading-tight">
-                {pageTitle}
-              </h1>
-              <p className="text-sm text-gray-500 mt-0.5">
-                <Suspense
-                  fallback={
-                    <span className="inline-block h-4 w-24 align-middle rounded bg-gray-100 animate-pulse" />
-                  }
-                >
-                  <ResultCount query={query} />
-                </Suspense>
-              </p>
-            </div>
+          <p className="eyebrow text-muted-foreground">Cercas por metro lineal</p>
+          <h1 className="mt-1 text-2xl font-bold text-foreground sm:text-3xl">{title}</h1>
 
-            {/* Sort — desktop */}
-            <div className="hidden sm:flex items-center gap-2 shrink-0">
-              <SlidersHorizontal className="h-4 w-4 text-gray-400" />
-              <span className="text-sm text-gray-500 font-medium">
-                Ordenar:
-              </span>
-              <Suspense
-                fallback={
-                  <div className="h-9 w-44 rounded-lg bg-gray-100 animate-pulse" />
-                }
-              >
-                <SortSelect />
-              </Suspense>
-            </div>
-          </div>
-
-          {/* Mobile filter chips */}
-          <div className="mt-3 flex flex-wrap gap-2 sm:hidden">
-            <Link
-              href="/productos"
-              className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${!activeCategory && !activeCollection ? "bg-green-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+          <p className="mt-1 text-sm text-muted-foreground">
+            <Suspense
+              fallback={
+                <span
+                  aria-hidden="true"
+                  className="inline-block h-4 w-20 animate-pulse rounded-sm bg-muted align-middle"
+                />
+              }
             >
-              Todos
-            </Link>
-            {categories.map((cat) => (
-              <Link
-                key={cat.slug}
-                href={`/productos?category=${cat.slug}`}
-                className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${activeCategory === cat.slug ? "bg-green-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
-              >
-                {cat.name}
-              </Link>
-            ))}
-            {collections.map((col) => (
-              <Link
-                key={col.slug}
-                href={`/productos?collection=${col.slug}`}
-                className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${activeCollection === col.slug ? "bg-green-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
-              >
-                {col.name}
-              </Link>
-            ))}
+              <ResultCount query={query} />
+            </Suspense>
+            {" · precio de material por metro; la instalación se cotiza aparte"}
+          </p>
+
+          {taxonomy?.description && (
+            <p className="mt-2 max-w-prose text-sm text-muted-foreground">{taxonomy.description}</p>
+          )}
+
+          <div className="mt-4 max-w-xl">
+            <SearchWrapper params={params} />
           </div>
         </div>
       </div>
 
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-8">
-        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
-          {/* Sidebar */}
-          <aside className="hidden lg:block w-56 shrink-0">
-            <div className="sticky top-[77px] bg-white rounded-xl border border-gray-200 overflow-hidden">
-              <div className="px-4 py-3.5 border-b border-gray-100 bg-gray-50">
-                <h3 className="text-xs font-black uppercase tracking-widest text-gray-500">
-                  Categorías
-                </h3>
+      <div className="shell pt-5 sm:pt-6">
+        {/* El uso, fuera de todo desplegable y encima de la parrilla: es la
+            faceta que más se toca y la que ordena el catálogo en la cabeza del
+            comprador. Va a ancho completo para que ruede de borde a borde en
+            móvil sin meterse debajo de la barra lateral. */}
+        <SegmentBar params={params} categories={categories} />
+
+        <div className="mt-5 flex flex-col gap-5 lg:flex-row lg:gap-8">
+          <ProductFiltersRail params={params} collections={collections} />
+
+          <div className="min-w-0 flex-1">
+            <ProductFiltersDrawer
+              params={params}
+              collections={collections}
+              activeCount={activeCount}
+            />
+
+            <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <ActiveFilters params={params} categories={categories} collections={collections} />
+              <div className="min-w-0 sm:ml-auto">
+                <SortSelect params={params} />
               </div>
-              <ul className="py-1.5">
-                <li>
-                  <Link
-                    href="/productos"
-                    className={`flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors border-l-2 ${!activeCategory && !activeCollection ? "bg-green-50 text-green-800 font-bold border-green-500" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 border-transparent"}`}
-                  >
-                    <Grid3X3 className="h-3.5 w-3.5 shrink-0 opacity-60" />
-                    Todos los productos
-                  </Link>
-                </li>
-                {categories.map((cat) => (
-                  <li key={cat.id || cat.slug}>
-                    <Link
-                      href={`/productos?category=${cat.slug}`}
-                      className={`flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors border-l-2 ${activeCategory === cat.slug ? "bg-green-50 text-green-800 font-bold border-green-500" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 border-transparent"}`}
-                    >
-                      <span
-                        className={`h-1.5 w-1.5 rounded-full shrink-0 ${activeCategory === cat.slug ? "bg-green-500" : "bg-gray-300"}`}
-                      />
-                      {cat.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-
-              {collections.length > 0 && (
-                <>
-                  <div className="px-4 py-3 border-t border-b border-gray-100 bg-gray-50">
-                    <h3 className="text-xs font-black uppercase tracking-widest text-gray-500">
-                      Colecciones
-                    </h3>
-                  </div>
-                  <ul className="py-1.5">
-                    {collections.map((col) => (
-                      <li key={col.id || col.slug}>
-                        <Link
-                          href={`/productos?collection=${col.slug}`}
-                          className={`flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors border-l-2 ${activeCollection === col.slug ? "bg-green-50 text-green-800 font-bold border-green-500" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 border-transparent"}`}
-                        >
-                          <span
-                            className={`h-1.5 w-1.5 rounded-full shrink-0 ${activeCollection === col.slug ? "bg-green-500" : "bg-gray-300"}`}
-                          />
-                          {col.name}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </>
-              )}
-              {/* Price filter */}
-              <Suspense
-                fallback={
-                  <div className="px-4 py-3 border-t border-gray-100">
-                    <div className="h-20 rounded-lg bg-gray-50 animate-pulse" />
-                  </div>
-                }
-              >
-                <PriceFilter />
-              </Suspense>
-            </div>
-          </aside>
-
-          {/* Main content */}
-          <div className="flex-1 min-w-0">
-            {/* Search bar */}
-            <Suspense
-              fallback={
-                <div className="h-10 w-full rounded-lg bg-gray-100 animate-pulse" />
-              }
-            >
-              <SearchWrapper />
-            </Suspense>
-
-            {/* Mobile sort */}
-            <div className="mt-3 flex items-center justify-end gap-2 sm:hidden">
-              <SlidersHorizontal className="h-3.5 w-3.5 text-gray-400" />
-              <span className="text-xs text-gray-500">Ordenar:</span>
-              <Suspense
-                fallback={
-                  <div className="h-9 w-36 rounded-lg bg-gray-100 animate-pulse" />
-                }
-              >
-                <SortSelect />
-              </Suspense>
             </div>
 
             <div className="mt-4 sm:mt-5">
-              <Suspense
-                key={queryKey(query)}
-                fallback={<ProductGridSkeleton />}
-              >
-                <ProductResults query={query} params={params} />
+              <Suspense key={queryKey(query)} fallback={<ProductGridSkeleton />}>
+                <ProductResults
+                  query={query}
+                  params={params}
+                  categories={categories}
+                  collections={collections}
+                />
               </Suspense>
             </div>
           </div>
         </div>
       </div>
     </div>
-  );
+  )
 }
