@@ -283,9 +283,9 @@ export default function InstaladoresPage() {
             buscan con Ctrl+F y las indexa el buscador. Cero JavaScript. */}
         <Section surface="base">
           <SectionHead {...SECTIONS.faq} />
-          <dl className="grid gap-4 sm:grid-cols-2">
+          <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {FAQ.map((item) => (
-              <div key={item.q} className="rounded-xl border border-border bg-surface p-5">
+              <div key={item.q} className="rounded-xl border border-border bg-surface p-4 sm:p-5">
                 <dt className="text-sm font-bold text-foreground">{item.q}</dt>
                 <dd className="mt-2 text-sm text-muted-foreground">{item.a}</dd>
               </div>
