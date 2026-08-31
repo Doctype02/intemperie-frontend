@@ -287,7 +287,15 @@ export default function InstaladoresPage() {
         {/* ── 7. Cierre ───────────────────────────────────────────────────── */}
         <section className="defer-paint bg-brand-navy-deep text-on-dark">
           <div className="picket-rule" aria-hidden="true" />
-          <div className="shell py-10 sm:py-12 lg:py-14">
+          {/* El texto de cierre iba en un `max-w-prose` de 596 px y los tres
+              botones en una fila propia debajo, a todo lo ancho: en 1440 px la
+              banda medía 298 px de alto y usaba 596 de los 1216 útiles —el
+              49 %— para el argumento, con la mitad derecha en blanco. Ahora el
+              texto va a la izquierda y la botonera a la derecha, limitada a
+              32 rem para que caiga en dos filas y no estire la columna. La
+              banda pasa a la altura del bloque más alto de los dos en vez de
+              sumarlos. */}
+          <div className="shell grid gap-6 py-10 sm:py-12 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:gap-16 lg:py-14">
             <div className="max-w-prose">
               <p className="eyebrow text-brand-green">{CLOSING.eyebrow}</p>
               <h2 className="mt-2 text-2xl font-bold tracking-tight text-balance sm:text-3xl">
@@ -296,7 +304,7 @@ export default function InstaladoresPage() {
               <p className="mt-2 text-sm text-on-dark-soft">{CLOSING.body}</p>
             </div>
 
-            <div className="mt-6 flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 lg:max-w-lg">
               <Link
                 href="/instaladores/registro"
                 className="flex h-12 items-center gap-2 rounded-lg bg-primary px-5 font-heading font-semibold text-primary-foreground transition-colors hover:bg-brand-green-deep"
