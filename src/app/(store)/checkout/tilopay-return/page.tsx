@@ -100,10 +100,18 @@ function TilopayReturnContent() {
   }, [params]);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-white">
-      <Loader2 className="h-8 w-8 animate-spin text-green-600" />
-      <p className="text-sm font-medium text-gray-600">Confirmando tu pago…</p>
-      <p className="text-xs text-gray-400">No cierres esta ventana</p>
+    /* Esta pantalla se pinta dentro del iframe de la pasarela y dura lo que
+       tarde la confirmación. `role="status"` la anuncia sin robar el foco, y el
+       aviso de no cerrar la ventana va en texto: cerrarla a mitad deja el cobro
+       hecho y el pedido sin confirmar. */
+    <div
+      role="status"
+      aria-live="polite"
+      className="flex min-h-screen flex-col items-center justify-center gap-3 bg-background px-6 text-center"
+    >
+      <Loader2 className="h-8 w-8 animate-spin text-primary" aria-hidden="true" />
+      <p className="text-sm font-semibold text-foreground">Confirmando tu pago…</p>
+      <p className="text-xs text-muted-foreground">No cierres esta ventana</p>
     </div>
   );
 }
@@ -112,8 +120,9 @@ export default function TilopayReturnPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-green-600" />
+        <div className="flex min-h-screen items-center justify-center bg-background">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" aria-hidden="true" />
+          <span className="sr-only">Cargando la confirmación del pago…</span>
         </div>
       }
     >
