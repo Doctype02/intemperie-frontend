@@ -605,8 +605,8 @@ export default function InspeccionesPage() {
           <Button
             type="button"
             variant="link"
+            className="min-h-tap"
             aria-expanded={showForm}
-            aria-controls="printForm"
             onClick={() => setShowForm(v => !v)}
           >
             {showForm ? "Ocultar formulario" : "Ver formulario completo"}
@@ -717,7 +717,7 @@ export default function InspeccionesPage() {
                   value={observaciones}
                   onChange={e => setObservaciones(e.target.value)}
                   placeholder="Qué se encontró en el terreno, qué falta, qué hay que tener en cuenta el día del montaje."
-                  className="min-h-28 border-0 px-0 hover:border-0"
+                  className="min-h-28"
                 />
               </div>
             </section>
@@ -762,7 +762,7 @@ export default function InspeccionesPage() {
                       <Button
                         type="button"
                         variant="link"
-                        className="self-end text-destructive decoration-destructive/35 hover:decoration-destructive print:hidden"
+                        className="min-h-tap self-end text-destructive decoration-destructive/35 hover:decoration-destructive print:hidden"
                         onClick={() => ref.current?.getContext("2d")?.clearRect(0, 0, 280, 65)}
                       >
                         Limpiar firma
