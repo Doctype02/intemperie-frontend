@@ -492,7 +492,11 @@ export default function InspeccionesPage() {
      1366 px útiles y el recuadro se habría ido de 3,5x a 4,9x de desajuste. Se
      topa en 280 px —su tamaño natural, que además es el 1:1— para no agravar
      algo que no toca arreglar aquí. De paso ahorra 29 px de alto: el recuadro
-     crecía al ensancharse porque su proporción está fijada por el mapa de bits. */
+     crecía al ensancharse porque su proporción está fijada por el mapa de bits.
+
+     En papel el tope se levanta. Ahí no hay dedo que valga: el recuadro se
+     rellena con un bolígrafo y cuanto más ancho, mejor. La hoja impresa sale
+     exactamente igual que antes (363 px de recuadro en papel de carta). */
   useEffect(() => {
     const pads = [sig1Ref, sig2Ref];
     const cleanups: (() => void)[] = [];
@@ -952,7 +956,7 @@ export default function InspeccionesPage() {
                         width={280}
                         height={65}
                         aria-label={`Recuadro para firmar: ${title.toLowerCase()}`}
-                        className="block w-full max-w-[280px] touch-none rounded-md border border-dashed border-border-strong bg-plan-paper"
+                        className="block w-full max-w-[280px] touch-none rounded-md border border-dashed border-border-strong bg-plan-paper print:max-w-none"
                         style={{ cursor: "crosshair" }}
                       >
                         Se firma con el dedo o con el ratón dentro de este recuadro.
@@ -962,7 +966,7 @@ export default function InspeccionesPage() {
                          papel una vez impresa. Se declara para que no parezca
                          un recuadro roto. */
                       <div
-                        className="h-[65px] w-full max-w-[280px] rounded-md border border-dashed border-border bg-surface-2"
+                        className="h-[65px] w-full max-w-[280px] rounded-md border border-dashed border-border bg-surface-2 print:max-w-none"
                         role="img"
                         aria-label="Espacio para firmar a mano sobre la hoja impresa"
                       />
