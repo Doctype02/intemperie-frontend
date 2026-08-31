@@ -5,7 +5,6 @@ import Image from "next/image";
 import { Trash2, Minus, Plus } from "lucide-react";
 import { useCartStore } from "@/lib/store/cart-store";
 import { formatCurrency, calculateItemTotal } from "@/lib/utils";
-import { BLUR_PLACEHOLDER } from "@/lib/image-utils";
 
 /* Línea de carrito — sistema «Perímetro».
  *
@@ -70,8 +69,6 @@ export function CartItem({ item }: CartItemProps) {
             fill
             sizes="80px"
             className="object-cover"
-            placeholder="blur"
-            blurDataURL={BLUR_PLACEHOLDER}
           />
         ) : (
           /* Sin fotografía, la inicial sobre el verde suave: identifica la fila

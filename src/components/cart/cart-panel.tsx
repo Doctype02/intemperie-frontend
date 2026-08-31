@@ -6,7 +6,6 @@ import { useCartStore } from "@/lib/store/cart-store";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ShoppingCart, Minus, Plus, Trash2, Check } from "lucide-react";
-import { BLUR_PLACEHOLDER } from "@/lib/image-utils";
 
 const FREE_SHIPPING_THRESHOLD = 50;
 
@@ -137,8 +136,6 @@ export function CartPanel({ open, onOpenChange, finalFocus }: CartPanelProps) {
                           fill
                           sizes="64px"
                           className="object-cover"
-                          placeholder="blur"
-                          blurDataURL={BLUR_PLACEHOLDER}
                         />
                       ) : (
                         /* Sin foto, la inicial. El par es `secondary` y no

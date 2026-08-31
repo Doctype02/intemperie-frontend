@@ -13,8 +13,30 @@
  * `mediaUrl` las manda al mismo sitio que las demás.
  */
 
-export const BLUR_PLACEHOLDER =
-  "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiB2aWV3Qm94PSIwIDAgNDAwIDMwMCI+PHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSIzMDAiIGZpbGw9IiNlOGY1ZTkiLz48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2M4ZTZjOSIgb3BhY2l0eT0iMC41Ii8+PC9zdmc+";
+/* El marcador de carga: por qué ya no es un `blurDataURL`.
+ *
+ * Aquí vivía `BLUR_PLACEHOLDER`, un SVG en base64 —dos rectángulos verde
+ * pastel— que se pasaba como `blurDataURL` a media docena de `<Image>`. Un
+ * `blurDataURL` sirve para enseñar una miniatura DE LA PROPIA FOTO mientras
+ * llega la grande; ésta no lo era. Era el mismo verde para las quince fichas,
+ * para las miniaturas del carrito y para la galería, así que no anticipaba
+ * nada: sólo metía un color que no pertenece a ninguna fotografía de obra —y
+ * que en modo oscuro aparecía como una mancha clara sobre el azul del fondo—
+ * y encima obligaba a `next/image` a montar el estado del placeholder.
+ *
+ * El marcador correcto ya existe y no pesa: el propio recuadro de la foto.
+ * El contrato que sigue ahora TODA imagen de contenido del sitio es que su
+ * contenedor lleve la proporción reservada (`aspect-*` o un `size-*` fijo) más
+ * `bg-surface-2`. Así el hueco se ve como una superficie del sistema —clara en
+ * claro, oscura en oscuro— hasta que la foto lo cubre, y no se mueve un píxel
+ * al cubrirlo. Cero bytes, cero peticiones, cero estado de placeholder, y el
+ * tono lo decide el token y no un base64 que nadie va a volver a descodificar.
+ *
+ * Se escribe en cada sitio con sus clases, sin constante compartida: la
+ * proporción cambia en cada uso (4/3 en catálogo, 16/10 en portada, cuadrada
+ * en las miniaturas del carrito) y media clase en una constante y media suelta
+ * se lee peor que la línea entera.
+ */
 
 /* La base del media es pública y no es un secreto: es la misma dirección que
    ya viaja en cada URL que devuelve la API. Se deja como valor por defecto en

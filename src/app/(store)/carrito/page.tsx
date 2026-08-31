@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useCartStore } from "@/lib/store/cart-store";
-import { BLUR_PLACEHOLDER } from "@/lib/image-utils";
 import { Button } from "@/components/ui/button";
 import { Minus, Plus, Trash2, ArrowLeft, ShoppingCart, Check } from "lucide-react";
 
@@ -170,8 +169,6 @@ export default function CartPage() {
                           fill
                           sizes="64px"
                           className="object-cover"
-                          placeholder="blur"
-                          blurDataURL={BLUR_PLACEHOLDER}
                         />
                       ) : (
                         /* Sin foto, la inicial de la colección. El par es

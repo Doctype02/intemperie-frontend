@@ -139,7 +139,7 @@ export default function InstaladoresPage() {
             {/* Relación de aspecto fija en los dos anchos: la imagen reserva su
                 sitio antes de descargarse y no hay salto de maquetación. */}
             <figure className="min-w-0">
-              <div className="relative aspect-[16/10] overflow-hidden rounded-xl lg:aspect-[4/3]">
+              <div className="relative aspect-[16/10] overflow-hidden rounded-xl bg-surface-2 lg:aspect-[4/3]">
                 <Image
                   src={PHOTO.src}
                   alt={PHOTO.alt}

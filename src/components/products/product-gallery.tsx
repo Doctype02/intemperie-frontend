@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, ImageIcon, X, ZoomIn } from "lucide-react";
-import { BLUR_PLACEHOLDER } from "@/lib/image-utils";
 import type { ProductImage } from "@/types";
 
 /* Galería de producto.
@@ -30,9 +29,14 @@ interface ProductGalleryProps {
   highlights?: Highlight[];
 }
 
-/** Recuadro de proporción fija: reserva el hueco y evita saltos de diseño. */
+/* Recuadro de proporción fija: reserva el hueco y evita saltos de diseño.
+ *
+ * `bg-surface-2` va dentro y no en cada uso: es el marcador de carga del
+ * sistema, el tono que se ve mientras la foto viaja. Antes ese hueco lo tapaba
+ * un `blurDataURL` verde genérico —el mismo para las quince fichas—; el token
+ * dice lo mismo sin descargar nada y sin desentonar con la fotografía. */
 const FRAME =
-  "relative w-full overflow-hidden rounded-xl border border-hairline aspect-[4/3] sm:aspect-[3/2]";
+  "relative w-full overflow-hidden rounded-xl border border-hairline bg-surface-2 aspect-[4/3] sm:aspect-[3/2]";
 
 const FOCUS =
   "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-green";
@@ -41,7 +45,7 @@ const FOCUS =
 
 function EmptyState({ productName, highlights = [] }: { productName: string; highlights?: Highlight[] }) {
   return (
-    <div className={`${FRAME} bg-surface-2`}>
+    <div className={FRAME}>
       {/* Trama de plano de obra: dos gradientes, sin imagen que descargar. */}
       <div
         aria-hidden="true"
@@ -151,7 +155,7 @@ export function ProductGallery({ images, productName, highlights }: ProductGalle
     <>
       <div className="space-y-2.5">
         <div
-          className={`${FRAME} group bg-surface-2`}
+          className={`${FRAME} group`}
           onTouchStart={(e) => {
             touchX.current = e.touches[0]?.clientX ?? null;
           }}
@@ -174,8 +178,6 @@ export function ProductGallery({ images, productName, highlights }: ProductGalle
                 preload={i === 0}
                 loading={i === 0 ? undefined : "lazy"}
                 sizes="(max-width: 1024px) 100vw, 640px"
-                placeholder="blur"
-                blurDataURL={BLUR_PLACEHOLDER}
                 className={`object-cover transition-opacity duration-200 ${
                   i === index ? "opacity-100" : "opacity-0"
                 }`}
@@ -231,7 +233,7 @@ export function ProductGallery({ images, productName, highlights }: ProductGalle
                   onClick={() => goTo(i)}
                   aria-label={`Ver imagen ${i + 1} de ${total}`}
                   aria-current={i === index ? "true" : undefined}
-                  className={`relative block size-16 shrink-0 overflow-hidden rounded-lg border-2 transition-colors duration-150 sm:size-20 ${FOCUS} ${
+                  className={`relative block size-16 shrink-0 overflow-hidden rounded-lg border-2 bg-surface-2 transition-colors duration-150 sm:size-20 ${FOCUS} ${
                     i === index
                       ? "border-brand-green"
                       : "border-hairline hover:border-brand-green/60"
@@ -243,8 +245,6 @@ export function ProductGallery({ images, productName, highlights }: ProductGalle
                     fill
                     sizes="80px"
                     loading="lazy"
-                    placeholder="blur"
-                    blurDataURL={BLUR_PLACEHOLDER}
                     className="object-cover"
                   />
                 </button>

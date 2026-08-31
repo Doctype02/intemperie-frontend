@@ -6,7 +6,6 @@ import { Heart, Ruler, ShoppingCart } from "lucide-react"
 import { toast } from "sonner"
 
 import { useWishlist } from "@/lib/hooks/use-wishlist"
-import { BLUR_PLACEHOLDER } from "@/lib/image-utils"
 import { useCartStore } from "@/lib/store/cart-store"
 import type { ProductImage, ProductUnit } from "@/types"
 
@@ -70,7 +69,8 @@ interface ProductCardProps {
   category?: { name: string } | null
   collection?: { name: string } | null
   images?: ProductImage[]
-  priority?: boolean
+  /* Sólo la primera ficha de la parrilla: ver `ProductGrid`. */
+  preload?: boolean
 }
 
 export function ProductCard(p: ProductCardProps) {
@@ -142,9 +142,8 @@ export function ProductCard(p: ProductCardProps) {
                justo donde más se mira el catálogo. */
             sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
             className="object-cover object-center transition-transform duration-500 group-hover:scale-[1.03]"
-            placeholder="blur"
-            blurDataURL={BLUR_PLACEHOLDER}
-            priority={p.priority}
+            /* Next 16: `priority` está obsoleto en favor de `preload`. */
+            preload={p.preload}
           />
         ) : (
           /* Decorativo: toda la información está en texto debajo. */

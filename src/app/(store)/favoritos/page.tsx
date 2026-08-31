@@ -9,9 +9,6 @@ import { useWishlist } from "@/lib/hooks/use-wishlist";
 import { useCartStore } from "@/lib/store/cart-store";
 import { toast } from "sonner";
 
-const BLUR =
-  "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAARCAAIAAoDASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAABgUE/8QAIxAAAQMEAgMBAAAAAAAAAAAAAQIDBAAFERIhMUFR/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAH/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCmtOkbddS1UqMhqIhWXnFnCU+SThI+T5PnXJd7lPkykOSX1u7UhIKjnATgD8CiigH/2Q==";
-
 /* Favoritos — sistema «Perímetro».
  *
  * Una lista de deseos es una lista de decisiones a medias: quien llega aquí ya
@@ -123,8 +120,6 @@ export default function FavoritosPage() {
                     fill
                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    placeholder="blur"
-                    blurDataURL={BLUR}
                   />
                 ) : (
                   /* Sin fotografía se dibuja el alzado de la cerca en CSS: es la
