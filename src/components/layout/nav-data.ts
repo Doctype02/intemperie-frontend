@@ -109,3 +109,19 @@ export function accountLinks(role?: string): AccountLink[] {
     ...(role === "ADMIN" ? [{ href: "/admin", label: "Panel de administración" }] : []),
   ]
 }
+
+
+/* ── Volver donde estabas ──────────────────────────────────────────────────
+   Quien pulsa «Iniciar sesión» desde la cabecera estaba haciendo algo: mirando
+   una cerca, con el carrito a medias, comparando en el precotizador. El enlace
+   no decía de dónde venía, así que el formulario caía a su destino por defecto
+   —/cuenta— y la compra se quedaba atrás. Ahora el enlace lleva la ruta actual
+   y el acceso devuelve exactamente ahí.
+
+   No se arrastra la propia zona de acceso: volver a /login desde /login es un
+   bucle, y venir de /registro y acabar en /registro es peor que ir al inicio. */
+export function loginHref(pathname?: string | null): string {
+  if (!pathname || !pathname.startsWith("/")) return "/login"
+  if (pathname.startsWith("/login") || pathname.startsWith("/registro")) return "/login"
+  return `/login?redirect=${encodeURIComponent(pathname)}`
+}

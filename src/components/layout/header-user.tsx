@@ -4,6 +4,8 @@ import { useState } from "react"
 import Link from "next/link"
 import { Heart, User } from "lucide-react"
 
+import { usePathname } from "next/navigation"
+import { loginHref } from "./nav-data"
 import { useAuthStore } from "@/lib/store/auth-store"
 import { useWishlist } from "@/lib/hooks/use-wishlist"
 
@@ -24,11 +26,12 @@ const iconButton =
 
 export function HeaderAccount() {
   const [open, setOpen] = useState(false)
+  const pathname = usePathname()
   const { user, isAuthenticated, logout } = useAuthStore()
 
   if (!isAuthenticated) {
     return (
-      <Link href="/login" className={iconButton} aria-label="Iniciar sesión">
+      <Link href={loginHref(pathname)} className={iconButton} aria-label="Iniciar sesión">
         <User className="size-5" aria-hidden="true" />
       </Link>
     )

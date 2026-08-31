@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import {
   Search, X, ChevronDown, ChevronRight, Phone, Mail, Clock,
   User, Building2,
@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button"
 import { IconWhatsApp, whatsappHref } from "@/components/ui/icon-whatsapp"
 import { useAuthStore } from "@/lib/store/auth-store"
 import {
-  CONTACT, WA_MESSAGE, NAV_LINKS, COLECCIONES, accountLinks,
+  CONTACT, WA_MESSAGE, NAV_LINKS, COLECCIONES, accountLinks, loginHref,
   MALLAS, PVC_RESIDENCIAL, PVC_INDUSTRIAL, PVC_COSTERAS,
   type NavProduct,
 } from "./nav-data"
@@ -78,6 +78,7 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
   const [search, setSearch] = useState("")
   const closeRef = useRef<HTMLButtonElement>(null)
   const router = useRouter()
+  const pathname = usePathname()
   const { user, isAuthenticated, logout } = useAuthStore()
 
   /* Bloqueo de desplazamiento del fondo y cierre con Escape. Ambos viven aquí
@@ -259,7 +260,7 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
         ) : (
           <div className="grid gap-2">
             <Button variant="outline" size="block" asChild>
-              <Link href="/login" onClick={onClose}>
+              <Link href={loginHref(pathname)} onClick={onClose}>
                 <User className="size-4" />
                 Iniciar sesión
               </Link>

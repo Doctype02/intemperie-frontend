@@ -14,7 +14,10 @@ import { useAuthStore } from "@/lib/store/auth-store";
 
 /** Sólo rutas internas: `?redirect=https://otro-sitio` no debe abrir nada. */
 function safeRedirect(value: string | null): string {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) return "/cuenta";
+  /* Sin destino, al inicio y no a /cuenta. Quien entra desde la cabecera estaba
+     comprando; mandarlo a su cuenta le quita de las manos lo que estaba mirando.
+     La cuenta se visita a proposito, no se aterriza en ella. */
+  if (!value || !value.startsWith("/") || value.startsWith("//")) return "/";
   return value;
 }
 
