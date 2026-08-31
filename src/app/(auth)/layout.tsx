@@ -57,7 +57,13 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <div className="mx-auto w-full max-w-md lg:mx-0">{children}</div>
 
           {/* Panel de marca — sólo escritorio */}
-          <aside className="mesh-rule hidden overflow-hidden rounded-2xl bg-brand-navy p-8 lg:block xl:p-10">
+          {/* El panel llevaba `mesh-rule` de fondo: una cuadrícula de 12 px detrás de
+              texto de 14 px, que competía con las letras y dejaba los tres puntos
+              ilegibles. Además era un mal uso del propio sistema: esa utilidad está
+              definida como firma visual —un filete de remate, como la usan el pie, la
+              calculadora, «nosotros» e «instaladores»—, no como fondo de un bloque de
+              texto. La trama se va; el azul de obra se queda. */}
+          <aside className="hidden overflow-hidden rounded-2xl bg-brand-navy p-8 lg:block xl:p-10">
             <p className="eyebrow text-brand-amber">Intemperie · La Chorrera</p>
             <p className="mt-3 font-heading text-2xl leading-tight font-bold text-on-dark">
               Cercas de PVC y malla electrosoldada, con quien las instala.
