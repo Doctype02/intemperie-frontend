@@ -53,12 +53,18 @@ type Tool = "pencil" | "line" | "rect" | "text" | "eraser";
  * por eso la hoja se pinta con `bg-plan-paper` también cuando la pantalla de
  * alrededor está a oscuras.
  *
- * La conversión a hexadecimal la hace el propio contexto 2D: `fillStyle`
- * devuelve siempre «#rrggbb», que es además lo único que acepta un
- * <input type="color">. Cada lectura estrena contexto porque el suyo empieza
- * en negro: si el navegador no supiera leer oklch(), la asignación se ignora y
- * nos quedamos con tinta negra sobre papel, que es el peor caso aceptable —y
- * no con el color que se hubiera leído justo antes.
+ * La conversión a hexadecimal se hace pintando: se rellena un píxel con el
+ * valor leído y se mira qué color ha salido. Parece un rodeo y no lo es. El
+ * compilador de CSS deja los tokens en `lab()` para los navegadores modernos,
+ * y `fillStyle` sólo devuelve «#rrggbb» cuando el color entró en sRGB: con
+ * `lab()` devuelve `lab()` otra vez. Al lienzo le da igual —acepta las dos—,
+ * pero <input type="color"> sólo entiende «#rrggbb» y ante cualquier otra cosa
+ * se pone en negro sin avisar. El píxel pintado no miente en ningún caso.
+ *
+ * Cada lectura estrena contexto porque el suyo empieza en negro: si el
+ * navegador no supiera leer el valor, la asignación se ignora y nos quedamos
+ * con tinta negra sobre papel —el peor caso aceptable— y no con el color que
+ * se hubiera leído justo antes.
  */
 const PLAN_TOKENS = {
   paper: "--plan-paper",
@@ -84,10 +90,14 @@ function readPlanPalette(): PlanPalette {
 
   const root = getComputedStyle(document.documentElement);
   const hex = (token: string) => {
-    const probe = document.createElement("canvas").getContext("2d");
-    if (!probe) return root.getPropertyValue(token).trim();
-    probe.fillStyle = root.getPropertyValue(token).trim();
-    return String(probe.fillStyle);
+    const raw = root.getPropertyValue(token).trim();
+    const probe = document.createElement("canvas").getContext("2d", { willReadFrequently: true });
+    if (!probe) return raw;
+    probe.fillStyle = raw;
+    probe.fillRect(0, 0, 1, 1);
+    const [r, g, b] = probe.getImageData(0, 0, 1, 1).data;
+    const dosDigitos = (n: number) => n.toString(16).padStart(2, "0");
+    return `#${dosDigitos(r)}${dosDigitos(g)}${dosDigitos(b)}`;
   };
 
   planPalette = {
