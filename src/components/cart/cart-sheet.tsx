@@ -39,6 +39,13 @@ export function CartSheet() {
 
   return (
     <>
+      {/* Objetivo táctil de 44 px, el mismo que el resto de iconos de la
+          cabecera: con `p-2` medía 36 px y era el más difícil de acertar de
+          una fila en la que además es el que más se pulsa.
+
+          El recuento va también en el nombre accesible: la burbuja es un
+          número sin contexto, y quien no la ve necesita saber si el carrito
+          lleva algo antes de decidir abrirlo. */}
       <button
         ref={triggerRef}
         type="button"
@@ -46,14 +53,17 @@ export function CartSheet() {
           setLoaded(true);
           setOpen(true);
         }}
-        className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors"
-        aria-label="Abrir carrito"
+        className="relative flex size-11 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-muted"
+        aria-label={count > 0 ? `Abrir carrito (${count} productos)` : "Abrir carrito, vacío"}
         aria-haspopup="dialog"
         aria-expanded={open}
       >
-        <ShoppingCart className="h-5 w-5 text-gray-700" />
+        <ShoppingCart className="size-5" aria-hidden="true" />
         {count > 0 && (
-          <span className="absolute -right-0.5 -top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-green-600 text-[10px] font-bold text-white">
+          <span
+            aria-hidden="true"
+            className="absolute top-1 right-1 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] leading-none font-bold text-primary-foreground tabular"
+          >
             {count > 9 ? "9+" : count}
           </span>
         )}
