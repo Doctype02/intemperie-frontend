@@ -75,6 +75,37 @@ export const COLECCIONES = [
 /* ── Enlaces sueltos de la barra de navegación ────────────────────────────── */
 export const NAV_LINKS = [
   { href: "/calculadora", label: "Calculadora" },
+  { href: "/inspecciones", label: "Inspecciones" },
   { href: "/instaladores", label: "Instaladores" },
   { href: "/nosotros", label: "Nosotros" },
 ] as const
+
+
+/* ── Menú de la cuenta ─────────────────────────────────────────────────────
+   Una sola lista para escritorio y para móvil.
+
+   Estaban escritas por separado —`header-user.tsx` y `mobile-nav.tsx`— y ya
+   habían divergido: el escritorio ofrecía el panel de administración e
+   Inspecciones, y el móvil no, así que desde el teléfono no había forma de
+   llegar a la herramienta de campo. Un menú duplicado no se desincroniza
+   «si» alguien lo olvida, sino en cuanto alguien toca uno de los dos.
+
+   Inspecciones aparece además en la barra principal. No es una fuga: la ruta
+   la protege el middleware, que es donde se decide de verdad. Esconder el
+   enlace era seguridad por oscuridad encima del arreglo real; lo que no debe
+   estar es en el sitemap, porque una pantalla tras sesión no se indexa. */
+export interface AccountLink {
+  href: string
+  label: string
+}
+
+export function accountLinks(role?: string): AccountLink[] {
+  return [
+    { href: "/cuenta", label: "Mi cuenta" },
+    { href: "/cuenta/pedidos", label: "Mis pedidos" },
+    { href: "/cuenta/direcciones", label: "Direcciones" },
+    { href: "/favoritos", label: "Favoritos" },
+    { href: "/inspecciones", label: "Inspecciones" },
+    ...(role === "ADMIN" ? [{ href: "/admin", label: "Panel de administración" }] : []),
+  ]
+}

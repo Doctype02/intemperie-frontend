@@ -5,14 +5,14 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import {
   Search, X, ChevronDown, ChevronRight, Phone, Mail, Clock,
-  User, Heart, Building2,
+  User, Building2,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { IconWhatsApp, whatsappHref } from "@/components/ui/icon-whatsapp"
 import { useAuthStore } from "@/lib/store/auth-store"
 import {
-  CONTACT, WA_MESSAGE, NAV_LINKS, COLECCIONES,
+  CONTACT, WA_MESSAGE, NAV_LINKS, COLECCIONES, accountLinks,
   MALLAS, PVC_RESIDENCIAL, PVC_INDUSTRIAL, PVC_COSTERAS,
   type NavProduct,
 } from "./nav-data"
@@ -237,21 +237,15 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
               Sesión de <span className="font-semibold text-foreground">{user?.name}</span>
             </p>
             <div className="grid gap-2">
-              <Button variant="outline" size="block" asChild>
-                <Link href="/cuenta" onClick={onClose}>
-                  <User className="size-4" />
-                  Mi cuenta
-                </Link>
-              </Button>
-              <Button variant="outline" size="block" asChild>
-                <Link href="/cuenta/pedidos" onClick={onClose}>Mis pedidos</Link>
-              </Button>
-              <Button variant="outline" size="block" asChild>
-                <Link href="/favoritos" onClick={onClose}>
-                  <Heart className="size-4" />
-                  Favoritos
-                </Link>
-              </Button>
+              {/* Lista compartida con el menu de escritorio. Estaban escritas por
+                  separado y ya habian divergido: el escritorio ofrecia el panel de
+                  administracion y el movil no, asi que desde el telefono no habia
+                  forma de llegar. */}
+              {accountLinks(user?.role).map((item) => (
+                <Button key={item.href} variant="outline" size="block" asChild>
+                  <Link href={item.href} onClick={onClose}>{item.label}</Link>
+                </Button>
+              ))}
               <Button
                 variant="ghost"
                 size="block"
