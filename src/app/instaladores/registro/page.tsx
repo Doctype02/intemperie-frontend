@@ -1,73 +1,193 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import Link from "next/link";
-import { Header } from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
+import { useEffect, useId, useRef, useState } from "react"
+import Link from "next/link"
 import {
-  CheckCircle2,
-  ChevronRight,
-  Percent,
-  Truck,
-  Award,
-  Headphones,
+  AlertCircle,
   ArrowRight,
   Building2,
-  User,
-  Phone,
-  Mail,
-  MapPin,
-  Briefcase,
-  Star,
+  Check,
+  ChevronRight,
   FileText,
-} from "lucide-react";
+  MapPin,
+  Wrench,
+} from "lucide-react"
 
-const PROVINCES = [
-  "Panamá",
-  "Panamá Oeste",
-  "Colón",
-  "Coclé",
-  "Herrera",
-  "Los Santos",
-  "Veraguas",
-  "Chiriquí",
-  "Bocas del Toro",
-  "Darién",
-  "Emberá",
-  "Guna Yala",
-  "Ngäbe-Buglé",
-  "Madungandí",
-];
+import { Footer } from "@/components/layout/footer"
+import { Header } from "@/components/layout/header"
+import { CONTACT } from "@/components/layout/nav-data"
+import { Button } from "@/components/ui/button"
+import { IconWhatsApp, whatsappHref } from "@/components/ui/icon-whatsapp"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 
-const SPECIALTIES = [
-  { value: "pvc", label: "Cercas PVC" },
-  { value: "mallas", label: "Mallas de alambre" },
-  { value: "madera", label: "Cercas de madera" },
-  { value: "metalicas", label: "Cercas metálicas" },
-  { value: "todas", label: "Todas las anteriores" },
-];
+import {
+  BENEFITS,
+  CLOSING,
+  COVERAGE_AREAS,
+  EXPERIENCE_RANGES,
+  FORM_INTRO,
+  MIN_YEARS_NOTE,
+  REQUIREMENTS,
+  SPECIALTIES,
+  SUBMIT_NOTE,
+  SUCCESS,
+} from "../content"
 
-const EXPERIENCE_RANGES = [
-  "Menos de 1 año",
-  "1 – 2 años",
-  "3 – 5 años",
-  "6 – 10 años",
-  "Más de 10 años",
-];
+/* Registro de instaladores — sistema «Perímetro».
+ *
+ * Era el archivo con más color escrito a mano del proyecto: 87 clases
+ * literales —green-900, gray-200, red-500, amber— en la página donde el
+ * sistema más falta hace, porque un campo con borde `gray-200` no se distingue
+ * del papel y un error en `red-500` sobre `red-50` no llega a 4.5:1. Ahora todo
+ * sale de token: el campo usa `--input` (3:1 contra el papel) y el error usa
+ * `--destructive`, que tiene contraparte oscura.
+ *
+ * Y llevaba su propia copia de las listas, ya desincronizada con la página del
+ * programa: allí «mínimo 2 años de experiencia», aquí «al menos 1 año». Allí
+ * diez provincias; aquí catorce entradas que mezclaban provincias y comarcas,
+ * ponían «Emberá» y «Madungandí» al nivel de una provincia y se dejaban fuera
+ * Guna de Wargandí. Allí cercas de PVC y malla; aquí, además, cercas de madera
+ * y metálicas, que Intemperie no fabrica. Las listas vienen ahora de
+ * `content.ts`, una sola vez, para las dos páginas.
+ *
+ * Lo demás es accesibilidad, que en un formulario no es adorno sino el trabajo:
+ *
+ *   · Cada campo con su `<label>` asociada por `htmlFor`. Antes las etiquetas
+ *     no apuntaban a nada: pulsar el texto no enfocaba el campo y el lector de
+ *     pantalla anunciaba «cuadro de edición» a secas.
+ *   · Los errores se anuncian: `role="alert"` en el mensaje, `aria-describedby`
+ *     desde el campo y el foco viaja al primer campo que falla. Antes el error
+ *     era rojo y nada más: quien no ve el rojo pulsaba enviar sin enterarse.
+ *   · Las agrupaciones son `<fieldset>` con `<legend>`. «Sí/No» sin la pregunta
+ *     delante no significa nada dicho en voz alta.
+ *   · La cobertura es un `<select>` nativo con `<optgroup>`: provincias y
+ *     comarcas separadas, como en la división real del país.
+ *   · Objetivo táctil de 44 px en todo lo pulsable, casillas incluidas.
+ *   · El foco nunca se elimina. `focus:outline-none` estaba en cada campo.
+ *
+ * NO se ha tocado el envío: valida, construye el mismo mensaje línea a línea y
+ * lo abre en el mismo `wa.me`. Lo único añadido es guardar esa dirección para
+ * poder ofrecerla otra vez si el navegador bloquea la ventana emergente, que
+ * es el fallo silencioso de este formulario.
+ */
 
 type FormData = {
-  companyName: string;
-  contactName: string;
-  phone: string;
-  email: string;
-  province: string;
-  experience: string;
-  specialties: string[];
-  references: string;
-  hasRUC: string;
-  hasTools: string;
-  message: string;
-};
+  companyName: string
+  contactName: string
+  phone: string
+  email: string
+  province: string
+  experience: string
+  specialties: string[]
+  references: string
+  hasRUC: string
+  hasTools: string
+  message: string
+}
+
+type FormErrors = Partial<Record<keyof FormData, string>>
+
+/* El orden manda: al fallar la validación el foco va al primer campo en falta
+   siguiendo el orden en que se leen, no el orden en que valida el código. */
+const FIELD_ORDER: (keyof FormData)[] = [
+  "companyName",
+  "contactName",
+  "phone",
+  "email",
+  "province",
+  "experience",
+  "specialties",
+  "hasRUC",
+  "hasTools",
+]
+
+const YES_NO = [
+  { value: "yes", label: "Sí" },
+  { value: "no", label: "No" },
+]
+
+/* Un campo lleva siempre las mismas cuatro piezas —etiqueta, control, ayuda y
+   error— cosidas por los mismos identificadores. Declararlas una vez es lo que
+   impide que al décimo campo alguien se deje el `aria-describedby`. */
+function Field({
+  id,
+  label,
+  required = false,
+  hint,
+  error,
+  children,
+}: {
+  id: string
+  label: string
+  required?: boolean
+  hint?: string
+  error?: string
+  children: React.ReactNode
+}) {
+  return (
+    <div className="min-w-0">
+      {/* `gap-1` y no el hueco por defecto de `Label`: el asterisco pertenece a
+          la etiqueta, no es una segunda columna. El color lo pone el propio
+          `Label` a través de `data-required`. */}
+      <Label htmlFor={id} className="mb-1.5 gap-1">
+        {label}
+        {required && (
+          <span data-required aria-hidden="true">
+            *
+          </span>
+        )}
+      </Label>
+      {children}
+      {hint && (
+        <p id={`${id}-hint`} className="mt-1.5 text-xs text-muted-foreground">
+          {hint}
+        </p>
+      )}
+      {error && (
+        <p
+          id={`${id}-error`}
+          role="alert"
+          className="mt-1.5 flex items-start gap-1.5 text-sm font-medium text-destructive"
+        >
+          <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+          {error}
+        </p>
+      )}
+    </div>
+  )
+}
+
+/* Encabezado de bloque del formulario. Es `<legend>` y no un `<h3>` suelto:
+   el lector de pantalla lo repite al entrar en cada campo del grupo. */
+function GroupLegend({ Icon, children }: { Icon: typeof Building2; children: React.ReactNode }) {
+  return (
+    <legend className="mb-4 flex items-center gap-2 font-heading text-sm font-bold text-foreground">
+      <Icon className="size-4 shrink-0 text-brand-green" aria-hidden="true" />
+      {children}
+    </legend>
+  )
+}
+
+/* El `<select>` nativo se queda: es el único que agrupa con `<optgroup>` y el
+   único que en un móvil abre la rueda del sistema. Se le viste con las mismas
+   medidas y el mismo borde que `Input` —44 px de alto y cuerpo de 16 px, por
+   debajo del cual Safari hace zoom al enfocar y descoloca la página—. */
+const selectClass = [
+  "h-11 w-full min-w-0 rounded-lg border border-input bg-surface px-3",
+  "text-[1rem] text-foreground",
+  "transition-colors duration-150 outline-none",
+  "hover:border-foreground/35 focus-visible:border-ring",
+  "aria-invalid:border-destructive",
+].join(" ")
+
+/* Casilla y radio: 20 px visibles, fila pulsable de 44 px. El dedo de quien
+   monta cercas no es un ratón. */
+const choiceRowClass =
+  "flex min-h-11 cursor-pointer items-center gap-2.5 rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground transition-colors hover:border-border-strong has-checked:border-primary has-checked:bg-secondary has-checked:text-secondary-foreground"
+
+const choiceInputClass = "size-5 shrink-0 accent-primary"
 
 export default function RegistroPage() {
   const [form, setForm] = useState<FormData>({
@@ -82,14 +202,37 @@ export default function RegistroPage() {
     hasRUC: "",
     hasTools: "",
     message: "",
-  });
-  const [submitted, setSubmitted] = useState(false);
-  const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
+  })
+  const [submitted, setSubmitted] = useState(false)
+  const [errors, setErrors] = useState<FormErrors>({})
+  /* La dirección que se acaba de abrir, guardada para poder reabrirla a mano.
+     No cambia el envío: es la misma cadena que recibió `window.open`. */
+  const [sentHref, setSentHref] = useState("")
+
+  const uid = useId()
+  const fieldId = (field: keyof FormData) => `${uid}-${field}`
+
+  /* A dónde va el foco cuando un grupo falla: al primer control del grupo, que
+     es donde el lector de pantalla anuncia la pregunta entera. */
+  const anchorId = (field: keyof FormData) => {
+    if (field === "specialties") return `${uid}-specialty-${SPECIALTIES[0]?.value ?? ""}`
+    if (field === "hasRUC" || field === "hasTools") return `${uid}-${field}-yes`
+    return fieldId(field)
+  }
+
+  const successRef = useRef<HTMLDivElement>(null)
+
+  /* Al enviarse, el formulario desaparece y con él el botón que tenía el foco:
+     sin esto el foco cae al `<body>` y quien navega con teclado o lector de
+     pantalla se queda sin saber qué ha pasado. */
+  useEffect(() => {
+    if (submitted) successRef.current?.focus()
+  }, [submitted])
 
   const set = (field: keyof FormData, value: string) => {
-    setForm((f) => ({ ...f, [field]: value }));
-    setErrors((e) => ({ ...e, [field]: "" }));
-  };
+    setForm((f) => ({ ...f, [field]: value }))
+    setErrors((e) => ({ ...e, [field]: "" }))
+  }
 
   const toggleSpecialty = (value: string) => {
     setForm((f) => ({
@@ -97,33 +240,40 @@ export default function RegistroPage() {
       specialties: f.specialties.includes(value)
         ? f.specialties.filter((s) => s !== value)
         : [...f.specialties, value],
-    }));
-    setErrors((e) => ({ ...e, specialties: "" }));
-  };
+    }))
+    setErrors((e) => ({ ...e, specialties: "" }))
+  }
 
-  const validate = () => {
-    const e: Partial<Record<keyof FormData, string>> = {};
-    if (!form.companyName.trim()) e.companyName = "Requerido";
-    if (!form.contactName.trim()) e.contactName = "Requerido";
-    if (!form.phone.trim()) e.phone = "Requerido";
-    if (!form.email.trim()) e.email = "Requerido";
-    else if (!/\S+@\S+\.\S+/.test(form.email)) e.email = "Correo inválido";
-    if (!form.province) e.province = "Selecciona una provincia";
-    if (!form.experience) e.experience = "Selecciona tu experiencia";
-    if (form.specialties.length === 0) e.specialties = "Selecciona al menos una especialidad";
-    if (!form.hasRUC) e.hasRUC = "Requerido";
-    if (!form.hasTools) e.hasTools = "Requerido";
-    setErrors(e);
-    return Object.keys(e).length === 0;
-  };
+  /* Los mensajes dicen qué hacer, no que algo está mal. «Requerido» obliga a
+     adivinar qué esperaba el formulario. */
+  const validate = (): FormErrors => {
+    const e: FormErrors = {}
+    if (!form.companyName.trim()) e.companyName = "Escriba el nombre con el que factura."
+    if (!form.contactName.trim()) e.contactName = "Escriba quién atiende el teléfono."
+    if (!form.phone.trim()) e.phone = "Hace falta un teléfono: la verificación empieza por una llamada."
+    if (!form.email.trim()) e.email = "Escriba un correo de contacto."
+    else if (!/\S+@\S+\.\S+/.test(form.email)) e.email = "Ese correo no parece completo. Revise que lleve @ y dominio."
+    if (!form.province) e.province = "Elija la provincia o comarca donde trabaja."
+    if (!form.experience) e.experience = "Elija cuántos años lleva montando."
+    if (form.specialties.length === 0) e.specialties = "Marque al menos una cosa de las que monta."
+    if (!form.hasRUC) e.hasRUC = "Conteste sí o no."
+    if (!form.hasTools) e.hasTools = "Conteste sí o no."
+    setErrors(e)
+    return e
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validate()) return;
+    e.preventDefault()
+    const found = validate()
+    const firstError = FIELD_ORDER.find((field) => found[field])
+    if (firstError) {
+      document.getElementById(anchorId(firstError))?.focus()
+      return
+    }
 
     const specialtyLabels = form.specialties
       .map((s) => SPECIALTIES.find((sp) => sp.value === s)?.label || s)
-      .join(", ");
+      .join(", ")
 
     const lines = [
       `*SOLICITUD DE INSTALADOR CERTIFICADO*`,
@@ -141,446 +291,533 @@ export default function RegistroPage() {
       form.message ? `*Comentarios:* ${form.message}` : null,
     ]
       .filter(Boolean)
-      .join("\n");
+      .join("\n")
 
-    const encoded = encodeURIComponent(lines);
-    window.open(`https://wa.me/50762874042?text=${encoded}`, "_blank");
-    setSubmitted(true);
-  };
+    const encoded = encodeURIComponent(lines)
+    const href = `https://wa.me/50762874042?text=${encoded}`
+    window.open(href, "_blank")
+    setSentHref(href)
+    setSubmitted(true)
+  }
 
-  const inputClass = (field: keyof FormData) =>
-    `w-full rounded-lg border px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 transition ${
-      errors[field] ? "border-red-400 bg-red-50" : "border-gray-200 bg-white"
-    }`;
+  const describedBy = (field: keyof FormData, hasHint = false) =>
+    [hasHint ? `${fieldId(field)}-hint` : null, errors[field] ? `${fieldId(field)}-error` : null]
+      .filter(Boolean)
+      .join(" ") || undefined
 
   return (
     <>
       <Header />
-      <main className="flex-1 bg-white">
 
-        {/* ── Breadcrumb ────────────────────────────────────────────────────── */}
-        <div className="border-b bg-gray-50">
-          <div className="mx-auto max-w-5xl px-4 py-2.5">
-            <div className="flex items-center gap-1.5 text-xs text-gray-400">
-              <Link href="/" className="hover:text-green-600">Inicio</Link>
-              <ChevronRight className="h-3 w-3" />
-              <Link href="/instaladores" className="hover:text-green-600">Instaladores</Link>
-              <ChevronRight className="h-3 w-3" />
-              <span className="text-gray-700 font-medium">Registro de empresa</span>
-            </div>
-          </div>
-        </div>
+      <main id="main-content" tabIndex={-1} className="flex-1">
+        {/* ── Migas ────────────────────────────────────────────────────────── */}
+        <nav aria-label="Ruta de navegación" className="border-b border-border bg-surface-2">
+          <ol className="shell flex flex-wrap items-center gap-1.5 py-2.5 text-xs text-muted-foreground">
+            <li>
+              <Link
+                href="/"
+                className="rounded-sm transition-colors hover:text-brand-green-deep dark:hover:text-brand-green"
+              >
+                Inicio
+              </Link>
+            </li>
+            <ChevronRight className="size-3 shrink-0" aria-hidden="true" />
+            <li>
+              <Link
+                href="/instaladores"
+                className="rounded-sm transition-colors hover:text-brand-green-deep dark:hover:text-brand-green"
+              >
+                Instaladores
+              </Link>
+            </li>
+            <ChevronRight className="size-3 shrink-0" aria-hidden="true" />
+            <li aria-current="page" className="font-semibold text-foreground">
+              Registro de empresa
+            </li>
+          </ol>
+        </nav>
 
-        {/* ── Hero ──────────────────────────────────────────────────────────── */}
-        <section className="bg-gradient-to-br from-green-900 via-green-800 to-green-700 py-14 sm:py-20">
-          <div className="mx-auto max-w-3xl px-4 sm:px-6 text-center">
-            <span className="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-widest text-green-200 mb-5">
-              Programa de instaladores
-            </span>
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-white leading-tight tracking-tight">
-              Registro de Empresas<br className="hidden sm:block" /> de Instalación
-            </h1>
-            <p className="mt-4 text-base text-green-100/80 max-w-xl mx-auto leading-relaxed">
-              Únete a la red de instaladores certificados de Intemperie y accede a precios exclusivos,
-              capacitación técnica y clientes en tu zona.
-            </p>
-
-            <div className="mt-8 flex flex-wrap justify-center gap-4 text-sm font-medium text-white/90">
-              {["Sin cuota de membresía", "Certificación incluida", "Leads en tu zona"].map((t) => (
-                <span key={t} className="flex items-center gap-1.5">
-                  <CheckCircle2 className="h-4 w-4 text-green-300" />
-                  {t}
-                </span>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── Benefits Bar ─────────────────────────────────────────────────── */}
-        <section className="border-b border-gray-100 bg-white py-6">
-          <div className="mx-auto max-w-5xl px-4">
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-              {[
-                { icon: Percent, title: "Descuento instalador", desc: "Hasta 20% en productos" },
-                { icon: Truck, title: "Envío express", desc: "Entrega prioritaria en obra" },
-                { icon: Award, title: "Certificación oficial", desc: "Badge verificado Intemperie" },
-                { icon: Headphones, title: "Soporte técnico", desc: "Asesoría directa del equipo" },
-              ].map(({ icon: Icon, title, desc }) => (
-                <div key={title} className="flex items-start gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-50">
-                    <Icon className="h-5 w-5 text-green-700" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-extrabold text-gray-900">{title}</p>
-                    <p className="text-xs text-gray-500 mt-0.5">{desc}</p>
-                  </div>
-                </div>
-              ))}
+        {/* ── Encabezado ───────────────────────────────────────────────────── */}
+        <section className="border-b border-border bg-brand-navy-deep text-on-dark">
+          <div className="shell py-8 sm:py-10">
+            <div className="max-w-prose">
+              <p className="eyebrow text-brand-green">{FORM_INTRO.eyebrow}</p>
+              <h1 className="mt-2 text-3xl font-bold tracking-tight text-balance sm:text-4xl">
+                {FORM_INTRO.title}
+              </h1>
+              <p className="mt-3 text-base text-on-dark-soft">{FORM_INTRO.lead}</p>
             </div>
           </div>
         </section>
 
-        {/* ── Form + Sidebar ─────────────────────────────────────────────── */}
-        <section className="py-12 sm:py-16">
-          <div className="mx-auto max-w-5xl px-4">
+        <section className="bg-background">
+          <div className="shell py-8 sm:py-10 lg:py-14">
             {submitted ? (
-              <div className="mx-auto max-w-md text-center py-16">
-                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-green-100 mx-auto mb-6">
-                  <CheckCircle2 className="h-10 w-10 text-green-600" />
-                </div>
-                <h2 className="text-2xl font-extrabold text-gray-900">¡Solicitud enviada!</h2>
-                <p className="mt-3 text-sm text-gray-500 leading-relaxed max-w-xs mx-auto">
-                  Un asesor revisará tu perfil y se pondrá en contacto contigo en menos de 24 horas hábiles.
+              /* ── Enviado ────────────────────────────────────────────────
+                 El envío es síncrono: no hay espera que anunciar, hay un
+                 resultado. Y se cuenta con palabras —qué acaba de pasar, qué
+                 pasa después y qué hacer si la ventana no se abrió—, no con un
+                 aspa verde y «¡Solicitud enviada!», que además era falso: hasta
+                 que no se pulsa enviar dentro de WhatsApp no ha llegado nada. */
+              <div
+                ref={successRef}
+                tabIndex={-1}
+                className="mx-auto max-w-xl rounded-xl border border-border bg-surface p-6 sm:p-8"
+              >
+                <span className="flex size-12 items-center justify-center rounded-lg bg-secondary">
+                  <Check className="size-6 text-secondary-foreground" aria-hidden="true" />
+                </span>
+                <h2 className="mt-4 text-2xl font-bold tracking-tight text-balance text-foreground">
+                  {SUCCESS.title}
+                </h2>
+                <p className="mt-3 text-sm text-foreground">{SUCCESS.body}</p>
+                <p className="mt-3 text-sm text-muted-foreground">{SUCCESS.next}</p>
+
+                <p className="mt-5 rounded-lg border border-border bg-surface-sunk p-4 text-sm text-muted-foreground">
+                  {SUCCESS.blocked}{" "}
+                  <a
+                    href={sentHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded-sm font-semibold text-brand-green-deep underline underline-offset-4 transition-colors hover:text-brand-green dark:text-brand-green"
+                  >
+                    {SUCCESS.blockedCta}
+                  </a>
                 </p>
-                <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
+
+                <div className="mt-6 flex flex-wrap gap-2">
                   <Link
                     href="/instaladores"
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-green-700 px-6 py-3 text-sm font-bold text-white hover:bg-green-800 transition-colors"
+                    className="flex h-11 items-center gap-2 rounded-lg bg-primary px-5 font-heading font-semibold text-primary-foreground transition-colors hover:bg-brand-green-deep"
                   >
-                    Ver directorio de instaladores
+                    {SUCCESS.backCta}
                   </Link>
                   <Link
                     href="/productos"
-                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 px-6 py-3 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors"
+                    className="flex h-11 items-center gap-2 rounded-lg border border-border-strong px-5 font-heading font-semibold text-foreground transition-colors hover:bg-surface-2"
                   >
-                    Explorar productos
+                    {SUCCESS.catalogCta}
                   </Link>
                 </div>
               </div>
             ) : (
-              <div className="grid gap-10 lg:grid-cols-3">
-                {/* Form */}
+              <div className="grid gap-8 lg:grid-cols-3 lg:gap-10">
+                {/* ── Formulario ─────────────────────────────────────────── */}
                 <div className="lg:col-span-2">
-                  <div className="rounded-2xl border border-gray-200 bg-white p-6 sm:p-8 shadow-sm">
-                    <h2 className="text-xl font-extrabold text-gray-900 mb-1">
-                      Formulario de solicitud
+                  <div className="rounded-xl border border-border bg-surface p-5 sm:p-7">
+                    <h2 className="text-xl font-bold tracking-tight text-foreground">
+                      {FORM_INTRO.formTitle}
                     </h2>
-                    <p className="text-sm text-gray-500 mb-8">
-                      Completa el formulario y envíanos tu solicitud por WhatsApp. Te respondemos en 24 horas hábiles.
-                    </p>
+                    <p className="mt-1 text-sm text-muted-foreground">{FORM_INTRO.formLead}</p>
 
-                    <form onSubmit={handleSubmit} noValidate className="space-y-6">
-
-                      {/* Company info */}
-                      <div>
-                        <h3 className="flex items-center gap-2 text-sm font-extrabold text-gray-700 mb-4">
-                          <Building2 className="h-4 w-4 text-green-600" />
-                          Datos de la empresa
-                        </h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-                              Nombre de la empresa <span className="text-red-500">*</span>
-                            </label>
-                            <input
+                    <form onSubmit={handleSubmit} noValidate className="mt-7 space-y-8">
+                      {/* Datos de la empresa */}
+                      <fieldset className="min-w-0">
+                        <GroupLegend Icon={Building2}>Datos de la empresa</GroupLegend>
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          <Field
+                            id={fieldId("companyName")}
+                            label="Nombre de la empresa"
+                            required
+                            error={errors.companyName}
+                          >
+                            <Input
+                              id={fieldId("companyName")}
                               type="text"
-                              placeholder="Ej. Construcciones López S.A."
-                              className={inputClass("companyName")}
+                              required
+                              autoComplete="organization"
+                              placeholder="Construcciones López, S.A."
                               value={form.companyName}
                               onChange={(e) => set("companyName", e.target.value)}
+                              aria-invalid={errors.companyName ? true : undefined}
+                              aria-describedby={describedBy("companyName")}
                             />
-                            {errors.companyName && <p className="mt-1 text-xs text-red-500">{errors.companyName}</p>}
-                          </div>
-                          <div>
-                            <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-                              Persona de contacto <span className="text-red-500">*</span>
-                            </label>
-                            <input
+                          </Field>
+
+                          <Field
+                            id={fieldId("contactName")}
+                            label="Persona de contacto"
+                            required
+                            error={errors.contactName}
+                          >
+                            <Input
+                              id={fieldId("contactName")}
                               type="text"
+                              required
+                              autoComplete="name"
                               placeholder="Nombre y apellido"
-                              className={inputClass("contactName")}
                               value={form.contactName}
                               onChange={(e) => set("contactName", e.target.value)}
+                              aria-invalid={errors.contactName ? true : undefined}
+                              aria-describedby={describedBy("contactName")}
                             />
-                            {errors.contactName && <p className="mt-1 text-xs text-red-500">{errors.contactName}</p>}
-                          </div>
+                          </Field>
                         </div>
-                      </div>
+                      </fieldset>
 
-                      {/* Contact */}
-                      <div>
-                        <h3 className="flex items-center gap-2 text-sm font-extrabold text-gray-700 mb-4">
-                          <Phone className="h-4 w-4 text-green-600" />
-                          Información de contacto
-                        </h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-                              WhatsApp / Teléfono <span className="text-red-500">*</span>
-                            </label>
-                            <input
+                      {/* Contacto */}
+                      <fieldset className="min-w-0">
+                        <GroupLegend Icon={MapPin}>Contacto y cobertura</GroupLegend>
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          <Field
+                            id={fieldId("phone")}
+                            label="WhatsApp o teléfono"
+                            required
+                            hint="Es el número al que llamamos para verificar."
+                            error={errors.phone}
+                          >
+                            <Input
+                              id={fieldId("phone")}
                               type="tel"
+                              required
+                              inputMode="tel"
+                              autoComplete="tel"
                               placeholder="6000-0000"
-                              className={inputClass("phone")}
                               value={form.phone}
                               onChange={(e) => set("phone", e.target.value)}
+                              aria-invalid={errors.phone ? true : undefined}
+                              aria-describedby={describedBy("phone", true)}
                             />
-                            {errors.phone && <p className="mt-1 text-xs text-red-500">{errors.phone}</p>}
-                          </div>
-                          <div>
-                            <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-                              Correo electrónico <span className="text-red-500">*</span>
-                            </label>
-                            <input
+                          </Field>
+
+                          <Field
+                            id={fieldId("email")}
+                            label="Correo electrónico"
+                            required
+                            error={errors.email}
+                          >
+                            <Input
+                              id={fieldId("email")}
                               type="email"
+                              required
+                              inputMode="email"
+                              autoComplete="email"
+                              autoCapitalize="none"
+                              spellCheck={false}
                               placeholder="empresa@correo.com"
-                              className={inputClass("email")}
                               value={form.email}
                               onChange={(e) => set("email", e.target.value)}
+                              aria-invalid={errors.email ? true : undefined}
+                              aria-describedby={describedBy("email")}
                             />
-                            {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email}</p>}
-                          </div>
-                          <div>
-                            <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-                              Provincia de cobertura <span className="text-red-500">*</span>
-                            </label>
+                          </Field>
+
+                          {/* Provincias y comarcas separadas: es la división real
+                              del país y es la misma cadena con la que se agrupará
+                              el directorio el día que haya fichas. */}
+                          <Field
+                            id={fieldId("province")}
+                            label="Zona de cobertura"
+                            required
+                            error={errors.province}
+                          >
                             <select
-                              className={inputClass("province")}
+                              id={fieldId("province")}
+                              required
+                              className={selectClass}
                               value={form.province}
                               onChange={(e) => set("province", e.target.value)}
+                              aria-invalid={errors.province ? true : undefined}
+                              aria-describedby={describedBy("province")}
                             >
-                              <option value="">Selecciona una provincia</option>
-                              {PROVINCES.map((p) => (
-                                <option key={p} value={p}>{p}</option>
+                              <option value="">Elija provincia o comarca</option>
+                              {COVERAGE_AREAS.map((group) => (
+                                <optgroup key={group.label} label={group.label}>
+                                  {group.options.map((option) => (
+                                    <option key={option} value={option}>
+                                      {option}
+                                    </option>
+                                  ))}
+                                </optgroup>
                               ))}
                             </select>
-                            {errors.province && <p className="mt-1 text-xs text-red-500">{errors.province}</p>}
-                          </div>
-                          <div>
-                            <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-                              Años de experiencia <span className="text-red-500">*</span>
-                            </label>
+                          </Field>
+
+                          <Field
+                            id={fieldId("experience")}
+                            label="Años montando cercas"
+                            required
+                            hint={MIN_YEARS_NOTE}
+                            error={errors.experience}
+                          >
                             <select
-                              className={inputClass("experience")}
+                              id={fieldId("experience")}
+                              required
+                              className={selectClass}
                               value={form.experience}
                               onChange={(e) => set("experience", e.target.value)}
+                              aria-invalid={errors.experience ? true : undefined}
+                              aria-describedby={describedBy("experience", true)}
                             >
-                              <option value="">Selecciona</option>
-                              {EXPERIENCE_RANGES.map((r) => (
-                                <option key={r} value={r}>{r}</option>
+                              <option value="">Elija un rango</option>
+                              {EXPERIENCE_RANGES.map((range) => (
+                                <option key={range} value={range}>
+                                  {range}
+                                </option>
                               ))}
                             </select>
-                            {errors.experience && <p className="mt-1 text-xs text-red-500">{errors.experience}</p>}
-                          </div>
+                          </Field>
                         </div>
-                      </div>
+                      </fieldset>
 
-                      {/* Specialties */}
-                      <div>
-                        <h3 className="flex items-center gap-2 text-sm font-extrabold text-gray-700 mb-4">
-                          <Star className="h-4 w-4 text-green-600" />
-                          Especialidades <span className="font-normal text-gray-400">(selecciona todas las que apliquen)</span>
-                        </h3>
-                        <div className="flex flex-wrap gap-2">
+                      {/* Qué monta. Casillas de verdad y no botones que fingen
+                          serlo: el navegador ya sabe decir «casilla marcada». */}
+                      <fieldset
+                        className="min-w-0"
+                        aria-describedby={
+                          errors.specialties ? `${uid}-specialties-error` : undefined
+                        }
+                      >
+                        <GroupLegend Icon={Wrench}>
+                          Qué monta{" "}
+                          <span className="font-normal text-muted-foreground">
+                            (marque todo lo que aplique)
+                          </span>
+                        </GroupLegend>
+                        <div className="grid gap-2 sm:grid-cols-2">
                           {SPECIALTIES.map(({ value, label }) => (
-                            <button
-                              type="button"
+                            <label
                               key={value}
-                              onClick={() => toggleSpecialty(value)}
-                              className={`rounded-lg border px-4 py-2 text-sm font-semibold transition-colors ${
-                                form.specialties.includes(value)
-                                  ? "border-green-500 bg-green-50 text-green-700"
-                                  : "border-gray-200 text-gray-600 hover:border-green-300 hover:bg-green-50/50"
-                              }`}
+                              htmlFor={`${uid}-specialty-${value}`}
+                              className={choiceRowClass}
                             >
-                              {form.specialties.includes(value) && (
-                                <CheckCircle2 className="mr-1.5 inline h-3.5 w-3.5" />
-                              )}
+                              <input
+                                id={`${uid}-specialty-${value}`}
+                                type="checkbox"
+                                className={choiceInputClass}
+                                checked={form.specialties.includes(value)}
+                                onChange={() => toggleSpecialty(value)}
+                                aria-describedby={
+                                  errors.specialties ? `${uid}-specialties-error` : undefined
+                                }
+                              />
                               {label}
-                            </button>
+                            </label>
                           ))}
                         </div>
-                        {errors.specialties && <p className="mt-2 text-xs text-red-500">{errors.specialties}</p>}
-                      </div>
+                        {errors.specialties && (
+                          <p
+                            id={`${uid}-specialties-error`}
+                            role="alert"
+                            className="mt-2 flex items-start gap-1.5 text-sm font-medium text-destructive"
+                          >
+                            <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+                            {errors.specialties}
+                          </p>
+                        )}
+                      </fieldset>
 
-                      {/* Yes/No questions */}
-                      <div>
-                        <h3 className="flex items-center gap-2 text-sm font-extrabold text-gray-700 mb-4">
-                          <Briefcase className="h-4 w-4 text-green-600" />
-                          Perfil profesional
-                        </h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-xs font-semibold text-gray-600 mb-2">
-                              ¿Tienes RUC o personería jurídica? <span className="text-red-500">*</span>
-                            </label>
-                            <div className="flex gap-3">
-                              {["yes", "no"].map((v) => (
-                                <label key={v} className="flex items-center gap-2 cursor-pointer">
-                                  <input
-                                    type="radio"
-                                    name="hasRUC"
-                                    value={v}
-                                    checked={form.hasRUC === v}
-                                    onChange={() => set("hasRUC", v)}
-                                    className="accent-green-600"
+                      {/* Perfil: dos preguntas de sí o no. Cada una es su propio
+                          grupo, porque «Sí» suelto no significa nada leído en
+                          voz alta si no arrastra la pregunta. */}
+                      <fieldset className="min-w-0">
+                        <GroupLegend Icon={FileText}>Perfil profesional</GroupLegend>
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          {(
+                            [
+                              {
+                                field: "hasRUC" as const,
+                                legend: "¿Tiene RUC o aviso de operación?",
+                              },
+                              {
+                                field: "hasTools" as const,
+                                legend: "¿Tiene herramienta y equipo propios?",
+                              },
+                            ] satisfies { field: keyof FormData; legend: string }[]
+                          ).map(({ field, legend }) => (
+                            <fieldset
+                              key={field}
+                              className="min-w-0"
+                              aria-describedby={
+                                errors[field] ? `${fieldId(field)}-error` : undefined
+                              }
+                            >
+                              <legend className="mb-1.5 font-heading text-sm font-semibold text-foreground">
+                                {legend}
+                                <span className="text-destructive" aria-hidden="true">
+                                  {" *"}
+                                </span>
+                              </legend>
+                              <div className="grid grid-cols-2 gap-2">
+                                {YES_NO.map(({ value, label }) => (
+                                  <label
+                                    key={value}
+                                    htmlFor={`${uid}-${field}-${value}`}
+                                    className={choiceRowClass}
+                                  >
+                                    <input
+                                      id={`${uid}-${field}-${value}`}
+                                      type="radio"
+                                      name={`${uid}-${field}`}
+                                      value={value}
+                                      required
+                                      className={choiceInputClass}
+                                      checked={form[field] === value}
+                                      onChange={() => set(field, value)}
+                                      /* El error va colgado de cada opción y no
+                                         sólo del grupo: la descripción de un
+                                         `<fieldset>` no la anuncian todos los
+                                         lectores al entrar en el radio. */
+                                      aria-describedby={
+                                        errors[field] ? `${fieldId(field)}-error` : undefined
+                                      }
+                                    />
+                                    {label}
+                                  </label>
+                                ))}
+                              </div>
+                              {errors[field] && (
+                                <p
+                                  id={`${fieldId(field)}-error`}
+                                  role="alert"
+                                  className="mt-1.5 flex items-start gap-1.5 text-sm font-medium text-destructive"
+                                >
+                                  <AlertCircle
+                                    className="mt-0.5 size-4 shrink-0"
+                                    aria-hidden="true"
                                   />
-                                  <span className="text-sm text-gray-700">{v === "yes" ? "Sí" : "No"}</span>
-                                </label>
-                              ))}
-                            </div>
-                            {errors.hasRUC && <p className="mt-1 text-xs text-red-500">{errors.hasRUC}</p>}
-                          </div>
-                          <div>
-                            <label className="block text-xs font-semibold text-gray-600 mb-2">
-                              ¿Cuentas con herramientas propias? <span className="text-red-500">*</span>
-                            </label>
-                            <div className="flex gap-3">
-                              {["yes", "no"].map((v) => (
-                                <label key={v} className="flex items-center gap-2 cursor-pointer">
-                                  <input
-                                    type="radio"
-                                    name="hasTools"
-                                    value={v}
-                                    checked={form.hasTools === v}
-                                    onChange={() => set("hasTools", v)}
-                                    className="accent-green-600"
-                                  />
-                                  <span className="text-sm text-gray-700">{v === "yes" ? "Sí" : "No"}</span>
-                                </label>
-                              ))}
-                            </div>
-                            {errors.hasTools && <p className="mt-1 text-xs text-red-500">{errors.hasTools}</p>}
-                          </div>
+                                  {errors[field]}
+                                </p>
+                              )}
+                            </fieldset>
+                          ))}
                         </div>
-                      </div>
+                      </fieldset>
 
-                      {/* References */}
-                      <div>
-                        <h3 className="flex items-center gap-2 text-sm font-extrabold text-gray-700 mb-4">
-                          <FileText className="h-4 w-4 text-green-600" />
-                          Referencias y comentarios
-                        </h3>
+                      {/* Referencias y comentarios */}
+                      <fieldset className="min-w-0">
+                        <GroupLegend Icon={Check}>Referencias y comentarios</GroupLegend>
                         <div className="space-y-4">
-                          <div>
-                            <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-                              Referencias de proyectos anteriores{" "}
-                              <span className="font-normal text-gray-400">(opcional)</span>
-                            </label>
-                            <input
+                          <Field
+                            id={fieldId("references")}
+                            label="Referencias de obra (opcional)"
+                            hint="Nombre del cliente y un teléfono al que podamos llamar. Son las tres referencias que pide el programa."
+                          >
+                            <Input
+                              id={fieldId("references")}
                               type="text"
-                              placeholder="Nombre de empresa o cliente, teléfono de contacto"
-                              className={inputClass("references")}
+                              placeholder="Cliente, obra y teléfono de contacto"
                               value={form.references}
                               onChange={(e) => set("references", e.target.value)}
+                              aria-describedby={describedBy("references", true)}
                             />
-                          </div>
-                          <div>
-                            <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-                              Cuéntanos sobre tu empresa{" "}
-                              <span className="font-normal text-gray-400">(opcional)</span>
-                            </label>
-                            <textarea
-                              rows={3}
-                              placeholder="Proyectos realizados, equipo de trabajo, zona de cobertura adicional..."
-                              className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 transition resize-none"
+                          </Field>
+
+                          <Field
+                            id={fieldId("message")}
+                            label="Cuéntenos de su empresa (opcional)"
+                          >
+                            <Textarea
+                              id={fieldId("message")}
+                              rows={4}
+                              placeholder="Obras montadas, gente en el equipo, corregimientos que cubre…"
                               value={form.message}
                               onChange={(e) => set("message", e.target.value)}
                             />
-                          </div>
+                          </Field>
                         </div>
+                      </fieldset>
+
+                      <div>
+                        <Button type="submit" size="block">
+                          Enviar solicitud por WhatsApp
+                          <ArrowRight aria-hidden="true" />
+                        </Button>
+                        {/* Dice lo que de verdad hace el botón. El texto anterior
+                            —«Al enviar aceptas que Intemperie guarde tu
+                            información»— no explicaba que se abre otra
+                            aplicación y que el envío lo da usted. */}
+                        <p className="mt-3 text-center text-xs text-muted-foreground">
+                          {SUBMIT_NOTE}
+                        </p>
                       </div>
-
-                      <button
-                        type="submit"
-                        className="w-full flex items-center justify-center gap-2 rounded-xl bg-green-700 hover:bg-green-800 px-6 py-3.5 text-sm font-extrabold text-white transition-colors shadow-sm"
-                      >
-                        Enviar solicitud por WhatsApp
-                        <ArrowRight className="h-4 w-4" />
-                      </button>
-
-                      <p className="text-center text-xs text-gray-400">
-                        Al enviar tu solicitud aceptas que Intemperie guarde tu información de contacto para darte seguimiento.
-                      </p>
                     </form>
                   </div>
                 </div>
 
-                {/* Sidebar */}
-                <div className="space-y-5">
-                  {/* What you get */}
-                  <div className="rounded-2xl border border-green-100 bg-green-50/40 p-5">
-                    <h3 className="text-sm font-extrabold text-green-800 mb-4">
-                      ¿Qué obtienes al ser parte de la red?
-                    </h3>
-                    <ul className="space-y-3">
-                      {[
-                        "Descuento exclusivo de instalador en todos los productos",
-                        "Capacitación técnica presencial y virtual",
-                        "Leads de clientes en tu zona de cobertura",
-                        "Certificado digital y badge verificado",
-                        "Prioridad en el directorio de instaladores",
-                        "Soporte técnico directo con el equipo de Intemperie",
-                      ].map((item) => (
-                        <li key={item} className="flex items-start gap-2.5 text-sm text-gray-700">
-                          <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 shrink-0" />
-                          {item}
+                {/* ── Barra lateral ──────────────────────────────────────────
+                    Las dos listas salen de `content.ts`: son las mismas que
+                    pinta la página del programa, así que ya no pueden decir
+                    cosas distintas. */}
+                <aside className="space-y-4">
+                  <div className="rounded-xl border border-border bg-surface-sunk p-5">
+                    <h2 className="font-heading text-sm font-bold text-foreground">
+                      {FORM_INTRO.sidebarBenefits}
+                    </h2>
+                    <ul className="mt-4 space-y-3">
+                      {BENEFITS.map((benefit) => (
+                        <li key={benefit.title} className="flex items-start gap-2.5">
+                          <benefit.Icon
+                            className="mt-0.5 size-4 shrink-0 text-brand-green"
+                            aria-hidden="true"
+                          />
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-foreground">{benefit.title}</p>
+                            <p className="mt-0.5 text-sm text-muted-foreground">{benefit.body}</p>
+                          </div>
                         </li>
                       ))}
                     </ul>
                   </div>
 
-                  {/* Requirements */}
-                  <div className="rounded-2xl border border-gray-200 bg-white p-5">
-                    <h3 className="text-sm font-extrabold text-gray-900 mb-4">Requisitos mínimos</h3>
-                    <ul className="space-y-2.5">
-                      {[
-                        "Al menos 1 año de experiencia en instalación de cercas",
-                        "Herramientas básicas de instalación",
-                        "Disponibilidad para capacitación (1 día)",
-                        "Zona de cobertura definida en Panamá",
-                      ].map((item) => (
-                        <li key={item} className="flex items-start gap-2 text-xs text-gray-600">
-                          <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-green-500 shrink-0" />
-                          {item}
+                  <div className="rounded-xl border border-border bg-surface p-5">
+                    <h2 className="font-heading text-sm font-bold text-foreground">
+                      {FORM_INTRO.sidebarRequirements}
+                    </h2>
+                    <ul className="mt-4 space-y-2.5">
+                      {REQUIREMENTS.map((requirement) => (
+                        <li key={requirement} className="flex items-start gap-2.5">
+                          <Check
+                            className="mt-0.5 size-4 shrink-0 text-brand-green"
+                            aria-hidden="true"
+                          />
+                          <span className="text-sm text-muted-foreground">{requirement}</span>
                         </li>
                       ))}
                     </ul>
                   </div>
 
-                  {/* Contact */}
-                  <div className="rounded-2xl border border-gray-200 bg-white p-5">
-                    <h3 className="text-sm font-extrabold text-gray-900 mb-3">¿Tienes preguntas?</h3>
-                    <p className="text-xs text-gray-500 mb-4 leading-relaxed">
-                      Nuestro equipo está disponible para aclarar cualquier duda sobre el programa de instaladores.
+                  <div className="rounded-xl border border-border bg-surface p-5">
+                    <h2 className="font-heading text-sm font-bold text-foreground">
+                      {FORM_INTRO.sidebarHelp}
+                    </h2>
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      {FORM_INTRO.sidebarHelpBody}
                     </p>
-                    <div className="space-y-2">
+                    <div className="mt-4 space-y-2">
                       <a
-                        href="https://wa.me/50762874042?text=Hola%2C%20tengo%20preguntas%20sobre%20el%20programa%20de%20instaladores"
+                        href={whatsappHref(CLOSING.askMessage)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2.5 rounded-lg bg-green-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-green-700 transition-colors"
+                        className="flex h-11 items-center gap-2 rounded-lg bg-whatsapp px-4 font-heading text-sm font-semibold text-on-dark transition-colors hover:bg-whatsapp-deep"
                       >
-                        <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-                        </svg>
-                        Preguntar por WhatsApp
+                        <IconWhatsApp />
+                        {CLOSING.askCta}
                       </a>
                       <a
-                        href="mailto:ventas@intemperie.com?subject=Programa%20de%20instaladores"
-                        className="flex items-center gap-2.5 rounded-lg border border-gray-200 px-4 py-2.5 text-xs font-bold text-gray-700 hover:bg-gray-50 transition-colors"
+                        href={`${CONTACT.emailHref}?subject=${encodeURIComponent("Programa de instaladores")}`}
+                        className="flex h-11 items-center gap-2 rounded-lg border border-border-strong px-4 font-heading text-sm font-semibold text-foreground transition-colors hover:bg-surface-2"
                       >
-                        <Mail className="h-4 w-4 shrink-0 text-gray-400" />
-                        ventas@intemperie.com
+                        {CONTACT.email}
                       </a>
                     </div>
                   </div>
 
-                  {/* Back link */}
                   <Link
                     href="/instaladores"
-                    className="flex items-center gap-2 text-sm text-green-700 hover:text-green-800 font-semibold transition-colors"
+                    className="flex min-h-11 items-center gap-2 rounded-lg font-heading text-sm font-semibold text-brand-green-deep transition-colors hover:text-brand-green dark:text-brand-green"
                   >
-                    <ChevronRight className="h-4 w-4 rotate-180" />
-                    Ver directorio de instaladores
+                    <ChevronRight className="size-4 rotate-180" aria-hidden="true" />
+                    {FORM_INTRO.backToProgram}
                   </Link>
-                </div>
+                </aside>
               </div>
             )}
           </div>
         </section>
       </main>
+
       <Footer />
     </>
-  );
+  )
 }
