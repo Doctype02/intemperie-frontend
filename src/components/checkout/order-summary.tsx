@@ -1,12 +1,10 @@
-import { Separator } from "@/components/ui/separator";
-import { formatCurrency } from "@/lib/utils";
-import type { CartItem } from "@/types";
+"use client";
 
-interface OrderSummaryProps {
-  items: CartItem[];
-  subtotal: number;
-  addressName?: string;
-}
+import { Separator } from "@/components/ui/separator";
+import { OrderTotals } from "@/components/cart/order-totals";
+import { useCartQuote } from "@/hooks/use-cart-quote";
+import { formatMoney } from "@/lib/utils";
+import type { CartItem } from "@/types";
 
 /* Resumen del pedido — sistema «Perímetro».
  *
@@ -15,19 +13,28 @@ interface OrderSummaryProps {
  * con `.tabular`, para que el punto decimal caiga siempre en el mismo sitio y
  * un total de 1.204,50 no parezca menor que uno de 987,00.
  *
- * Los conceptos y sus importes son una lista de definiciones (`dl`), no filas
- * sueltas: un lector de pantalla anuncia «Subtotal, 240 dólares» en lugar de
- * dos textos sin relación entre sí.
+ * ── Importes ──────────────────────────────────────────────────────────────
+ * Era la quinta copia de la regla de negocio del embudo: ITBMS del 7 %, envío
+ * de $5.99 y umbral de $500 escritos a mano. Aunque hoy nadie monte este
+ * componente, dejarlo así garantizaba que el día que alguien lo reviva vuelva
+ * a aparecer la discrepancia que este cambio elimina. Ahora impuesto, envío y
+ * total salen de `POST /cart/quote` como en el resto del embudo.
  */
+interface OrderSummaryProps {
+  items: CartItem[];
+  subtotal: number;
+  addressName?: string;
+}
+
 export function OrderSummary({ items, subtotal, addressName }: OrderSummaryProps) {
-  const tax = subtotal * 0.07;
-  const shipping = subtotal > 500 ? 0 : 5.99;
-  const total = subtotal + tax + shipping;
+  const { quote, isUpdating, error, retry } = useCartQuote(items);
 
   return (
     <div className="space-y-4">
       <h3 className="font-heading text-lg font-bold text-foreground">Resumen de tu pedido</h3>
 
+      {/* Los importes por línea son precio × cantidad: aritmética sin regla de
+          negocio, así que se puede hacer aquí y responder al instante. */}
       <ul className="space-y-3">
         {items.map((item) => (
           <li key={item.id} className="flex justify-between gap-3 text-sm">
@@ -38,7 +45,7 @@ export function OrderSummary({ items, subtotal, addressName }: OrderSummaryProps
               </p>
             </div>
             <span className="font-semibold text-foreground tabular">
-              {formatCurrency(Number(item.product.basePrice) * item.quantity)}
+              {formatMoney(((Number(item.product.basePrice) || 0) * item.quantity).toFixed(2))}
             </span>
           </li>
         ))}
@@ -46,31 +53,13 @@ export function OrderSummary({ items, subtotal, addressName }: OrderSummaryProps
 
       <Separator />
 
-      <dl className="space-y-2 text-sm">
-        <div className="flex justify-between gap-3">
-          <dt className="text-muted-foreground">Subtotal</dt>
-          <dd className="text-foreground tabular">{formatCurrency(subtotal)}</dd>
-        </div>
-        <div className="flex justify-between gap-3">
-          <dt className="text-muted-foreground">ITBMS (7%)</dt>
-          <dd className="text-foreground tabular">{formatCurrency(tax)}</dd>
-        </div>
-        <div className="flex justify-between gap-3">
-          <dt className="text-muted-foreground">Envío</dt>
-          <dd className="text-foreground tabular">
-            {shipping === 0 ? "Gratis" : formatCurrency(shipping)}
-          </dd>
-        </div>
-      </dl>
-
-      <Separator />
-
-      <dl className="flex items-baseline justify-between gap-3">
-        <dt className="font-heading text-lg font-bold text-foreground">Total</dt>
-        <dd className="font-heading text-lg font-bold text-foreground tabular">
-          {formatCurrency(total)}
-        </dd>
-      </dl>
+      <OrderTotals
+        subtotal={subtotal}
+        quote={quote}
+        isUpdating={isUpdating}
+        error={error}
+        onRetry={retry}
+      />
 
       {addressName && (
         <p className="text-sm text-muted-foreground">
