@@ -75,6 +75,27 @@ import { Textarea } from "@/components/ui/textarea";
 type TrazoTool = "pencil" | "line" | "rect" | "text" | "eraser";
 type Tool = TrazoTool | MoldeId;
 
+/* ══ LA MEDIDA DE ESTA PANTALLA ═════════════════════════════
+ *
+ * El `.shell` del sistema con el techo subido de 80rem a 90rem, y por una
+ * razón medida, no por gusto: esta pantalla tiene dos piezas con ancho
+ * intrínseco y las dos se salían de 80rem.
+ *
+ *   · El plano es un mapa de bits de 1180 px. Con 80rem quedaban 1216 px
+ *     útiles en 1440 y en 1920: la hoja se pintaba prácticamente a tamaño
+ *     natural y no crecía ni un píxel al pasar de un monitor a otro.
+ *   · La tabla de materiales pide 1167 px para no partir ni una etiqueta
+ *     («CERRADURAS SENC. PEQUEÑA» en dos líneas) y 922 px para caber a la
+ *     fuerza. Vivía dentro de una ficha de 1020 px que dejaba 980 útiles, con
+ *     un suelo de 1024: rodaba en horizontal en TODOS los anchos, también en
+ *     1920, mientras 704 px de pantalla se quedaban en blanco a los lados.
+ *
+ * 90rem deja 1376 px útiles desde 1440: por encima de los dos números. Es el
+ * escalón más pequeño que hace caber lo que ya había, no un ensanche
+ * decorativo. Por debajo de 1440 no ata nada y el móvil no se entera.
+ */
+const MEDIDA = "shell max-w-[90rem]";
+
 /* ══ PALETA DEL PLANO ════════════════════════════════════════
  *
  * La paleta del plano no es la paleta de la interfaz, y es a propósito.
@@ -546,7 +567,7 @@ export default function InspeccionesPage() {
 
       {/* ── Encabezado de la página ───────────────────────────────────── */}
       <div className="border-b border-border bg-surface">
-        <div className="shell py-section-sm">
+        <div className={`${MEDIDA} py-section-sm`}>
           <p className="eyebrow text-brand-green">Inspección en sitio</p>
           <h1 className="mt-2 text-3xl font-bold text-foreground">Solicitar inspección</h1>
           <p className="mt-2 max-w-2xl text-base text-muted-foreground">
@@ -556,7 +577,7 @@ export default function InspeccionesPage() {
       </div>
 
       {/* ── Sección 1: el plano ───────────────────────────────────────── */}
-      <section aria-labelledby={planoTituloId} className="shell pt-section-sm">
+      <section aria-labelledby={planoTituloId} className={`${MEDIDA} pt-section-sm`}>
         <h2 id={planoTituloId} className="font-heading text-xl font-bold text-foreground">
           Plano del terreno
         </h2>
@@ -693,14 +714,22 @@ export default function InspeccionesPage() {
         </div>
 
         {/* La hoja. `bg-plan-paper` y no `bg-surface`: es papel, y el papel no
-            cambia de color porque la pantalla esté a oscuras (ver la paleta). */}
+            cambia de color porque la pantalla esté a oscuras (ver la paleta).
+
+            El tope de alto lleva ahora su tope de ancho equivalente
+            (1180/420 = 59/21). Sin él, en un portátil de 800 px de alto la
+            hoja se quedaba en 480 px de alto y seguía midiendo lo que diera el
+            ancho: la caja dejaba de guardar la proporción del mapa de bits y
+            un cuadrado dibujado salía rectangular en la hoja impresa. Con los
+            dos topes se alcanzan a la vez y el plano no se deforma. El mapeo
+            dedo→píxel no se toca: sigue escalando los dos ejes por separado. */}
         <canvas
           ref={canvasRef}
           width={1180}
           height={420}
           aria-label="Plano del terreno, para dibujar a mano alzada"
           aria-describedby={`${planoAyudaId} ${planoAlternativaId}`}
-          className="mt-3 block max-h-[60svh] w-full touch-none rounded-xl border-2 border-border-strong bg-plan-paper shadow-sm"
+          className="mt-3 block max-h-[60svh] w-full max-w-[calc(60svh*59/21)] touch-none rounded-xl border-2 border-border-strong bg-plan-paper shadow-sm"
           style={{ cursor: activeTool === "eraser" ? "cell" : activeTool === "text" ? "text" : "crosshair" }}
         >
           Aquí se dibuja a mano alzada el contorno del terreno que se va a cercar.
@@ -720,7 +749,7 @@ export default function InspeccionesPage() {
       </section>
 
       {/* ── Sección 2: qué hacer con el plano ─────────────────────────── */}
-      <div className="shell flex flex-col items-start gap-4 py-section-sm sm:flex-row sm:items-center">
+      <div className={`${MEDIDA} flex flex-col items-start gap-4 py-section-sm sm:flex-row sm:items-center`}>
         {isAdmin ? (
           <Button type="button" size="lg" onClick={generatePDF}>
             <ClipboardList className="size-4" aria-hidden="true" />
@@ -756,7 +785,7 @@ export default function InspeccionesPage() {
         <section
           id="printForm"
           aria-labelledby={fichaTituloId}
-          className="mx-auto mb-8 w-[min(1020px,100%)] bg-surface px-5 py-4 shadow-lg print:m-0 print:shadow-none"
+          className={`${MEDIDA} mb-8 bg-surface py-4 shadow-lg print:m-0 print:shadow-none`}
         >
 
           {/* ── Cabecera de la hoja ─────────────────────────────────── */}
@@ -941,6 +970,15 @@ export default function InspeccionesPage() {
  * dedos para leer cualquier otra cosa; ahora rueda dentro de su caja y el
  * resto de la ficha se queda quieto.
  *
+ * EL SUELO. Medido en el navegador: la tabla pide 922 px para caber partiendo
+ * etiquetas y 1167 px para no partir ninguna. El suelo estaba en 1024 —entre
+ * los dos— y la caja que lo contenía daba 980, así que rodaba en horizontal en
+ * todos los anchos, también en un monitor de 1920 con 704 px en blanco a los
+ * lados. Ahora el suelo es 928, justo por encima del mínimo real: desde 1024 px
+ * de pantalla la tabla cabe entera y deja de rodar. Y como sigue siendo
+ * `w-full`, en 1440 se estira hasta 1376 y ninguna etiqueta se parte. Ni un
+ * concepto, ni una clave, ni la suma de postes cambian: sólo el suelo.
+ *
  * Los campos miden 44 px de alto y 16 px de cuerpo. Por debajo de 16, Safari
  * en iOS hace zoom al enfocar el campo y deja la página descolocada: escribir
  * doce cantidades seguidas se convierte en doce zooms y doce reencuadres. En
@@ -981,12 +1019,16 @@ function SpecsTable() {
 
   return (
     <>
-      <p className="mt-2 text-xs text-muted-foreground print:hidden">
+      {/* El aviso sólo aparece donde la tabla rueda de verdad. Desde 1024 px
+          cabe entera —el suelo bajó de 1024 a 928 y la caja da 960— y dejarlo
+          puesto sería mandar a arrastrar una tabla que no se mueve. `lg:hidden`
+          y no un estado: la condición es el ancho, y el ancho ya lo sabe CSS. */}
+      <p className="mt-2 text-xs text-muted-foreground print:hidden lg:hidden">
         La tabla rueda en horizontal: arrástrala con el dedo para llegar a las
         últimas columnas.
       </p>
       <div className="mt-2 overflow-x-auto print:overflow-visible">
-        <table className="w-full min-w-[64rem] border-collapse text-xs print:min-w-0">
+        <table className="w-full min-w-[58rem] border-collapse text-xs print:min-w-0">
           <caption className="sr-only">
             Materiales y accesorios de la inspección, en cinco bloques: especificaciones,
             postes adicionales, dos de adicionales y accesorios con su cantidad en puerta y portón.
