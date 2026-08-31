@@ -591,125 +591,148 @@ export default function InspeccionesPage() {
 
         {/* Barra de herramientas. Tres grupos con nombre porque son tres
             decisiones distintas —con qué dibujo, de qué color y grosor, y qué
-            hago con lo dibujado—, y en un móvil se apilan en ese orden. */}
-        <div className="mt-4 flex flex-col gap-3 rounded-xl border border-border bg-surface-2 p-3">
+            hago con lo dibujado—, y en un móvil se apilan en ese orden.
 
-          <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Herramienta de dibujo">
-            {TOOLS.map(t => (
-              <Button
-                key={t.id}
-                type="button"
-                variant={activeTool === t.id ? "default" : "outline"}
-                aria-pressed={activeTool === t.id}
-                onClick={() => setActiveTool(t.id)}
-              >
-                {t.icon} {t.label}
-              </Button>
-            ))}
-          </div>
+            Desde `lg` los tres grupos se reparten en dos columnas en vez de
+            apilarse: a la izquierda con qué se pinta (herramientas y moldes),
+            a la derecha con qué tinta y qué se hace con lo pintado. La barra
+            medía 321 px de alto en 1440 px de pantalla, encima de un lienzo de
+            486: un tercio del bloque del plano era botonera, y sobraba ancho de
+            sobra al lado. En dos columnas baja a poco más de la mitad y el
+            lienzo no pierde ni un píxel de ancho, que es lo que no se podía
+            tocar. En móvil sigue siendo una sola columna y en el mismo orden.
 
-          {/* Los moldes. Van en su propio grupo y debajo de las herramientas
-              de trazo porque son la otra manera de poner algo en la hoja, no
-              una variante del lápiz. Comparten `activeTool` con ellas: elegir
-              un molde apaga la herramienta de arriba, que es lo correcto —o
-              dibujas a mano o colocas una pieza—. */}
-          <div className="border-t border-border pt-3">
-            <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Moldes de cerca">
-              {MOLDES.map(m => (
+            El corte es `xl` (1280) y no `lg` (1024), y está medido: en 1024 px
+            las dos columnas dejan 570 px a la izquierda, las cinco herramientas
+            y los cinco moldes pasan a dos filas cada uno y la página salía 54 px
+            MÁS alta que apilada. En 1280 la columna izquierda tiene 830 px y
+            cada grupo cabe en una fila. */}
+        <div className="mt-4 flex flex-col gap-3 rounded-xl border border-border bg-surface-2 p-3 xl:grid xl:grid-cols-[minmax(0,1fr)_auto] xl:items-start xl:gap-x-5">
+
+          <div className="flex flex-col gap-3">
+
+            <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Herramienta de dibujo">
+              {TOOLS.map(t => (
                 <Button
-                  key={m.id}
+                  key={t.id}
                   type="button"
-                  variant={activeTool === m.id ? "default" : "outline"}
-                  aria-pressed={activeTool === m.id}
-                  title={m.hint}
-                  onClick={() => setActiveTool(m.id)}
-                  className="h-auto flex-col gap-1 px-2.5 py-2 text-xs"
+                  variant={activeTool === t.id ? "default" : "outline"}
+                  aria-pressed={activeTool === t.id}
+                  onClick={() => setActiveTool(t.id)}
                 >
-                  <MoldeIcon id={m.id} />
-                  {m.label}
-                  {/* El dibujo de la miniatura es `aria-hidden`: lo que la
-                      pieza es y cómo se coloca sólo existe como texto aquí. */}
-                  <span className="sr-only"> — {m.hint}</span>
+                  {t.icon} {t.label}
                 </Button>
               ))}
             </div>
-            <p className="mt-2 max-w-2xl text-xs text-muted-foreground">
-              Toca el plano y la pieza aparece del tamaño de fábrica; arrastra sin levantar el
-              dedo para darle el largo y el giro. Los ángulos rectos se ajustan solos. Se
-              coloca con la tinta y el grosor de aquí abajo, y «deshacer» la retira como
-              cualquier otro trazo.
-            </p>
-          </div>
 
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
-            <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Color de la tinta">
-              {INKS.map(i => (
-                <button
-                  key={i.key}
-                  type="button"
-                  aria-label={i.label}
-                  aria-pressed={palette !== null && color === palette[i.key]}
-                  onClick={() => setCustomInk(readPlanPalette()[i.key])}
-                  className={`size-11 rounded-lg border-2 transition-colors ${
-                    palette !== null && color === palette[i.key]
-                      ? "border-primary"
-                      : "border-border-strong hover:border-foreground"
-                  }`}
-                >
-                  {/* La muestra vive dentro para que el borde de selección se
-                      vea siempre, también sobre una tinta oscura. */}
-                  <span className={`block size-full rounded-[3px] border border-plan-ink/20 ${i.swatch}`} />
-                </button>
-              ))}
-
-              <Label htmlFor={colorId} className="sr-only">Otro color</Label>
-              <input
-                id={colorId}
-                type="color"
-                value={color}
-                onChange={e => setCustomInk(e.target.value)}
-                className="size-11 cursor-pointer rounded-lg border border-border-strong bg-surface p-1"
-              />
-            </div>
-
-            <div className="flex min-h-tap items-center gap-2">
-              <Label htmlFor={grosorId} className="text-sm text-muted-foreground">Grosor</Label>
-              <input
-                id={grosorId}
-                type="range"
-                min={1}
-                max={12}
-                value={strokeW}
-                onChange={e => setStrokeW(+e.target.value)}
-                className="h-11 w-28 accent-primary"
-              />
-              <span className="tabular w-5 text-sm text-muted-foreground" aria-hidden="true">{strokeW}</span>
+            {/* Los moldes. Van en su propio grupo y debajo de las herramientas
+                de trazo porque son la otra manera de poner algo en la hoja, no
+                una variante del lápiz. Comparten `activeTool` con ellas: elegir
+                un molde apaga la herramienta de arriba, que es lo correcto —o
+                dibujas a mano o colocas una pieza—. */}
+            <div className="border-t border-border pt-3">
+              <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Moldes de cerca">
+                {MOLDES.map(m => (
+                  <Button
+                    key={m.id}
+                    type="button"
+                    variant={activeTool === m.id ? "default" : "outline"}
+                    aria-pressed={activeTool === m.id}
+                    title={m.hint}
+                    onClick={() => setActiveTool(m.id)}
+                    className="h-auto flex-col gap-1 px-2.5 py-2 text-xs"
+                  >
+                    <MoldeIcon id={m.id} />
+                    {m.label}
+                    {/* El dibujo de la miniatura es `aria-hidden`: lo que la
+                        pieza es y cómo se coloca sólo existe como texto aquí. */}
+                    <span className="sr-only"> — {m.hint}</span>
+                  </Button>
+                ))}
+              </div>
+              <p className="mt-2 max-w-2xl text-xs text-muted-foreground">
+                Toca el plano y la pieza aparece del tamaño de fábrica; arrastra sin levantar el
+                dedo para darle el largo y el giro. Los ángulos rectos se ajustan solos. Se
+                coloca con la tinta y el grosor de aquí abajo, y «deshacer» la retira como
+                cualquier otro trazo.
+              </p>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Acciones sobre el plano">
-            <Button type="button" variant="outline" size="icon" aria-label="Deshacer" title="Deshacer" onClick={draw.undo}>
-              <Undo2 className="size-4" aria-hidden="true" />
-            </Button>
-            <Button type="button" variant="outline" size="icon" aria-label="Rehacer" title="Rehacer" onClick={draw.redo}>
-              <Redo2 className="size-4" aria-hidden="true" />
-            </Button>
-            <Button
-              type="button"
-              variant={gridOn ? "secondary" : "outline"}
-              aria-pressed={gridOn}
-              onClick={() => { const on = draw.toggleGrid(); setGridOn(on); }}
-            >
-              <Grid3x3 className="size-4" aria-hidden="true" /> Cuadrícula
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="border-destructive/40 text-destructive hover:border-destructive hover:bg-destructive/10 hover:text-destructive"
-              onClick={draw.clear}
-            >
-              <Trash2 className="size-4" aria-hidden="true" /> Limpiar
-            </Button>
+          {/* Columna derecha: la tinta, el grosor y las acciones. El filete
+              vertical sólo aparece cuando de verdad hay dos columnas. */}
+          <div className="flex flex-col gap-3 xl:border-l xl:border-border xl:pl-5">
+
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
+              <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Color de la tinta">
+                {INKS.map(i => (
+                  <button
+                    key={i.key}
+                    type="button"
+                    aria-label={i.label}
+                    aria-pressed={palette !== null && color === palette[i.key]}
+                    onClick={() => setCustomInk(readPlanPalette()[i.key])}
+                    className={`size-11 rounded-lg border-2 transition-colors ${
+                      palette !== null && color === palette[i.key]
+                        ? "border-primary"
+                        : "border-border-strong hover:border-foreground"
+                    }`}
+                  >
+                    {/* La muestra vive dentro para que el borde de selección se
+                        vea siempre, también sobre una tinta oscura. */}
+                    <span className={`block size-full rounded-[3px] border border-plan-ink/20 ${i.swatch}`} />
+                  </button>
+                ))}
+
+                <Label htmlFor={colorId} className="sr-only">Otro color</Label>
+                <input
+                  id={colorId}
+                  type="color"
+                  value={color}
+                  onChange={e => setCustomInk(e.target.value)}
+                  className="size-11 cursor-pointer rounded-lg border border-border-strong bg-surface p-1"
+                />
+              </div>
+
+              <div className="flex min-h-tap items-center gap-2">
+                <Label htmlFor={grosorId} className="text-sm text-muted-foreground">Grosor</Label>
+                <input
+                  id={grosorId}
+                  type="range"
+                  min={1}
+                  max={12}
+                  value={strokeW}
+                  onChange={e => setStrokeW(+e.target.value)}
+                  className="h-11 w-28 accent-primary"
+                />
+                <span className="tabular w-5 text-sm text-muted-foreground" aria-hidden="true">{strokeW}</span>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Acciones sobre el plano">
+              <Button type="button" variant="outline" size="icon" aria-label="Deshacer" title="Deshacer" onClick={draw.undo}>
+                <Undo2 className="size-4" aria-hidden="true" />
+              </Button>
+              <Button type="button" variant="outline" size="icon" aria-label="Rehacer" title="Rehacer" onClick={draw.redo}>
+                <Redo2 className="size-4" aria-hidden="true" />
+              </Button>
+              <Button
+                type="button"
+                variant={gridOn ? "secondary" : "outline"}
+                aria-pressed={gridOn}
+                onClick={() => { const on = draw.toggleGrid(); setGridOn(on); }}
+              >
+                <Grid3x3 className="size-4" aria-hidden="true" /> Cuadrícula
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="border-destructive/40 text-destructive hover:border-destructive hover:bg-destructive/10 hover:text-destructive"
+                onClick={draw.clear}
+              >
+                <Trash2 className="size-4" aria-hidden="true" /> Limpiar
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -828,7 +851,12 @@ export default function InspeccionesPage() {
           {/* ── Datos del cliente ───────────────────────────────────── */}
           <section aria-labelledby={datosId} className="mt-5 border-t border-border pt-4">
             <h3 id={datosId} className="eyebrow text-muted-foreground">Datos del cliente</h3>
-            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            {/* Seis campos. En dos columnas son tres filas y 257 px de alto;
+                desde `xl` la ficha da 1366 px útiles y caben tres columnas de
+                447 px —más que de sobra para una dirección—, o sea dos filas.
+                No se pliegan ni se esconden: son lo primero que se rellena y
+                la mitad llega ya puesta desde la sesión. */}
+            <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {DATOS.map(f => (
                 <div key={f.id} className="min-w-0">
                   <Label htmlFor={f.id} className="mb-1.5">{f.label}</Label>
@@ -857,7 +885,13 @@ export default function InspeccionesPage() {
               width={1180}
               height={420}
               alt="Plano del terreno dibujado a mano para esta inspección."
-              className="mt-2 block w-full border-2 border-border-strong bg-plan-paper"
+              /* Tope al tamaño natural del mapa de bits (1180 px). Con la
+                 ficha ya a la medida de la página, la vista previa se estiraba
+                 a 1366 px: 486 px de alto de una imagen ampliada y pixelada,
+                 justo debajo del lienzo que muestra lo mismo. Ampliar un mapa
+                 de bits no añade información, sólo alto. En papel manda la
+                 hoja, así que ahí el tope se levanta. */
+              className="mt-2 block w-full max-w-[1180px] border-2 border-border-strong bg-plan-paper print:max-w-none"
               style={{ imageRendering: "pixelated" }}
             />
           </section>
@@ -974,10 +1008,19 @@ export default function InspeccionesPage() {
  * etiquetas y 1167 px para no partir ninguna. El suelo estaba en 1024 —entre
  * los dos— y la caja que lo contenía daba 980, así que rodaba en horizontal en
  * todos los anchos, también en un monitor de 1920 con 704 px en blanco a los
- * lados. Ahora el suelo es 928, justo por encima del mínimo real: desde 1024 px
- * de pantalla la tabla cabe entera y deja de rodar. Y como sigue siendo
- * `w-full`, en 1440 se estira hasta 1376 y ninguna etiqueta se parte. Ni un
- * concepto, ni una clave, ni la suma de postes cambian: sólo el suelo.
+ * lados. Desde `lg` el suelo baja a 928, justo por encima del mínimo real: la
+ * caja da 950 en 1024 px, así que la tabla cabe entera y deja de rodar. Y como
+ * sigue siendo `w-full`, en 1440 se estira hasta 1376 y ninguna etiqueta se
+ * parte.
+ *
+ * Por debajo de `lg` el suelo se queda en 1024 a propósito. Ahí la tabla no cabe
+ * de ninguna manera —en un teléfono de 390 px la caja da 358—, así que bajarle
+ * el suelo no la hacía caber: sólo apretaba más las etiquetas, que pasaban a dos
+ * líneas y estiraban la ficha 31 px. Se ahorraban 104 px de arrastre lateral a
+ * cambio de 31 px de página; en el móvil, que es donde se rellena de pie, no
+ * compensa. El suelo sube donde sirve y se queda donde no.
+ *
+ * Ni un concepto, ni una clave, ni la suma de postes cambian: sólo el suelo.
  *
  * Los campos miden 44 px de alto y 16 px de cuerpo. Por debajo de 16, Safari
  * en iOS hace zoom al enfocar el campo y deja la página descolocada: escribir
@@ -1028,7 +1071,7 @@ function SpecsTable() {
         últimas columnas.
       </p>
       <div className="mt-2 overflow-x-auto print:overflow-visible">
-        <table className="w-full min-w-[58rem] border-collapse text-xs print:min-w-0">
+        <table className="w-full min-w-[64rem] lg:min-w-[58rem] border-collapse text-xs print:min-w-0">
           <caption className="sr-only">
             Materiales y accesorios de la inspección, en cinco bloques: especificaciones,
             postes adicionales, dos de adicionales y accesorios con su cantidad en puerta y portón.
