@@ -1,6 +1,6 @@
 import Image from "next/image"
 import Link from "next/link"
-import { ArrowRight, Search, ShieldCheck } from "lucide-react"
+import { ArrowRight, Search } from "lucide-react"
 
 import { WA_MESSAGE } from "@/components/layout/nav-data"
 import { IconWhatsApp, whatsappHref } from "@/components/ui/icon-whatsapp"
@@ -28,15 +28,7 @@ import { mediaUrl } from "@/lib/image-utils"
  * para un campo de texto usable, y este es el primer elemento interactivo de
  * la página. Es un `<form method="get">` — funciona sin JavaScript.
  */
-export function Hero({
-  priceFrom,
-  modelCount,
-  warrantyYears,
-}: {
-  priceFrom: number | null
-  modelCount: number
-  warrantyYears: number | null
-}) {
+export function Hero() {
   return (
     <section className="border-b border-border bg-brand-navy-deep text-on-dark">
       <div className="shell grid gap-6 py-8 lg:grid-cols-[1.05fr_1fr] lg:items-center lg:gap-12 lg:py-14">
@@ -52,36 +44,6 @@ export function Hero({
             decimos cuánto cuesta cercar su terreno con el precio por metro
             lineal delante, no después de una visita.
           </p>
-
-          {/* Cifras leídas del catálogo, no escritas a mano. */}
-          <dl className="mt-5 flex flex-wrap items-end gap-x-6 gap-y-3">
-            {priceFrom != null && (
-              <div>
-                <dt className="eyebrow text-on-dark-soft">Desde</dt>
-                <dd className="text-2xl font-bold tabular-nums">
-                  ${priceFrom.toFixed(2)}
-                  <span className="text-base font-medium text-on-dark-soft"> / metro</span>
-                </dd>
-              </div>
-            )}
-            <div className="border-l border-on-dark/20 pl-6">
-              <dt className="eyebrow text-on-dark-soft">En catálogo</dt>
-              <dd className="text-2xl font-bold tabular-nums">
-                {modelCount}
-                <span className="text-base font-medium text-on-dark-soft"> modelos</span>
-              </dd>
-            </div>
-            {warrantyYears != null && (
-              <div className="border-l border-on-dark/20 pl-6">
-                <dt className="eyebrow text-on-dark-soft">Garantía</dt>
-                <dd className="flex items-center gap-1.5 text-2xl font-bold tabular-nums">
-                  <ShieldCheck className="size-5 text-brand-green" aria-hidden="true" />
-                  hasta {warrantyYears}
-                  <span className="text-base font-medium text-on-dark-soft"> años</span>
-                </dd>
-              </div>
-            )}
-          </dl>
 
           <form action="/productos" method="get" role="search" className="mt-6">
             <label htmlFor="hero-search" className="sr-only">
