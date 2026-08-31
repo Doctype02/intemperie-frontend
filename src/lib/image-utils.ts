@@ -22,8 +22,15 @@ export const BLUR_PLACEHOLDER =
    fotos sin configurar nada. `NEXT_PUBLIC_MEDIA_BASE` existe para apuntar a
    otro bucket en pruebas; al ser `NEXT_PUBLIC_*` se hornea en el build, así
    que cambiarla obliga a reconstruir la imagen, no basta con reiniciar. */
+/* `||` y no `??`, y no es un detalle de estilo: el Dockerfile declara
+   `ENV NEXT_PUBLIC_MEDIA_BASE=$NEXT_PUBLIC_MEDIA_BASE`, asi que cuando el
+   build no recibe ese argumento la variable no queda sin definir —queda
+   definida y VACIA—. `??` solo cae al valor por defecto ante `undefined`, de
+   modo que la base terminaba siendo "" y `mediaUrl()` devolvia rutas
+   relativas: las fotos de portada, «nosotros» e «instaladores» daban 404 en
+   produccion, servidas desde un `public/` que ya no existe. */
 const MEDIA_BASE = (
-  process.env.NEXT_PUBLIC_MEDIA_BASE ?? "https://intemperie-media.atl2.vultrobjects.com"
+  process.env.NEXT_PUBLIC_MEDIA_BASE || "https://intemperie-media.atl2.vultrobjects.com"
 ).replace(/\/+$/, "");
 
 /**
