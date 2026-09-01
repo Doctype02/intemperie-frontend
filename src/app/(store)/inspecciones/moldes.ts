@@ -80,7 +80,9 @@ export type MoldeId =
   | "tope"
   | "porton"
   | "puerta"
+  | "cerradura"
   | "poste"
+  | "solar"
 
 /** Lado de la cuadrícula del plano, en píxeles del mapa de bits. */
 const CELDA = 20
@@ -179,9 +181,25 @@ export const MOLDES: Molde[] = [
     icon: { x: 13, y: 25, length: 22 },
   },
   {
+    id: "cerradura",
+    label: "Cerradura",
+    hint: "Marca qué vano lleva cerradura. Cuál y de qué tipo va en la tabla. Toca el punto de cierre.",
+    length: CELDA,
+    follows: true,
+    icon: { x: 24, y: 15, length: CELDA },
+  },
+  {
     id: "poste",
     label: "Poste",
     hint: "Un poste suelto: tope, ciego o 3WAY. Toca donde va.",
+    length: CELDA,
+    follows: true,
+    icon: { x: 24, y: 15, length: CELDA },
+  },
+  {
+    id: "solar",
+    label: "Tapa solar",
+    hint: "Poste con tapa solar: el punto de luz del cerco. Toca donde va.",
     length: CELDA,
     follows: true,
     icon: { x: 24, y: 15, length: CELDA },
@@ -290,6 +308,68 @@ const radioPoste = (w: number) => Math.max(4, w * 2)
 function poste(g: CanvasRenderingContext2D, x: number, y: number, w: number) {
   g.beginPath()
   g.arc(x, y, radioPoste(w), 0, Math.PI * 2)
+  g.fill()
+}
+
+/**
+ * Un poste con tapa solar: el poste y sus rayos.
+ *
+ * Es la fila «TAPA SOLAR» de la tabla, y no es un remate más como la tapa
+ * gótica o la inglesa: esas sólo existen en alzado —desde arriba un poste con
+ * tapa gótica y uno sin ella son el mismo círculo— y por eso no tienen molde.
+ * La solar sí cambia el plano, porque no es un adorno sino un punto de luz: al
+ * lado está la pregunta «el lugar cuenta con: ELÉCTRICA», y dónde se ilumina el
+ * cerco es exactamente la clase de cosa que se decide mirando el croquis y no
+ * una casilla con un número.
+ *
+ * Los rayos van despegados del círculo para que a trazo gordo el poste no se
+ * coma su propia luz y quede un borrón.
+ */
+function tapaSolar(g: CanvasRenderingContext2D, w: number) {
+  poste(g, 0, 0, w * 1.4)
+
+  const dentro = radioPoste(w * 1.4) + Math.max(2, w)
+  const fuera = dentro + Math.max(4, w * 2.2)
+
+  g.save()
+  g.lineWidth = Math.max(1, w * 0.7)
+  g.beginPath()
+  for (let i = 0; i < 8; i++) {
+    const a = (i * Math.PI) / 4
+    g.moveTo(Math.cos(a) * dentro, Math.sin(a) * dentro)
+    g.lineTo(Math.cos(a) * fuera, Math.sin(a) * fuera)
+  }
+  g.stroke()
+  g.restore()
+}
+
+/**
+ * Una cerradura en el punto de cierre de un vano.
+ *
+ * La tabla cuenta cerraduras —magnéticas, sencilla grande, sencilla pequeña— y
+ * las reparte en dos columnas, «PRTA» y «PRTON». Lo que no puede decir es CUÁL:
+ * en una casa con tres portones, «2 magnéticas» no señala los dos que las
+ * llevan, y quien va a montar acaba llamando por teléfono. El plano sí puede
+ * señalarlos, que es para lo que está.
+ *
+ * Se dibuja como caja con bocallave y no como círculo a propósito: el círculo
+ * relleno ya significa «poste» en toda esta hoja, y dos cosas distintas con la
+ * misma marca es peor que no marcar nada. El tipo de cerradura no se dibuja
+ * —sería inventarse un símbolo por modelo—: eso ya lo dice la tabla.
+ */
+function cerradura(g: CanvasRenderingContext2D, w: number) {
+  const r = Math.max(5, w * 2.5)
+
+  g.save()
+  g.lineJoin = "miter"
+  g.lineWidth = Math.max(1.5, w * 0.8)
+  g.beginPath()
+  g.rect(-r, -r, r * 2, r * 2)
+  g.stroke()
+  g.restore()
+
+  g.beginPath()
+  g.arc(0, 0, Math.max(1.6, w * 0.9), 0, Math.PI * 2)
   g.fill()
 }
 
@@ -625,8 +705,16 @@ export function drawMolde(
     hoja(g, 0, length, 0, APERTURA, w)
   }
 
+  if (id === "cerradura") {
+    cerradura(g, w)
+  }
+
   if (id === "poste") {
     poste(g, 0, 0, w * 1.4)
+  }
+
+  if (id === "solar") {
+    tapaSolar(g, w)
   }
 
   g.restore()
