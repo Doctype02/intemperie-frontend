@@ -817,7 +817,12 @@ export default function InspeccionesPage() {
 
           En móvil se apilan en el mismo orden —plano, datos, enviar—, que es
           además el orden en que se hace de pie en un terreno. */}
-      <div className={`${MEDIDA} grid items-start gap-x-8 gap-y-section-sm py-section-sm lg:grid-cols-[minmax(0,1.9fr)_minmax(0,1fr)]`}>
+      {/* `pt-8` y no `py-section-sm`: la cabecera de arriba ya cierra con su
+          propio `py-section-sm`, y los dos rellenos se sumaban. En escritorio
+          eran 3,5rem + 3,5rem = 112 px de hueco entre el titulo de la pagina y
+          «Plano del terreno», con el cambio de fondo ya marcando la separacion.
+          Abajo se conserva el ritmo de seccion: ahi no hay nada que lo duplique. */}
+      <div className={`${MEDIDA} grid items-start gap-x-8 gap-y-section-sm pt-8 pb-section-sm lg:grid-cols-[minmax(0,1.9fr)_minmax(0,1fr)]`}>
 
       {/* ── Paso 1: el plano ──────────────────────────────────────────── */}
       <section aria-labelledby={planoTituloId} className="@container min-w-0">
