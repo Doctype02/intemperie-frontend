@@ -95,7 +95,11 @@ type Tool = TrazoTool | MoldeId;
  * escalón más pequeño que hace caber lo que ya había, no un ensanche
  * decorativo. Por debajo de 1440 no ata nada y el móvil no se entera.
  */
-const MEDIDA = "shell max-w-[90rem]";
+/* 90rem dejaba 480 px en blanco a cada lado en un monitor de 1920. El resto
+   del sitio usa el tope de `.shell` (80rem) porque son paginas de lectura y una
+   linea de texto muy larga se lee peor; esta no lo es: es un banco de trabajo
+   con un plano y un formulario al lado, y ahi el ancho es superficie util. */
+const MEDIDA = "shell max-w-[100rem]";
 
 /* ══ PALETA DEL PLANO ════════════════════════════════════════
  *
@@ -813,7 +817,7 @@ export default function InspeccionesPage() {
 
           En móvil se apilan en el mismo orden —plano, datos, enviar—, que es
           además el orden en que se hace de pie en un terreno. */}
-      <div className={`${MEDIDA} grid items-start gap-x-8 gap-y-section-sm py-section-sm lg:grid-cols-[minmax(0,1.75fr)_minmax(0,1fr)]`}>
+      <div className={`${MEDIDA} grid items-start gap-x-8 gap-y-section-sm py-section-sm lg:grid-cols-[minmax(0,1.9fr)_minmax(0,1fr)]`}>
 
       {/* ── Paso 1: el plano ──────────────────────────────────────────── */}
       <section aria-labelledby={planoTituloId} className="@container min-w-0">
@@ -1016,14 +1020,17 @@ export default function InspeccionesPage() {
             la guía de la hoja en blanco. La caja lleva el tope de ancho y el
             lienzo se estira a ella, así los dos siguen midiendo lo mismo y la
             guía cae justo sobre el papel y ni un píxel fuera. */}
-        <div className="relative mt-4 w-full max-w-[calc(60svh*59/21)]">
+        {/* El tope de ancho va atado al mismo alto que el lienzo (72svh) y a su
+              relacion 59:21. Estaba en 60svh mientras el lienzo decia 72: el
+              contenedor lo estrangulaba y subir el alto no ensanchaba nada. */}
+          <div className="relative mt-4 w-full max-w-[calc(72svh*59/21)]">
           <canvas
             ref={canvasRef}
             width={1180}
             height={420}
             aria-label="Plano del terreno, para dibujar a mano alzada"
             aria-describedby={`${planoAyudaId} ${planoAlternativaId}`}
-            className="block max-h-[60svh] w-full touch-none rounded-xl border-2 border-border-strong bg-plan-paper shadow-sm"
+            className="block max-h-[72svh] min-h-[26rem] w-full touch-none rounded-xl border-2 border-border-strong bg-plan-paper shadow-sm"
             style={{ cursor: activeTool === "eraser" ? "cell" : activeTool === "text" ? "text" : "crosshair" }}
           >
             Aquí se dibuja a mano alzada el contorno del terreno que se va a cercar.
@@ -1063,40 +1070,7 @@ export default function InspeccionesPage() {
           </div>
         </div>
 
-        {/* ── Qué se espera que salga de aquí ───────────────────────────
-            Debajo del lienzo quedaban 230 px en blanco en 1440 px de pantalla:
-            la columna del plano se acababa y la de los datos seguía bajando.
-            Ese hueco lo ocupa ahora lo único que faltaba de verdad —un ejemplo
-            de plano terminado y la lista de lo que hay que marcar—, que además
-            es lo que convierte una hoja en blanco en un encargo entendido.
-
-            El ejemplo NO es un dibujo aparte: sale de las mismas piezas y de
-            la misma función que pinta el plano de verdad (`moldes.ts`), así
-            que promete exactamente lo que la herramienta entrega. */}
-        <section aria-labelledby={guiaTituloId} className="mt-4 rounded-xl border border-border bg-surface-2 p-3 sm:p-4">
-          <h3 id={guiaTituloId} className="eyebrow text-muted-foreground">
-            Así se ve un plano terminado
-          </h3>
-          {/* En paralelo desde el primer píxel: apilados, la muestra y la
-              lista sumaban 330 px de un teléfono. La muestra encoge, que para
-              eso es una muestra. */}
-          <div className="mt-3 grid grid-cols-[minmax(0,9rem)_minmax(0,1fr)] items-start gap-3 sm:gap-4 @xl:grid-cols-[minmax(0,auto)_minmax(0,1fr)]">
-            <PlanoEjemplo />
-            <ul className="grid gap-2 text-sm text-muted-foreground">
-              {[
-                "Los límites del terreno, lado por lado.",
-                "Dónde va el portón de carro y dónde la puerta de persona.",
-                "Los accesos y las zonas especiales que haya que tener en cuenta.",
-                "No hace falta que esté a escala ni que salga bonito.",
-              ].map(linea => (
-                <li key={linea} className="flex gap-2">
-                  <span aria-hidden="true" className="mt-2 size-1.5 shrink-0 rounded-full bg-primary" />
-                  {linea}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </section>
+        
 
         {/* Alternativa honesta: un dibujo a mano no se puede describir, así que
             no se finge una descripción. Se dice qué es, para qué sirve y por
@@ -1163,7 +1137,7 @@ export default function InspeccionesPage() {
             literalmente lo que el botón ya hacía —abrir WhatsApp con los datos
             escritos— y el plano sigue sin viajar por el enlace, que es la
             única letra pequeña que había que contar y no se contaba. */}
-        <section aria-labelledby={envioTituloId} className="rounded-xl border-2 border-primary/30 bg-surface p-4 shadow-sm sm:p-5">
+        <section aria-labelledby={envioTituloId} className="rounded-xl border-2 border-primary/30 bg-surface p-4 shadow-sm sm:p-5 lg:sticky lg:top-24">
           <CabeceraPaso n={3} id={envioTituloId} nivel="h2" titulo={isAdmin ? "El informe" : "Enviar la solicitud"} />
 
           {isAdmin ? (
@@ -1220,6 +1194,47 @@ export default function InspeccionesPage() {
               </Button>
             </>
           )}
+        </section>
+
+        {/* La guia vivia dentro de la columna del plano, y con ella la izquierda
+            acababa ~300 px por debajo de la derecha: un bloque de blanco colgando
+            bajo la tarjeta de envio en cualquier pantalla ancha. Movida a la
+            columna derecha, las dos columnas terminan a la par y el hueco
+            desaparece sin encoger nada. En movil el orden de lectura no cambia:
+            una sola columna, y la guia sigue despues del plano. */}
+{/* ── Qué se espera que salga de aquí ───────────────────────────
+            Debajo del lienzo quedaban 230 px en blanco en 1440 px de pantalla:
+            la columna del plano se acababa y la de los datos seguía bajando.
+            Ese hueco lo ocupa ahora lo único que faltaba de verdad —un ejemplo
+            de plano terminado y la lista de lo que hay que marcar—, que además
+            es lo que convierte una hoja en blanco en un encargo entendido.
+
+            El ejemplo NO es un dibujo aparte: sale de las mismas piezas y de
+            la misma función que pinta el plano de verdad (`moldes.ts`), así
+            que promete exactamente lo que la herramienta entrega. */}
+        <section aria-labelledby={guiaTituloId} className="mt-4 rounded-xl lg:col-start-2 border border-border bg-surface-2 p-3 sm:p-4">
+          <h3 id={guiaTituloId} className="eyebrow text-muted-foreground">
+            Así se ve un plano terminado
+          </h3>
+          {/* En paralelo desde el primer píxel: apilados, la muestra y la
+              lista sumaban 330 px de un teléfono. La muestra encoge, que para
+              eso es una muestra. */}
+          <div className="mt-3 grid grid-cols-[minmax(0,9rem)_minmax(0,1fr)] items-start gap-3 sm:gap-4 @xl:grid-cols-[minmax(0,auto)_minmax(0,1fr)]">
+            <PlanoEjemplo />
+            <ul className="grid gap-2 text-sm text-muted-foreground">
+              {[
+                "Los límites del terreno, lado por lado.",
+                "Dónde va el portón de carro y dónde la puerta de persona.",
+                "Los accesos y las zonas especiales que haya que tener en cuenta.",
+                "No hace falta que esté a escala ni que salga bonito.",
+              ].map(linea => (
+                <li key={linea} className="flex gap-2">
+                  <span aria-hidden="true" className="mt-2 size-1.5 shrink-0 rounded-full bg-primary" />
+                  {linea}
+                </li>
+              ))}
+            </ul>
+          </div>
         </section>
       </div>
       </div>
