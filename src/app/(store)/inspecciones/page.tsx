@@ -779,19 +779,44 @@ export default function InspeccionesPage() {
           Antes eran tres líneas de texto y nada más; el orden de la pantalla
           había que adivinarlo bajando. La tira de pasos lo dice de entrada y
           en una sola línea desde `sm`: es un mapa, no un menú, así que no es
-          navegable —no lleva a ningún sitio— sino una lista ordenada. */}
+          navegable —no lleva a ningún sitio— sino una lista ordenada.
+
+          ── Por qué es una banda y no un bloque ───────────────────────────
+          Esto es una herramienta de trabajo, no una página de contenido: la
+          cabecera es el rótulo de la máquina, no su portada. Apilada
+          —antetítulo, título, entrada y debajo los tres pasos— medía 278 px
+          en 1440 y los gastaba en la mitad izquierda: de x≈700 a x≈1400 no
+          había absolutamente nada, y el lienzo, que es a lo que se viene,
+          arrancaba en y=966, o sea fuera del primer viewport de un portátil.
+
+          Repartida a lo ancho —el rótulo a la izquierda, el mapa de pasos a
+          la derecha, en la MISMA banda— ocupa el hueco que ya estaba vacío en
+          vez de pedir alto nuevo. No se quita ni una palabra: se deja de
+          apilar lo que cabía al lado.
+
+          El relleno pasa de `py-section-sm` (3,5rem arriba y abajo en
+          escritorio) a un valor corto y propio: el ritmo de sección es para
+          separar secciones de una página que se lee, y aquí lo único que
+          separa es el rótulo del banco de trabajo. */}
       <div className="border-b border-border bg-surface">
-        <div className={`${MEDIDA} py-section-sm`}>
-          <p className="eyebrow text-brand-green">{CABECERA.antetitulo}</p>
-          <h1 className="mt-2 text-3xl font-bold text-foreground">{CABECERA.titulo}</h1>
-          <p className="mt-2 max-w-2xl text-base text-muted-foreground">{CABECERA.entrada}</p>
+        <div className={`${MEDIDA} flex flex-col gap-4 py-4 lg:flex-row lg:items-center lg:justify-between lg:gap-10 lg:py-5`}>
+          <div className="min-w-0">
+            <p className="eyebrow text-brand-green">{CABECERA.antetitulo}</p>
+            {/* De `text-3xl` a `text-2xl`: 30 px de titular son de portada. En
+                una herramienta el titular sólo tiene que decir en qué pantalla
+                estás, y compite con el lienzo si grita más que él. */}
+            <h1 className="mt-1 text-2xl font-bold text-foreground">{CABECERA.titulo}</h1>
+            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{CABECERA.entrada}</p>
+          </div>
 
           <h2 id={pasosId} className="sr-only">Cómo funciona</h2>
           {/* Apilada ocupaba 110 px de un teléfono para decir tres palabras.
               En una línea, y rodando si no cabe, ocupa 28 y se lee igual: es
-              un mapa de tres paradas, no una lista que haya que leer entera. */}
-          <div className="-mx-gutter mt-5 overflow-x-auto px-gutter scrollbar-hide sm:mx-0 sm:overflow-visible sm:px-0">
-            <ol aria-labelledby={pasosId} className="flex w-max items-center gap-x-1 sm:w-auto sm:flex-wrap">
+              un mapa de tres paradas, no una lista que haya que leer entera.
+              Desde `lg` deja de rodar y se ancla a la derecha de la banda, que
+              es el ancho que sobraba. */}
+          <div className="-mx-gutter overflow-x-auto px-gutter scrollbar-hide lg:mx-0 lg:shrink-0 lg:overflow-visible lg:px-0">
+            <ol aria-labelledby={pasosId} className="flex w-max items-center gap-x-1 lg:w-auto">
               {PASOS.map((paso, i) => (
                 <li key={paso} className="flex items-center gap-2.5">
                   <NumeroPaso n={i + 1} tono={i === 0 ? "activo" : "apagado"} />
