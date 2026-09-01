@@ -76,6 +76,8 @@ export type MoldeId =
   | "listones"
   | "malla"
   | "esquina"
+  | "derivacion"
+  | "tope"
   | "porton"
   | "puerta"
   | "poste"
@@ -143,6 +145,22 @@ export const MOLDES: Molde[] = [
     length: 7 * CELDA,
     follows: false,
     icon: { x: 9, y: 25, length: 21 },
+  },
+  {
+    id: "derivacion",
+    label: "Derivación",
+    hint: "Poste 3WAY: donde una tercera línea de cerca sale del cerco. Toca el cruce y arrastra por uno de los lados.",
+    length: 6 * CELDA,
+    follows: false,
+    icon: { x: 24, y: 22, length: 16 },
+  },
+  {
+    id: "tope",
+    label: "Tope contra muro",
+    hint: "La cerca muere contra una pared ya construida. Toca donde está la cerca y arrastra hasta el muro.",
+    length: 6 * CELDA,
+    follows: false,
+    icon: { x: 5, y: 15, length: 27 },
   },
   {
     id: "porton",
@@ -414,6 +432,44 @@ function malla(g: CanvasRenderingContext2D, length: number, w: number) {
 }
 
 /**
+ * Un muro ya construido, perpendicular al tramo y centrado en `x`.
+ *
+ * Va con el rayado a 45° de toda la vida porque en un plano el rayado significa
+ * «esto ya está ahí, no lo trae el camión»: la tapia del vecino, la pared de la
+ * casa, el muro de contención. La distinción importa dinero —contra un muro
+ * existente el tramo no lleva poste de línea sino soporte, que es la fila
+ * «SOPORTE DE PARED» de la tabla— y sobre todo importa en la obra, porque quien
+ * llega a montar necesita saber si ese extremo hay que anclarlo o plantarlo.
+ */
+function muro(g: CanvasRenderingContext2D, x: number, w: number) {
+  const medio = Math.max(CELDA * 0.6, w * 6)
+  const rayado = Math.max(6, w * 3)
+
+  g.save()
+  g.lineCap = "butt"
+
+  /* La cara del muro, más gorda que la cerca: es fábrica, no cerca. */
+  g.lineWidth = Math.max(2, w * 1.3)
+  g.beginPath()
+  g.moveTo(x, -medio)
+  g.lineTo(x, medio)
+  g.stroke()
+
+  /* El rayado se va hacia +x, o sea hacia fuera del tramo que llega: el macizo
+     queda del lado contrario a la cerca, que es como se lee que la cerca topa
+     contra él y no que lo atraviesa. */
+  g.lineWidth = Math.max(1, w * 0.6)
+  g.beginPath()
+  const paso = Math.max(5, w * 2.5)
+  for (let d = -medio; d <= medio; d += paso) {
+    g.moveTo(x, d)
+    g.lineTo(x + rayado, d + rayado)
+  }
+  g.stroke()
+  g.restore()
+}
+
+/**
  * Una hoja de portón con su arco de apertura.
  *
  * El arco no es decoración: dice hacia dónde barre la hoja al abrirse, que es
@@ -516,6 +572,35 @@ export function drawMolde(
     /* El esquinero se pinta más gordo que un poste de línea: en la tabla de
        materiales es una fila aparte y en el terreno es otra pieza. */
     poste(g, 0, 0, w * 1.6)
+  }
+
+  if (id === "derivacion") {
+    /* Tres brazos desde el mismo punto: el cerco que sigue de largo por los dos
+       lados, más el que se va. Es la fila «3 P. 3WAY» de la tabla, y es lo único
+       que hasta ahora no se podía decir en el plano —una cerca interior que
+       divide el patio, el corral pegado al lindero— sin dibujarla a pulso y
+       dejar la duda de si las dos líneas se tocan o sólo se cruzan.
+
+       La diferencia con la esquina es el número de brazos, no el grosor: dos
+       brazos es doblar, tres es repartir. */
+    tramo(g, length, w, { inicio: false, fin: true })
+    g.save()
+    g.rotate(Math.PI)
+    tramo(g, length, w, { inicio: false, fin: true })
+    g.restore()
+    g.save()
+    g.rotate(-Math.PI / 2)
+    tramo(g, length, w, { inicio: false, fin: true })
+    g.restore()
+    poste(g, 0, 0, w * 1.9)
+  }
+
+  if (id === "tope") {
+    /* El tramo llega y se muere en el muro. El poste va pegado a la cara y no
+       en medio del vano: es donde de verdad se ancla. */
+    tramo(g, length, w, { inicio: false, fin: false })
+    muro(g, length, w)
+    poste(g, length, 0, w * 1.4)
   }
 
   if (id === "porton") {
