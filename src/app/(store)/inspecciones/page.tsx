@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useId, useState, useCallback, useSyncExternalStore } from "react";
-import { ChevronDown, ChevronRight, ClipboardList, Eraser, Grid3x3, Lock, MessageCircle, Minus, Pencil, RectangleHorizontal, Redo2, Send, Trash2, Type, Undo2 } from "lucide-react";
+import { ChevronDown, ChevronRight, ClipboardList, Eraser, Grid3x3, Lock, Minus, Pencil, RectangleHorizontal, Redo2, Send, Trash2, Type, Undo2 } from "lucide-react";
 
 import { useAuthStore } from "@/lib/store/auth-store";
 import {
@@ -1218,6 +1218,55 @@ export default function InspeccionesPage() {
         </section>
       </div>
       </div>
+
+      {/* ══ LA BANDA DE ADMINISTRACIÓN ═══════════════════════════════
+          Los dos públicos estaban mal contados: el administrador veía la
+          misma pantalla de cliente y su única diferencia era un enlace suelto,
+          «Ver formulario completo», al lado del botón principal y sin decir
+          qué formulario ni por qué a él sí. Detrás hay la hoja de materiales,
+          las consultas del terreno y las firmas: papeleo interno que un
+          cliente no debe ver y que a un administrador no se le puede esconder
+          en un enlace de texto.
+
+          Va en banda aparte, a lo ancho y por debajo del trabajo compartido,
+          para que se lea como lo que es: otra sección, de otra persona. El
+          ámbar es el papel que el sistema le da a lo interno y al B2B, así que
+          no hace falta inventar un color para decir «esto es de la casa».
+
+          `print:hidden` porque es interfaz, no hoja: en papel sólo va la
+          ficha. */}
+      {isAdmin && (
+        <section
+          aria-labelledby={adminTituloId}
+          className="border-y border-brand-amber-deep/25 bg-accent print:hidden"
+        >
+          <div className={`${MEDIDA} py-section-sm`}>
+            <p className="eyebrow flex items-center gap-1.5 text-accent-foreground">
+              <Lock className="size-3.5" aria-hidden="true" />
+              Sólo administración
+            </p>
+            <h2 id={adminTituloId} className="mt-2 font-heading text-xl font-bold text-foreground">
+              La hoja interna de la inspección
+            </h2>
+            <p className="mt-2 max-w-2xl text-sm text-foreground/80">
+              Materiales y especificaciones, las consultas del terreno, las
+              observaciones y las firmas. Es lo que se imprime y se lleva a la
+              obra; quien pide la inspección desde la web no lo ve.
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              className="mt-4 border-brand-amber-deep/40 bg-surface hover:border-brand-amber-deep"
+              aria-expanded={showForm}
+              onClick={() => setShowForm(v => !v)}
+            >
+              {showForm ? "Ocultar la hoja interna" : "Ver la hoja interna"}
+              <ChevronDown className={`size-4 transition-transform ${showForm ? "rotate-180" : ""}`} aria-hidden="true" />
+            </Button>
+          </div>
+        </section>
+      )}
 
       {/* ══ LA FICHA IMPRESA (sólo administración, plegable) ══════════ */}
       {(showForm || false) && isAdmin && (
