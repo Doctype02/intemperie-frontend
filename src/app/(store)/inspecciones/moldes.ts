@@ -521,9 +521,20 @@ function malla(g: CanvasRenderingContext2D, length: number, w: number) {
  * «SOPORTE DE PARED» de la tabla— y sobre todo importa en la obra, porque quien
  * llega a montar necesita saber si ese extremo hay que anclarlo o plantarlo.
  */
-function muro(g: CanvasRenderingContext2D, x: number, w: number) {
-  const medio = Math.max(CELDA * 0.6, w * 6)
-  const rayado = Math.max(6, w * 3)
+function muro(
+  g: CanvasRenderingContext2D,
+  x: number,
+  w: number,
+  largoTramo: number,
+) {
+  /* El muro crece con el tramo que topa contra él, no con el grosor del trazo.
+     Atado sólo al grosor se quedaba en un pellizco al final de un tramo largo y
+     el símbolo se leía como un poste raro; atado al tramo, el muro sigue
+     pareciendo un muro se coloque la pieza del tamaño que se coloque. El tope
+     de arriba existe para que un tramo muy largo no dibuje una tapia que cruza
+     media hoja, y el de abajo para que quepa en la miniatura de la paleta. */
+  const medio = Math.max(CELDA * 0.6, Math.min(largoTramo * 0.25, CELDA * 1.5))
+  const rayado = Math.max(6, medio * 0.35)
 
   g.save()
   g.lineCap = "butt"
@@ -540,7 +551,7 @@ function muro(g: CanvasRenderingContext2D, x: number, w: number) {
      contra él y no que lo atraviesa. */
   g.lineWidth = Math.max(1, w * 0.6)
   g.beginPath()
-  const paso = Math.max(5, w * 2.5)
+  const paso = Math.max(5, medio * 0.22)
   for (let d = -medio; d <= medio; d += paso) {
     g.moveTo(x, d)
     g.lineTo(x + rayado, d + rayado)
@@ -679,7 +690,7 @@ export function drawMolde(
     /* El tramo llega y se muere en el muro. El poste va pegado a la cara y no
        en medio del vano: es donde de verdad se ancla. */
     tramo(g, length, w, { inicio: false, fin: false })
-    muro(g, length, w)
+    muro(g, length, w, length)
     poste(g, length, 0, w * 1.4)
   }
 
