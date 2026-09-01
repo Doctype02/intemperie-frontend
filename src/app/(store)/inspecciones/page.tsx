@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { whatsappHref } from "@/components/ui/icon-whatsapp";
 
 /* Ficha de inspección — sistema «Perímetro».
  *
@@ -760,6 +761,9 @@ export default function InspeccionesPage() {
             un cuadrado dibujado salía rectangular en la hoja impresa. Con los
             dos topes se alcanzan a la vez y el plano no se deforma. El mapeo
             dedo→píxel no se toca: sigue escalando los dos ejes por separado. */}
+        {/* Lienzo y datos en paralelo desde `lg`. Apilados dejaban el lienzo
+            solo, enorme y vacio, con media pantalla en blanco a su lado. */}
+        <div className="mt-3 grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] lg:items-start">
         <canvas
           ref={canvasRef}
           width={1180}
@@ -777,6 +781,38 @@ export default function InspeccionesPage() {
             dónde se hace lo mismo sin dibujar. Está a la vista de todos y no
             escondida en un sr-only, porque a quien dibuja con el dedo en una
             pantalla de 5 pulgadas también le sirve saberlo. */}
+          {/* Los datos, al lado del plano y no escondidos tras el boton. Antes
+              el cliente dibujaba y pulsaba «Enviar» sin que se le pidiera nombre
+              ni telefono: la solicitud salia sin forma de contestarla, y media
+              pantalla quedaba en blanco junto a un lienzo enorme. Son los mismos
+              seis campos que ya existian dentro de la hoja imprimible; aqui se
+              ven desde el principio, que es cuando sirven. */}
+          <aside className="lg:sticky lg:top-24">
+            <h3 className="font-heading text-base font-bold text-foreground">Sus datos</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Para poder responderle y saber a donde ir.
+            </p>
+            <div className="mt-4 grid gap-3">
+              {DATOS.map((f) => (
+                <p key={f.id}>
+                  <label htmlFor={`v-${f.id}`} className="mb-1 block text-xs font-semibold text-foreground">
+                    {f.label}
+                  </label>
+                  <input
+                    id={`v-${f.id}`}
+                    type={f.type}
+                    inputMode={f.inputMode}
+                    autoComplete={f.autoComplete}
+                    value={f.value}
+                    onChange={(e) => f.set(e.target.value)}
+                    className="min-h-tap w-full rounded-md border border-border-strong bg-surface px-3 text-base text-foreground"
+                  />
+                </p>
+              ))}
+            </div>
+          </aside>
+        </div>
+
         <p id={planoAlternativaId} className="mt-2 text-sm text-muted-foreground">
           El plano se dibuja con el dedo o con el ratón y no tiene equivalente con
           teclado; los moldes tampoco, porque hay que decir en qué punto de la hoja
@@ -796,7 +832,32 @@ export default function InspeccionesPage() {
           <Button
             type="button"
             size="lg"
-            onClick={() => alert("Tu solicitud fue enviada. Un inspector de Intemperie se contactará contigo pronto.")}
+              /* Antes esto era un `alert()` y nada mas: la solicitud no salia
+                 de la pantalla. WhatsApp es el canal que esta tienda ya usa en
+                 el cotizador y en instaladores, y `whatsappHref` codifica una
+                 sola vez. El plano no viaja por un enlace de WhatsApp, asi que
+                 se dice en el mensaje en vez de fingir que va adjunto. */
+              onClick={() => {
+                const l = (t: string, v: string) => (v.trim() ? [`\u2022 ${t}: ${v.trim()}`] : [])
+                window.open(
+                  whatsappHref(
+                    [
+                      "Hola Intemperie, quiero solicitar una inspeccion.",
+                      "",
+                      ...l("Nombre", clientName),
+                      ...l("Telefono", telefono),
+                      ...l("Correo", correo),
+                      ...l("Direccion", direccion),
+                      ...l("Punto de referencia", referencia),
+                      ...l("Fecha deseada", fecha),
+                      "",
+                      "Tengo el plano dibujado en la web y se lo enseno cuando me escriban.",
+                    ].join("\n"),
+                  ),
+                  "_blank",
+                  "noopener,noreferrer",
+                )
+              }}
           >
             <Send className="size-4" aria-hidden="true" />
             Enviar solicitud de inspección
