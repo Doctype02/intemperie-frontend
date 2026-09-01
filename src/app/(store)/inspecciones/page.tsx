@@ -1130,7 +1130,12 @@ export default function InspeccionesPage() {
                 : "Para poder responderle y saber a dónde ir."}
             </p>
           </CabeceraPaso>
-          <div className="mt-4 grid gap-3">
+          {/* Seis campos en una sola columna son 456 px de alto, y en 768 px de
+              pantalla —donde la ficha ocupa el ancho entero— sobraban 350 px a
+              la derecha de cada campo. En dos columnas son tres filas. Desde
+              `lg` la ficha vuelve a ser una columna estrecha al lado del plano
+              y los campos vuelven a apilarse, que es lo que cabe. */}
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
             {DATOS.map((f) => (
               <p key={f.id}>
                 <label htmlFor={`v-${f.id}`} className="mb-1 block text-xs font-semibold text-foreground">
