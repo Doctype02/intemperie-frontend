@@ -10,13 +10,28 @@
  * la obra. Aquí viven las piezas prefabricadas para no tener que dibujarlas:
  * el inspector coloca un tramo, un portón o un poste, y sale siempre igual.
  *
- * Las cinco piezas y sus nombres NO se han inventado: son las de la tabla de
- * materiales de esta misma pantalla, que es el vocabulario con el que esta
+ * Las piezas y sus nombres NO se han inventado: salen de la tabla de materiales
+ * de esta misma pantalla y del catálogo, que es el vocabulario con el que esta
  * empresa cotiza. «TOTAL ML» es el tramo; «P. ESQUINERO» es la esquina; «TOTAL
  * POSTES» es el poste; y las dos columnas de accesorios —«PRTA» y «PRTON»— son
  * exactamente la distinción entre la puerta por la que entra una persona y el
  * portón por el que entra un carro. Si el inspector rellena esas dos columnas
  * abajo, el plano de arriba tiene que poder decir cuál es cuál.
+ *
+ * Lo que la empresa vende son DOS cosas que se cercan distinto —cerca de PVC de
+ * listones y malla electrosoldada, las dos familias del catálogo— y un plano que
+ * las dibuja igual obliga a escribirlo al lado a mano, que es justo lo que se
+ * pierde al fotocopiar. Por eso el tramo genérico convive con los dos tramos con
+ * material declarado: el genérico es para el lindero que todavía no se ha
+ * decidido, no un tercer producto.
+ *
+ * Lo que NO ha entrado, y por qué: las tapas (gótica, inglesa, decorativa) y la
+ * oreja de perro son remates y herrajes que sólo existen en alzado —desde arriba
+ * un poste con tapa gótica y uno sin ella son el mismo círculo—, y un símbolo que
+ * no cambia nada del plano es ruido que hay que leer igual. Los sacos de cemento,
+ * arena y piedra son cantidades, no sitios: ya tienen su casilla en la tabla y su
+ * grupo «Agregados» en la ficha, y ponerlos en el plano sería afirmar que se midió
+ * dónde va cada saco.
  *
  * ─────────────────────────────────────────────────────────────────────────
  * QUÉ NO SABE ESTE MÓDULO, A PROPÓSITO
@@ -51,7 +66,19 @@
  * elástica y lo que se ve bien depende del teléfono.
  */
 
-export type MoldeId = "tramo" | "esquina" | "porton" | "puerta" | "poste"
+/**
+ * El repertorio. La unión sólo CRECE: `page.tsx` recorre `MOLDES` y no tiene
+ * ningún `switch` exhaustivo sobre este tipo, así que añadir piezas no rompe a
+ * quien lo consume. Quitar una sí lo rompería.
+ */
+export type MoldeId =
+  | "tramo"
+  | "listones"
+  | "malla"
+  | "esquina"
+  | "porton"
+  | "puerta"
+  | "poste"
 
 /** Lado de la cuadrícula del plano, en píxeles del mapa de bits. */
 const CELDA = 20
@@ -80,17 +107,34 @@ export interface Molde {
 }
 
 /**
- * Las cinco piezas, en el orden en que se levanta un plano: primero el cerco,
- * luego por dónde se entra, y al final los postes sueltos que haya que marcar.
+ * Las piezas, en el orden en que se levanta un plano: primero el cerco y de qué
+ * es, luego por dónde se entra, y al final los puntos sueltos que haya que
+ * marcar. Ese orden es el del recorrido en el terreno, no el alfabético.
  */
 export const MOLDES: Molde[] = [
   {
     id: "tramo",
     label: "Tramo",
-    hint: "Tramo de cerca. Toca donde empieza y arrastra hasta donde termina.",
+    hint: "Tramo de cerca, sin decir de qué. Toca donde empieza y arrastra hasta donde termina.",
     length: 10 * CELDA,
     follows: false,
     icon: { x: 5, y: 15, length: 38 },
+  },
+  {
+    id: "listones",
+    label: "Listones",
+    hint: "Tramo de cerca de PVC de listones. Toca donde empieza y arrastra hasta donde termina.",
+    length: 10 * CELDA,
+    follows: false,
+    icon: { x: 5, y: 15, length: 38 },
+  },
+  {
+    id: "malla",
+    label: "Malla",
+    hint: "Tramo de malla electrosoldada. Toca donde empieza y arrastra hasta donde termina.",
+    length: 10 * CELDA,
+    follows: false,
+    icon: { x: 7, y: 15, length: 34 },
   },
   {
     id: "esquina",
