@@ -783,17 +783,22 @@ export default function InspeccionesPage() {
           <p className="mt-2 max-w-2xl text-base text-muted-foreground">{CABECERA.entrada}</p>
 
           <h2 id={pasosId} className="sr-only">Cómo funciona</h2>
-          <ol aria-labelledby={pasosId} className="mt-5 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-1">
-            {PASOS.map((paso, i) => (
-              <li key={paso} className="flex items-center gap-2.5">
-                <NumeroPaso n={i + 1} tono={i === 0 ? "activo" : "apagado"} />
-                <span className="text-sm font-semibold text-foreground">{paso}</span>
-                {i < PASOS.length - 1 && (
-                  <ChevronRight className="ml-1 hidden size-4 text-muted-foreground sm:block" aria-hidden="true" />
-                )}
-              </li>
-            ))}
-          </ol>
+          {/* Apilada ocupaba 110 px de un teléfono para decir tres palabras.
+              En una línea, y rodando si no cabe, ocupa 28 y se lee igual: es
+              un mapa de tres paradas, no una lista que haya que leer entera. */}
+          <div className="-mx-gutter mt-5 overflow-x-auto px-gutter scrollbar-hide sm:mx-0 sm:overflow-visible sm:px-0">
+            <ol aria-labelledby={pasosId} className="flex w-max items-center gap-x-1 sm:w-auto sm:flex-wrap">
+              {PASOS.map((paso, i) => (
+                <li key={paso} className="flex items-center gap-2.5">
+                  <NumeroPaso n={i + 1} tono={i === 0 ? "activo" : "apagado"} />
+                  <span className="whitespace-nowrap text-sm font-semibold text-foreground">{paso}</span>
+                  {i < PASOS.length - 1 && (
+                    <ChevronRight className="mx-1 size-4 text-muted-foreground" aria-hidden="true" />
+                  )}
+                </li>
+              ))}
+            </ol>
+          </div>
         </div>
       </div>
 
@@ -813,12 +818,13 @@ export default function InspeccionesPage() {
       {/* ── Paso 1: el plano ──────────────────────────────────────────── */}
       <section aria-labelledby={planoTituloId} className="@container min-w-0">
         <CabeceraPaso n={1} id={planoTituloId} titulo="Plano del terreno">
+          {/* Seis líneas en un teléfono, y cuatro de ellas repetían la lista
+              de «Así se ve un plano terminado» que ahora está debajo del
+              lienzo. Queda lo que la lista no dice: que hay moldes. */}
           <p id={planoAyudaId} className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            Marca los límites de tu propiedad, los portones, los accesos y las zonas
-            especiales. No hace falta que sea exacto: sirve para que el inspector
-            llegue sabiendo qué va a encontrarse. Los tramos, las esquinas, los portones
-            y los postes tienen molde: se colocan tocando la hoja y salen siempre
-            iguales, sin dibujarlos a pulso.
+            Marca los límites del terreno, los portones y los accesos. Los tramos,
+            las esquinas, los portones y los postes tienen molde: se colocan tocando
+            la hoja y salen siempre iguales, sin dibujarlos a pulso.
           </p>
         </CabeceraPaso>
 
@@ -841,14 +847,30 @@ export default function InspeccionesPage() {
             dentro de la columna del plano. El número medido sigue siendo el
             mismo —con menos de ~570 px las dos columnas parten cada grupo en
             dos filas y la barra sale MÁS alta que apilada—, sólo que ahora se
-            comprueba donde de verdad importa. En 1440 la columna da 855 px y
-            cada grupo cabe en una fila; en 1024 da 553 y la barra se apila,
-            que es justo lo que la medición anterior pedía. */}
-        <div className="mt-4 flex flex-col gap-3 rounded-xl border border-border bg-surface-2 p-3 @3xl:grid @3xl:grid-cols-[minmax(0,1fr)_auto] @3xl:items-start @3xl:gap-x-5">
+            comprueba donde de verdad importa, y el corte está medido otra vez
+            sobre la pantalla nueva: la columna derecha de la barra —tintas,
+            grosor y acciones— pide 470 px fijos, así que por debajo de 1024 px
+            de columna a la izquierda le quedan 365 y las cinco herramientas
+            caen en tres filas. En 1440 la columna del plano da 855 px: la
+            barra se apila en cuatro filas de 288 px de alto, contra los 420
+            que salían partida en dos. Se parte sólo cuando de verdad cabe. */}
+        <div className="mt-4 flex flex-col gap-3 rounded-xl border border-border bg-surface-2 p-3 @5xl:grid @5xl:grid-cols-[minmax(0,1fr)_auto] @5xl:items-start @5xl:gap-x-5">
 
           <div className="flex flex-col gap-3">
 
-            <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Herramienta de dibujo">
+            {/* ── Por qué ruedan en vez de envolverse ────────────────────
+                En 390 px las cinco herramientas caían en tres filas y los
+                cinco moldes en dos: 660 px de botonera por encima de una hoja
+                de 127 px de alto. En una tira que rueda, cada grupo es una
+                fila y se ve dónde termina —el quinto botón asoma cortado, que
+                es la señal de que hay más—. Desde `sm` vuelve a envolverse,
+                que es lo correcto cuando hay ancho.
+
+                El `-my-1 py-1` no es relleno decorativo: `overflow-x` recorta
+                también en vertical, y sin ese margen el anillo de foco de un
+                botón se cortaría por arriba y por abajo. */}
+            <div className="-mx-3 overflow-x-auto px-3 py-1 -my-1 scrollbar-hide sm:mx-0 sm:my-0 sm:overflow-visible sm:px-0 sm:py-0">
+            <div className="flex w-max items-center gap-2 sm:w-auto sm:flex-wrap" role="group" aria-label="Herramienta de dibujo">
               {TOOLS.map(t => (
                 <Button
                   key={t.id}
@@ -861,6 +883,7 @@ export default function InspeccionesPage() {
                 </Button>
               ))}
             </div>
+            </div>
 
             {/* Los moldes. Van en su propio grupo y debajo de las herramientas
                 de trazo porque son la otra manera de poner algo en la hoja, no
@@ -868,7 +891,8 @@ export default function InspeccionesPage() {
                 un molde apaga la herramienta de arriba, que es lo correcto —o
                 dibujas a mano o colocas una pieza—. */}
             <div className="border-t border-border pt-3">
-              <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Moldes de cerca">
+              <div className="-mx-3 overflow-x-auto px-3 py-1 -my-1 scrollbar-hide sm:mx-0 sm:my-0 sm:overflow-visible sm:px-0 sm:py-0">
+              <div className="flex w-max items-center gap-2 sm:w-auto sm:flex-wrap" role="group" aria-label="Moldes de cerca">
                 {MOLDES.map(m => (
                   <Button
                     key={m.id}
@@ -887,6 +911,7 @@ export default function InspeccionesPage() {
                   </Button>
                 ))}
               </div>
+              </div>
               <p className="mt-2 max-w-2xl text-xs text-muted-foreground">
                 Toca el plano y la pieza aparece del tamaño de fábrica; arrastra sin levantar el
                 dedo para darle el largo y el giro. Los ángulos rectos se ajustan solos. Se
@@ -898,10 +923,10 @@ export default function InspeccionesPage() {
 
           {/* Columna derecha: la tinta, el grosor y las acciones. El filete
               vertical sólo aparece cuando de verdad hay dos columnas. */}
-          <div className="flex flex-col gap-3 @3xl:border-l @3xl:border-border @3xl:pl-5">
+          <div className="flex flex-col gap-3 @5xl:border-l @5xl:border-border @5xl:pl-5">
 
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
-              <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Color de la tinta">
+            <div className="-mx-3 overflow-x-auto px-3 py-1 -my-1 scrollbar-hide sm:mx-0 sm:my-0 sm:overflow-visible sm:px-0 sm:py-0 flex w-max items-center gap-x-4 gap-y-3 sm:w-auto sm:flex-wrap">
+              <div className="flex items-center gap-2 sm:flex-wrap" role="group" aria-label="Color de la tinta">
                 {INKS.map(i => (
                   <button
                     key={i.key}
@@ -946,7 +971,8 @@ export default function InspeccionesPage() {
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Acciones sobre el plano">
+            <div className="-mx-3 overflow-x-auto px-3 py-1 -my-1 scrollbar-hide sm:mx-0 sm:my-0 sm:overflow-visible sm:px-0 sm:py-0">
+            <div className="flex w-max items-center gap-2 sm:w-auto sm:flex-wrap" role="group" aria-label="Acciones sobre el plano">
               <Button type="button" variant="outline" size="icon" aria-label="Deshacer" title="Deshacer" onClick={draw.undo}>
                 <Undo2 className="size-4" aria-hidden="true" />
               </Button>
@@ -971,6 +997,7 @@ export default function InspeccionesPage() {
               >
                 <Trash2 className="size-4" aria-hidden="true" /> Limpiar
               </Button>
+            </div>
             </div>
           </div>
         </div>
@@ -1050,7 +1077,10 @@ export default function InspeccionesPage() {
           <h3 id={guiaTituloId} className="eyebrow text-muted-foreground">
             Así se ve un plano terminado
           </h3>
-          <div className="mt-3 grid gap-4 @xl:grid-cols-[minmax(0,auto)_minmax(0,1fr)] @xl:items-start">
+          {/* En paralelo desde el primer píxel: apilados, la muestra y la
+              lista sumaban 330 px de un teléfono. La muestra encoge, que para
+              eso es una muestra. */}
+          <div className="mt-3 grid grid-cols-[minmax(0,9rem)_minmax(0,1fr)] items-start gap-3 sm:gap-4 @xl:grid-cols-[minmax(0,auto)_minmax(0,1fr)]">
             <PlanoEjemplo />
             <ul className="grid gap-2 text-sm text-muted-foreground">
               {[
