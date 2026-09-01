@@ -10,13 +10,28 @@
  * la obra. Aquí viven las piezas prefabricadas para no tener que dibujarlas:
  * el inspector coloca un tramo, un portón o un poste, y sale siempre igual.
  *
- * Las cinco piezas y sus nombres NO se han inventado: son las de la tabla de
- * materiales de esta misma pantalla, que es el vocabulario con el que esta
+ * Las piezas y sus nombres NO se han inventado: salen de la tabla de materiales
+ * de esta misma pantalla y del catálogo, que es el vocabulario con el que esta
  * empresa cotiza. «TOTAL ML» es el tramo; «P. ESQUINERO» es la esquina; «TOTAL
  * POSTES» es el poste; y las dos columnas de accesorios —«PRTA» y «PRTON»— son
  * exactamente la distinción entre la puerta por la que entra una persona y el
  * portón por el que entra un carro. Si el inspector rellena esas dos columnas
  * abajo, el plano de arriba tiene que poder decir cuál es cuál.
+ *
+ * Lo que la empresa vende son DOS cosas que se cercan distinto —cerca de PVC de
+ * listones y malla electrosoldada, las dos familias del catálogo— y un plano que
+ * las dibuja igual obliga a escribirlo al lado a mano, que es justo lo que se
+ * pierde al fotocopiar. Por eso el tramo genérico convive con los dos tramos con
+ * material declarado: el genérico es para el lindero que todavía no se ha
+ * decidido, no un tercer producto.
+ *
+ * Lo que NO ha entrado, y por qué: las tapas (gótica, inglesa, decorativa) y la
+ * oreja de perro son remates y herrajes que sólo existen en alzado —desde arriba
+ * un poste con tapa gótica y uno sin ella son el mismo círculo—, y un símbolo que
+ * no cambia nada del plano es ruido que hay que leer igual. Los sacos de cemento,
+ * arena y piedra son cantidades, no sitios: ya tienen su casilla en la tabla y su
+ * grupo «Agregados» en la ficha, y ponerlos en el plano sería afirmar que se midió
+ * dónde va cada saco.
  *
  * ─────────────────────────────────────────────────────────────────────────
  * QUÉ NO SABE ESTE MÓDULO, A PROPÓSITO
@@ -51,7 +66,23 @@
  * elástica y lo que se ve bien depende del teléfono.
  */
 
-export type MoldeId = "tramo" | "esquina" | "porton" | "puerta" | "poste"
+/**
+ * El repertorio. La unión sólo CRECE: `page.tsx` recorre `MOLDES` y no tiene
+ * ningún `switch` exhaustivo sobre este tipo, así que añadir piezas no rompe a
+ * quien lo consume. Quitar una sí lo rompería.
+ */
+export type MoldeId =
+  | "tramo"
+  | "listones"
+  | "malla"
+  | "esquina"
+  | "derivacion"
+  | "tope"
+  | "porton"
+  | "puerta"
+  | "cerradura"
+  | "poste"
+  | "solar"
 
 /** Lado de la cuadrícula del plano, en píxeles del mapa de bits. */
 const CELDA = 20
@@ -80,17 +111,34 @@ export interface Molde {
 }
 
 /**
- * Las cinco piezas, en el orden en que se levanta un plano: primero el cerco,
- * luego por dónde se entra, y al final los postes sueltos que haya que marcar.
+ * Las piezas, en el orden en que se levanta un plano: primero el cerco y de qué
+ * es, luego por dónde se entra, y al final los puntos sueltos que haya que
+ * marcar. Ese orden es el del recorrido en el terreno, no el alfabético.
  */
 export const MOLDES: Molde[] = [
   {
     id: "tramo",
     label: "Tramo",
-    hint: "Tramo de cerca. Toca donde empieza y arrastra hasta donde termina.",
+    hint: "Tramo de cerca, sin decir de qué. Toca donde empieza y arrastra hasta donde termina.",
     length: 10 * CELDA,
     follows: false,
     icon: { x: 5, y: 15, length: 38 },
+  },
+  {
+    id: "listones",
+    label: "Listones",
+    hint: "Tramo de cerca de PVC de listones. Toca donde empieza y arrastra hasta donde termina.",
+    length: 10 * CELDA,
+    follows: false,
+    icon: { x: 5, y: 15, length: 38 },
+  },
+  {
+    id: "malla",
+    label: "Malla",
+    hint: "Tramo de malla electrosoldada. Toca donde empieza y arrastra hasta donde termina.",
+    length: 10 * CELDA,
+    follows: false,
+    icon: { x: 7, y: 15, length: 34 },
   },
   {
     id: "esquina",
@@ -99,6 +147,22 @@ export const MOLDES: Molde[] = [
     length: 7 * CELDA,
     follows: false,
     icon: { x: 9, y: 25, length: 21 },
+  },
+  {
+    id: "derivacion",
+    label: "Derivación",
+    hint: "Poste 3WAY: donde una tercera línea de cerca sale del cerco. Toca el cruce y arrastra por uno de los lados.",
+    length: 6 * CELDA,
+    follows: false,
+    icon: { x: 24, y: 22, length: 16 },
+  },
+  {
+    id: "tope",
+    label: "Tope contra muro",
+    hint: "La cerca muere contra una pared ya construida. Toca donde está la cerca y arrastra hasta el muro.",
+    length: 6 * CELDA,
+    follows: false,
+    icon: { x: 5, y: 15, length: 27 },
   },
   {
     id: "porton",
@@ -117,9 +181,25 @@ export const MOLDES: Molde[] = [
     icon: { x: 13, y: 25, length: 22 },
   },
   {
+    id: "cerradura",
+    label: "Cerradura",
+    hint: "Marca qué vano lleva cerradura. Cuál y de qué tipo va en la tabla. Toca el punto de cierre.",
+    length: CELDA,
+    follows: true,
+    icon: { x: 24, y: 15, length: CELDA },
+  },
+  {
     id: "poste",
     label: "Poste",
     hint: "Un poste suelto: tope, ciego o 3WAY. Toca donde va.",
+    length: CELDA,
+    follows: true,
+    icon: { x: 24, y: 15, length: CELDA },
+  },
+  {
+    id: "solar",
+    label: "Tapa solar",
+    hint: "Poste con tapa solar: el punto de luz del cerco. Toca donde va.",
     length: CELDA,
     follows: true,
     icon: { x: 24, y: 15, length: CELDA },
@@ -232,6 +312,68 @@ function poste(g: CanvasRenderingContext2D, x: number, y: number, w: number) {
 }
 
 /**
+ * Un poste con tapa solar: el poste y sus rayos.
+ *
+ * Es la fila «TAPA SOLAR» de la tabla, y no es un remate más como la tapa
+ * gótica o la inglesa: esas sólo existen en alzado —desde arriba un poste con
+ * tapa gótica y uno sin ella son el mismo círculo— y por eso no tienen molde.
+ * La solar sí cambia el plano, porque no es un adorno sino un punto de luz: al
+ * lado está la pregunta «el lugar cuenta con: ELÉCTRICA», y dónde se ilumina el
+ * cerco es exactamente la clase de cosa que se decide mirando el croquis y no
+ * una casilla con un número.
+ *
+ * Los rayos van despegados del círculo para que a trazo gordo el poste no se
+ * coma su propia luz y quede un borrón.
+ */
+function tapaSolar(g: CanvasRenderingContext2D, w: number) {
+  poste(g, 0, 0, w * 1.4)
+
+  const dentro = radioPoste(w * 1.4) + Math.max(2, w)
+  const fuera = dentro + Math.max(4, w * 2.2)
+
+  g.save()
+  g.lineWidth = Math.max(1, w * 0.7)
+  g.beginPath()
+  for (let i = 0; i < 8; i++) {
+    const a = (i * Math.PI) / 4
+    g.moveTo(Math.cos(a) * dentro, Math.sin(a) * dentro)
+    g.lineTo(Math.cos(a) * fuera, Math.sin(a) * fuera)
+  }
+  g.stroke()
+  g.restore()
+}
+
+/**
+ * Una cerradura en el punto de cierre de un vano.
+ *
+ * La tabla cuenta cerraduras —magnéticas, sencilla grande, sencilla pequeña— y
+ * las reparte en dos columnas, «PRTA» y «PRTON». Lo que no puede decir es CUÁL:
+ * en una casa con tres portones, «2 magnéticas» no señala los dos que las
+ * llevan, y quien va a montar acaba llamando por teléfono. El plano sí puede
+ * señalarlos, que es para lo que está.
+ *
+ * Se dibuja como caja con bocallave y no como círculo a propósito: el círculo
+ * relleno ya significa «poste» en toda esta hoja, y dos cosas distintas con la
+ * misma marca es peor que no marcar nada. El tipo de cerradura no se dibuja
+ * —sería inventarse un símbolo por modelo—: eso ya lo dice la tabla.
+ */
+function cerradura(g: CanvasRenderingContext2D, w: number) {
+  const r = Math.max(5, w * 2.5)
+
+  g.save()
+  g.lineJoin = "miter"
+  g.lineWidth = Math.max(1.5, w * 0.8)
+  g.beginPath()
+  g.rect(-r, -r, r * 2, r * 2)
+  g.stroke()
+  g.restore()
+
+  g.beginPath()
+  g.arc(0, 0, Math.max(1.6, w * 0.9), 0, Math.PI * 2)
+  g.fill()
+}
+
+/**
  * Un tramo de cerca desde el origen hacia +x.
  *
  * Se dibuja como el eje más los travesaños perpendiculares: es la notación de
@@ -269,12 +411,169 @@ function tramo(
 }
 
 /**
+ * Media altura de la banda de un tramo con material declarado.
+ *
+ * Los dos tramos con textura no se dibujan como una raya sino como una BANDA,
+ * porque es dentro de ella donde cabe la textura que los distingue. Crece con
+ * el grosor del trazo por lo mismo que el poste: a trazo fino una banda de dos
+ * píxeles se cierra sola y las dos texturas acaban siendo la misma mancha.
+ */
+const bandaMedia = (w: number) => Math.max(5, w * 2.5)
+
+/**
+ * Un tramo de cerca de PVC de listones, desde el origen hacia +x.
+ *
+ * Visto desde arriba —y este plano es de situación, se mira desde arriba— una
+ * cerca de listones y una malla son las dos una línea: la diferencia real está
+ * en el alzado. Así que la diferencia aquí es SIMBÓLICA y está copiada del
+ * alzado que el sistema ya dibuja en `.diagram-picket`: dos rieles corridos y
+ * los listones verticales entre ellos, anchos y con hueco estrecho. Que sea la
+ * misma firma que la del catálogo no es coquetería: el inspector ve esa textura
+ * en la ficha del producto y la reconoce en el plano sin que nadie se la
+ * explique.
+ *
+ * Frente a la malla, esta textura es de trazo GORDO y poco tupida. Ese contraste
+ * de peso es lo que hace que las dos se distingan de lejos y fotocopiadas, que
+ * es como se leen en la obra.
+ */
+function listones(g: CanvasRenderingContext2D, length: number, w: number) {
+  const h = bandaMedia(w)
+
+  /* Los dos rieles. Son el borde del panel, y corridos de punta a punta:
+     en `.diagram-picket` los rieles son lo único que no se interrumpe. */
+  g.beginPath()
+  g.moveTo(0, -h)
+  g.lineTo(length, -h)
+  g.moveTo(0, h)
+  g.lineTo(length, h)
+  g.stroke()
+
+  /* Los listones. El paso sigue a la altura de la banda para que la proporción
+     del listón no cambie con el grosor: si el paso fuera fijo, a trazo gordo
+     los listones se tocarían y la banda saldría maciza. */
+  const paso = Math.max(8, h * 1.6)
+  g.save()
+  g.lineWidth = Math.max(1.5, w * 1.2)
+  g.lineCap = "butt"
+  for (let d = paso / 2; d < length; d += paso) {
+    g.beginPath()
+    g.moveTo(d, -h)
+    g.lineTo(d, h)
+    g.stroke()
+  }
+  g.restore()
+
+  poste(g, 0, 0, w)
+  poste(g, length, 0, w)
+}
+
+/**
+ * Un tramo de malla electrosoldada, desde el origen hacia +x.
+ *
+ * Copiado de `.diagram-mesh`, que es como el catálogo dibuja una malla cuando no
+ * hay fotografía: la retícula fina entre dos postes marcados. Los dos rasgos que
+ * la separan de los listones son los del alzado y se mantienen aquí a propósito
+ * —retícula en las DOS direcciones, y trazo fino y tupido frente al listón gordo
+ * y espaciado—, y además los postes de los extremos se pintan más gordos que los
+ * de un tramo cualquiera, que en `.diagram-mesh` son las dos barras que enmarcan
+ * el paño.
+ */
+function malla(g: CanvasRenderingContext2D, length: number, w: number) {
+  const h = bandaMedia(w)
+  const paso = Math.max(6, h * 1.2)
+
+  g.save()
+  /* Fina a propósito: en `.diagram-mesh` el hilo ocupa 2 px de cada 16. Una
+     retícula a trazo grueso se empasta y deja de leerse como retícula. */
+  g.lineWidth = Math.max(1, w * 0.55)
+  g.lineCap = "butt"
+
+  /* Los hilos verticales, y siempre uno justo en el extremo: un paño que se
+     corta a media celda parece un tramo mal terminado, no una malla. */
+  g.beginPath()
+  for (let d = 0; d < length; d += paso) {
+    g.moveTo(d, -h)
+    g.lineTo(d, h)
+  }
+  g.moveTo(length, -h)
+  g.lineTo(length, h)
+
+  /* Los tres hilos horizontales. Dos filas de celda son el mínimo para que se
+     lea «retícula» y no «escalera»: con una sola fila esto sería un listón. */
+  for (const y of [-h, 0, h]) {
+    g.moveTo(0, y)
+    g.lineTo(length, y)
+  }
+  g.stroke()
+  g.restore()
+
+  poste(g, 0, 0, w * 1.5)
+  poste(g, length, 0, w * 1.5)
+}
+
+/**
+ * Un muro ya construido, perpendicular al tramo y centrado en `x`.
+ *
+ * Va con el rayado a 45° de toda la vida porque en un plano el rayado significa
+ * «esto ya está ahí, no lo trae el camión»: la tapia del vecino, la pared de la
+ * casa, el muro de contención. La distinción importa dinero —contra un muro
+ * existente el tramo no lleva poste de línea sino soporte, que es la fila
+ * «SOPORTE DE PARED» de la tabla— y sobre todo importa en la obra, porque quien
+ * llega a montar necesita saber si ese extremo hay que anclarlo o plantarlo.
+ */
+function muro(
+  g: CanvasRenderingContext2D,
+  x: number,
+  w: number,
+  largoTramo: number,
+) {
+  /* El muro crece con el tramo que topa contra él, no con el grosor del trazo.
+     Atado sólo al grosor se quedaba en un pellizco al final de un tramo largo y
+     el símbolo se leía como un poste raro; atado al tramo, el muro sigue
+     pareciendo un muro se coloque la pieza del tamaño que se coloque. El tope
+     de arriba existe para que un tramo muy largo no dibuje una tapia que cruza
+     media hoja, y el de abajo para que quepa en la miniatura de la paleta. */
+  const medio = Math.max(CELDA * 0.6, Math.min(largoTramo * 0.25, CELDA * 1.5))
+  const rayado = Math.max(6, medio * 0.35)
+
+  g.save()
+  g.lineCap = "butt"
+
+  /* La cara del muro, más gorda que la cerca: es fábrica, no cerca. */
+  g.lineWidth = Math.max(2, w * 1.3)
+  g.beginPath()
+  g.moveTo(x, -medio)
+  g.lineTo(x, medio)
+  g.stroke()
+
+  /* El rayado se va hacia +x, o sea hacia fuera del tramo que llega: el macizo
+     queda del lado contrario a la cerca, que es como se lee que la cerca topa
+     contra él y no que lo atraviesa. */
+  g.lineWidth = Math.max(1, w * 0.6)
+  g.beginPath()
+  const paso = Math.max(5, medio * 0.22)
+  for (let d = -medio; d <= medio; d += paso) {
+    g.moveTo(x, d)
+    g.lineTo(x + rayado, d + rayado)
+  }
+  g.stroke()
+  g.restore()
+}
+
+/**
  * Una hoja de portón con su arco de apertura.
  *
  * El arco no es decoración: dice hacia dónde barre la hoja al abrirse, que es
  * justo el dato por el que se vuelve a la obra —una hoja que abre contra el
  * talud, contra el carro aparcado o contra la pared del vecino—. Se dibuja con
  * trazo discontinuo porque es un recorrido, no un material.
+ *
+ * La hoja en sí se dibuja como un RECTÁNGULO largo y estrecho, no como una
+ * raya. En un plano una raya es un eje —algo que no se puede tocar— y un
+ * rectángulo es un objeto físico, que es lo que una hoja de portón es: un paño
+ * con canto, que pesa y que hay que poder abrir. Además es lo que separa de un
+ * vistazo el portón de la puerta sin leer la etiqueta: dos rectángulos que se
+ * juntan en medio del vano, o uno solo que lo cruza entero.
  */
 function hoja(
   g: CanvasRenderingContext2D,
@@ -284,10 +583,19 @@ function hoja(
   hasta: number,
   w: number,
 ) {
+  /* El paño se dibuja en su propio sistema girado: así el rectángulo se escribe
+     recto y no hay que rotar cuatro vértices a mano. */
+  const grosor = Math.max(5, w * 2.4)
+  g.save()
+  g.translate(cx, 0)
+  g.rotate(hasta)
+  g.lineWidth = Math.max(1, w * 0.55)
+  /* Esquinas en pico y no redondeadas: un canto de paño es un canto. */
+  g.lineJoin = "miter"
   g.beginPath()
-  g.moveTo(cx, 0)
-  g.lineTo(cx + Math.cos(hasta) * radio, Math.sin(hasta) * radio)
+  g.rect(0, -grosor / 2, radio, grosor)
   g.stroke()
+  g.restore()
 
   g.save()
   g.lineWidth = Math.max(1, w * 0.6)
@@ -335,6 +643,14 @@ export function drawMolde(
     tramo(g, length, w, { inicio: true, fin: true })
   }
 
+  if (id === "listones") {
+    listones(g, length, w)
+  }
+
+  if (id === "malla") {
+    malla(g, length, w)
+  }
+
   if (id === "esquina") {
     /* El anclaje es la esquina misma y no un extremo: quien levanta un plano
        se pone en la esquina del lote y tira desde ahí. Los dos lados salen del
@@ -349,26 +665,67 @@ export function drawMolde(
     poste(g, 0, 0, w * 1.6)
   }
 
+  if (id === "derivacion") {
+    /* Tres brazos desde el mismo punto: el cerco que sigue de largo por los dos
+       lados, más el que se va. Es la fila «3 P. 3WAY» de la tabla, y es lo único
+       que hasta ahora no se podía decir en el plano —una cerca interior que
+       divide el patio, el corral pegado al lindero— sin dibujarla a pulso y
+       dejar la duda de si las dos líneas se tocan o sólo se cruzan.
+
+       La diferencia con la esquina es el número de brazos, no el grosor: dos
+       brazos es doblar, tres es repartir. */
+    tramo(g, length, w, { inicio: false, fin: true })
+    g.save()
+    g.rotate(Math.PI)
+    tramo(g, length, w, { inicio: false, fin: true })
+    g.restore()
+    g.save()
+    g.rotate(-Math.PI / 2)
+    tramo(g, length, w, { inicio: false, fin: true })
+    g.restore()
+    poste(g, 0, 0, w * 1.9)
+  }
+
+  if (id === "tope") {
+    /* El tramo llega y se muere en el muro. El poste va pegado a la cara y no
+       en medio del vano: es donde de verdad se ancla. */
+    tramo(g, length, w, { inicio: false, fin: false })
+    muro(g, length, w, length)
+    poste(g, length, 0, w * 1.4)
+  }
+
   if (id === "porton") {
     /* Dos hojas, cada una la mitad del vano. El vano queda VACÍO a propósito:
        un portón es el hueco de la cerca, y taparlo con una línea sería dibujar
        precisamente lo que no hay. */
-    poste(g, 0, 0, w * 1.4)
-    poste(g, length, 0, w * 1.4)
+    /* Las jambas de un portón se pintan más gordas que las de una puerta: son
+       las que aguantan un paño por el que entra un carro, y en el terreno son
+       otro poste. Que el par de puntos gordos se vea de lejos es media lectura
+       del símbolo antes de mirar las hojas. */
+    poste(g, 0, 0, w * 1.8)
+    poste(g, length, 0, w * 1.8)
     hoja(g, 0, length / 2, 0, APERTURA, w)
     hoja(g, length, length / 2, Math.PI, Math.PI - APERTURA, w)
   }
 
   if (id === "puerta") {
-    /* Una sola hoja, del ancho entero del vano: es la diferencia dibujada
-       entre «PRTA» y «PRTON» de la tabla de materiales. */
-    poste(g, 0, 0, w * 1.4)
-    poste(g, length, 0, w * 1.4)
+    /* Una sola hoja, del ancho entero del vano, y jambas finas: es la
+       diferencia dibujada entre «PRTA» y «PRTON» de la tabla de materiales. */
+    poste(g, 0, 0, w * 1.3)
+    poste(g, length, 0, w * 1.3)
     hoja(g, 0, length, 0, APERTURA, w)
+  }
+
+  if (id === "cerradura") {
+    cerradura(g, w)
   }
 
   if (id === "poste") {
     poste(g, 0, 0, w * 1.4)
+  }
+
+  if (id === "solar") {
+    tapaSolar(g, w)
   }
 
   g.restore()

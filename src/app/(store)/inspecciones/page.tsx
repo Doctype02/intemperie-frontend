@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useId, useState, useCallback, useSyncExternalStore } from "react";
-import { ChevronDown, ClipboardList, Eraser, Grid3x3, Minus, Pencil, RectangleHorizontal, Redo2, Send, Trash2, Type, Undo2 } from "lucide-react";
+import { ChevronDown, ChevronRight, ClipboardList, Eraser, Grid3x3, Lock, Minus, Pencil, RectangleHorizontal, Redo2, Send, Trash2, Type, Undo2 } from "lucide-react";
 
 import { useAuthStore } from "@/lib/store/auth-store";
 import {
@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { whatsappHref } from "@/components/ui/icon-whatsapp";
 
 /* Ficha de inspección — sistema «Perímetro».
  *
@@ -218,6 +219,142 @@ function MoldeIcon({ id }: { id: MoldeId }) {
       aria-hidden="true"
       className="pointer-events-none block rounded-sm border border-plan-ink/15 bg-plan-paper"
     />
+  );
+}
+
+/* ══ EL PLANO DE MUESTRA ════════════════════════════════════
+ *
+ * Un terreno rectangular con sus cuatro esquinas, sus cuatro lados, un portón
+ * de carro arriba y una puerta de persona a la izquierda. Sirve para lo único
+ * que le faltaba a la hoja en blanco: enseñar a qué se parece un plano
+ * terminado antes de tener que dibujarlo.
+ *
+ * No es una ilustración: son las MISMAS piezas de `moldes.ts` pintadas con la
+ * MISMA función que las pinta en el plano de verdad (`drawMolde`), sobre la
+ * misma cuadrícula de 20 px y con la misma tinta de papel. Un dibujo aparte,
+ * hecho a mano en SVG, prometería una figura y la herramienta entregaría otra
+ * en cuanto alguien tocara un molde. Este no puede mentir.
+ *
+ * La colocación se le da hecha —`{x, y, angle, length}`— en vez de simular un
+ * gesto: aquí no hay dedo que seguir, hay una figura que cuadrar. `esquina`
+ * ancla en el vértice y saca un lado por +x y otro por −90°, así que los
+ * cuatro giros salen de ahí: 0 abajo-izquierda, −90° abajo-derecha, 180°
+ * arriba-derecha y +90° arriba-izquierda.
+ *
+ * El mapa de bits es 472×168 porque es la proporción exacta de la hoja de
+ * verdad (59:21), y así la muestra no enseña un formato que luego no existe.
+ * `aria-hidden` y con el texto de al lado como explicación: un dibujo de
+ * ejemplo no se describe, se acompaña.
+ */
+const EJEMPLO_W = 472;
+const EJEMPLO_H = 168;
+
+function PlanoEjemplo() {
+  const ref = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    const c = ref.current; if (!c) return;
+    const g = c.getContext("2d"); if (!g) return;
+    const paint = readPlanPalette();
+
+    g.clearRect(0, 0, c.width, c.height);
+
+    /* La misma cuadrícula de 20 px del plano: es la misma hoja, a otro tamaño. */
+    g.save();
+    g.strokeStyle = paint.grid;
+    g.lineWidth = 0.5;
+    for (let x = 0; x <= c.width;  x += 20) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, c.height); g.stroke(); }
+    for (let y = 0; y <= c.height; y += 20) { g.beginPath(); g.moveTo(0, y); g.lineTo(c.width, y); g.stroke(); }
+    g.restore();
+
+    const tinta = { color: paint.ink, width: 2 };
+    const pieza = (id: MoldeId, x: number, y: number, angle: number, length: number) =>
+      drawMolde(g, id, { x, y, angle, length }, tinta);
+
+    const IZQ = 60, DER = 412, ARR = 36, ABA = 132, BRAZO = 30;
+    const CUARTO = Math.PI / 2;
+
+    /* Las cuatro esquinas, cada una con su esquinero. */
+    pieza("esquina", IZQ, ABA, 0, BRAZO);
+    pieza("esquina", DER, ABA, -CUARTO, BRAZO);
+    pieza("esquina", DER, ARR, Math.PI, BRAZO);
+    pieza("esquina", IZQ, ARR, CUARTO, BRAZO);
+
+    /* Arriba, el portón de carro entre dos tramos. */
+    pieza("tramo", IZQ + BRAZO, ARR, 0, 100);
+    pieza("porton", IZQ + BRAZO + 100, ARR, 0, 92);
+    pieza("tramo", IZQ + BRAZO + 192, ARR, 0, DER - BRAZO - (IZQ + BRAZO + 192));
+
+    /* Abajo, un lado entero. */
+    pieza("tramo", IZQ + BRAZO, ABA, 0, (DER - BRAZO) - (IZQ + BRAZO));
+
+    /* A la izquierda, la puerta de persona; a la derecha, cerca. */
+    pieza("puerta", IZQ, ARR + BRAZO, CUARTO, (ABA - BRAZO) - (ARR + BRAZO));
+    pieza("tramo",  DER, ARR + BRAZO, CUARTO, (ABA - BRAZO) - (ARR + BRAZO));
+  }, []);
+
+  return (
+    <canvas
+      ref={ref}
+      width={EJEMPLO_W}
+      height={EJEMPLO_H}
+      aria-hidden="true"
+      className="block h-auto w-full max-w-[236px] rounded-lg border border-plan-ink/15 bg-plan-paper"
+    />
+  );
+}
+
+/* ══ LOS TRES PASOS ═════════════════════════════════════════
+ *
+ * La pantalla no se leía como un procedimiento sino como un montón de piezas
+ * del mismo peso: título, botonera, hoja en blanco, párrafo y un botón suelto
+ * al final. Quien la abría no sabía qué se esperaba de él primero ni qué iba a
+ * pasar al terminar.
+ *
+ * Se numeran los tres momentos que ya existían —dibujar, dar los datos,
+ * enviar— y el número se repite en dos sitios: en la tira de arriba, que es el
+ * mapa, y en la cabecera de cada sección, que es el sitio. Es el mismo gesto
+ * de versalitas y paso numerado que el precotizador ya usa («PASO 1 ·
+ * CATÁLOGO»), así que no se inventa un lenguaje nuevo para esta pantalla.
+ *
+ * No añade ningún dato: pone nombre al orden que la página ya tenía.
+ */
+function NumeroPaso({ n, tono = "activo" }: { n: number; tono?: "activo" | "apagado" }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={`tabular flex size-7 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
+        tono === "activo"
+          ? "bg-primary text-primary-foreground"
+          : "border border-border-strong text-muted-foreground"
+      }`}
+    >
+      {n}
+    </span>
+  );
+}
+
+/* Cabecera de sección: el número, el título y, debajo, la explicación.
+   El número es decorativo (`aria-hidden`) y el orden también va en el texto
+   del encabezado —«Paso 1 · …»— para quien lo escuche en voz alta. */
+function CabeceraPaso({
+  n, titulo, id, children, nivel = "h2",
+}: {
+  n: number; titulo: string; id: string;
+  children?: React.ReactNode; nivel?: "h2" | "h3";
+}) {
+  const H = nivel;
+  return (
+    <div>
+      <div className="flex items-center gap-2.5">
+        <NumeroPaso n={n} />
+        <H id={id} className="font-heading text-xl font-bold text-foreground">
+          <span className="sr-only">Paso {n}: </span>
+          {titulo}
+        </H>
+      </div>
+      {children}
+    </div>
   );
 }
 
@@ -427,8 +564,22 @@ export default function InspeccionesPage() {
   const observacionesId = `${uid}-observaciones`;
   const observacionesCampoId = `${uid}-observaciones-campo`;
   const firmasId = `${uid}-firmas`;
+  const datosTituloId = `${uid}-datos-titulo`;
+  const envioTituloId = `${uid}-envio`;
+  const guiaTituloId = `${uid}-guia`;
+  const adminTituloId = `${uid}-admin`;
+  const pasosId = `${uid}-pasos`;
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  /* El cartel que ocupa la hoja mientras está en blanco. Se enciende y se
+     apaga escribiendo el `display` del nodo y no con estado: ver el porqué
+     donde está el cartel. `display` y no el atributo `hidden`, porque una
+     utilidad de Tailwind gana a la regla de base que `hidden` trae. */
+  const guiaLienzoRef = useRef<HTMLDivElement | null>(null);
+  const verGuiaLienzo = useCallback((visible: boolean) => {
+    const n = guiaLienzoRef.current;
+    if (n) n.style.display = visible ? "" : "none";
+  }, []);
   const planoImgRef = useRef<HTMLImageElement | null>(null);
   const sig1Ref   = useRef<HTMLCanvasElement | null>(null);
   const sig2Ref   = useRef<HTMLCanvasElement | null>(null);
@@ -473,6 +624,15 @@ export default function InspeccionesPage() {
   useEffect(() => { if (user?.name)  setClientName(user.name);   }, [user?.name]);
   // eslint-disable-next-line react-hooks/set-state-in-effect -- ídem
   useEffect(() => { if (user?.email) setCorreo(user.email);      }, [user?.email]);
+
+  /* En cuanto se toca la hoja, el cartel sobra. Va en su propio oyente y no
+     dentro del motor de dibujo, que no se toca. */
+  useEffect(() => {
+    const c = canvasRef.current; if (!c) return;
+    const apagar = () => verGuiaLienzo(false);
+    c.addEventListener("pointerdown", apagar, { passive: true });
+    return () => c.removeEventListener("pointerdown", apagar);
+  }, [verGuiaLienzo]);
 
   /* Arranque del lienzo del plano. */
   useEffect(() => {
@@ -576,32 +736,97 @@ export default function InspeccionesPage() {
     { id: `${uid}-correo`,     label: "Correo",              value: correo,     set: setCorreo,     type: "email", autoComplete: "email", inputMode: "email" },
   ];
 
+  /* ══ LAS DOS LECTURAS DE LA MISMA PANTALLA ═══════════════
+   *
+   * Aquí entran dos personas muy distintas y hasta ahora leían lo mismo: un
+   * administrador veía «Solicitar inspección» y «Para poder responderle», que
+   * es lo que se le dice a un cliente, y su única diferencia era que el botón
+   * verde ponía otra cosa. Es la misma pantalla y las mismas piezas —no se
+   * duplica nada—, pero el rótulo dice de quién es el trabajo:
+   *
+   *   · El cliente PIDE una inspección: dibuja lo que tiene, deja cómo
+   *     localizarle y la solicitud sale por WhatsApp.
+   *   · El administrador LEVANTA la inspección en el terreno: dibuja lo que
+   *     ve, anota los datos del cliente y termina en un informe imprimible.
+   *
+   * Sólo cambian tres cadenas y el destino del paso 3. Nada de lo que se
+   * afirma aquí es nuevo: es lo que los dos botones ya hacían.
+   */
+  const CABECERA = isAdmin
+    ? {
+        antetitulo: "Administración · inspección en sitio",
+        titulo: "Ficha de inspección",
+        entrada: "Levanta el plano del terreno, anota los datos del cliente y genera el informe para imprimir.",
+      }
+    : {
+        antetitulo: "Inspección en sitio",
+        titulo: "Solicitar inspección",
+        entrada: "Dibuja el contorno de tu propiedad y déjanos cómo localizarte. Un inspector de Intemperie levanta el plano en sitio.",
+      };
+
+  const PASOS = isAdmin
+    ? ["Levanta el plano", "Datos del cliente", "Genera el informe"]
+    : ["Dibuja el plano", "Deja tus datos", "Envía la solicitud"];
+
   return (
     <div className="bg-background">
 
-      {/* ── Encabezado de la página ───────────────────────────────────── */}
+      {/* ── Encabezado de la página ─────────────────────────────────────
+          Antes eran tres líneas de texto y nada más; el orden de la pantalla
+          había que adivinarlo bajando. La tira de pasos lo dice de entrada y
+          en una sola línea desde `sm`: es un mapa, no un menú, así que no es
+          navegable —no lleva a ningún sitio— sino una lista ordenada. */}
       <div className="border-b border-border bg-surface">
         <div className={`${MEDIDA} py-section-sm`}>
-          <p className="eyebrow text-brand-green">Inspección en sitio</p>
-          <h1 className="mt-2 text-3xl font-bold text-foreground">Solicitar inspección</h1>
-          <p className="mt-2 max-w-2xl text-base text-muted-foreground">
-            Dibuja el contorno de tu propiedad para que nuestro equipo planifique tu instalación.
-          </p>
+          <p className="eyebrow text-brand-green">{CABECERA.antetitulo}</p>
+          <h1 className="mt-2 text-3xl font-bold text-foreground">{CABECERA.titulo}</h1>
+          <p className="mt-2 max-w-2xl text-base text-muted-foreground">{CABECERA.entrada}</p>
+
+          <h2 id={pasosId} className="sr-only">Cómo funciona</h2>
+          {/* Apilada ocupaba 110 px de un teléfono para decir tres palabras.
+              En una línea, y rodando si no cabe, ocupa 28 y se lee igual: es
+              un mapa de tres paradas, no una lista que haya que leer entera. */}
+          <div className="-mx-gutter mt-5 overflow-x-auto px-gutter scrollbar-hide sm:mx-0 sm:overflow-visible sm:px-0">
+            <ol aria-labelledby={pasosId} className="flex w-max items-center gap-x-1 sm:w-auto sm:flex-wrap">
+              {PASOS.map((paso, i) => (
+                <li key={paso} className="flex items-center gap-2.5">
+                  <NumeroPaso n={i + 1} tono={i === 0 ? "activo" : "apagado"} />
+                  <span className="whitespace-nowrap text-sm font-semibold text-foreground">{paso}</span>
+                  {i < PASOS.length - 1 && (
+                    <ChevronRight className="mx-1 size-4 text-muted-foreground" aria-hidden="true" />
+                  )}
+                </li>
+              ))}
+            </ol>
+          </div>
         </div>
       </div>
 
-      {/* ── Sección 1: el plano ───────────────────────────────────────── */}
-      <section aria-labelledby={planoTituloId} className={`${MEDIDA} pt-section-sm`}>
-        <h2 id={planoTituloId} className="font-heading text-xl font-bold text-foreground">
-          Plano del terreno
-        </h2>
-        <p id={planoAyudaId} className="mt-1.5 max-w-2xl text-sm text-muted-foreground">
-          Marca los límites de tu propiedad, los portones, los accesos y las zonas
-          especiales. No hace falta que sea exacto: sirve para que el inspector
-          llegue sabiendo qué va a encontrarse. Los tramos, las esquinas, los portones
-          y los postes tienen molde: se colocan tocando la hoja y salen siempre
-          iguales, sin dibujarlos a pulso.
-        </p>
+      {/* ══ EL CUERPO: LA HERRAMIENTA Y LA SOLICITUD ══════════════════
+          Dos columnas desde `lg` y en el orden en que se trabaja: a la
+          izquierda se dibuja, a la derecha se entrega. Antes el botón de
+          enviar caía suelto al final de la página, a media pantalla del último
+          campo que había que rellenar, y la columna del plano se quedaba con
+          230 px en blanco debajo del lienzo mientras la de los datos seguía
+          bajando. Metiendo el paso 3 en la misma columna que el paso 2 las dos
+          columnas terminan a la vez y no sobra hueco en ninguna.
+
+          En móvil se apilan en el mismo orden —plano, datos, enviar—, que es
+          además el orden en que se hace de pie en un terreno. */}
+      <div className={`${MEDIDA} grid items-start gap-x-8 gap-y-section-sm py-section-sm lg:grid-cols-[minmax(0,1.75fr)_minmax(0,1fr)]`}>
+
+      {/* ── Paso 1: el plano ──────────────────────────────────────────── */}
+      <section aria-labelledby={planoTituloId} className="@container min-w-0">
+        <CabeceraPaso n={1} id={planoTituloId} titulo="Plano del terreno">
+          {/* Seis líneas en un teléfono, y cuatro de ellas repetían la lista
+              de «Así se ve un plano terminado» que ahora está debajo del
+              lienzo. Queda lo que la lista no dice: que hay moldes. */}
+          <p id={planoAyudaId} className="mt-2 max-w-2xl text-sm text-muted-foreground">
+            Marca los límites del terreno, los portones y los accesos. Los tramos,
+            las esquinas, los portones y los postes tienen molde: se colocan tocando
+            la hoja y salen siempre iguales, sin dibujarlos a pulso.
+          </p>
+        </CabeceraPaso>
 
         {/* Barra de herramientas. Tres grupos con nombre porque son tres
             decisiones distintas —con qué dibujo, de qué color y grosor, y qué
@@ -616,16 +841,36 @@ export default function InspeccionesPage() {
             lienzo no pierde ni un píxel de ancho, que es lo que no se podía
             tocar. En móvil sigue siendo una sola columna y en el mismo orden.
 
-            El corte es `xl` (1280) y no `lg` (1024), y está medido: en 1024 px
-            las dos columnas dejan 570 px a la izquierda, las cinco herramientas
-            y los cinco moldes pasan a dos filas cada uno y la página salía 54 px
-            MÁS alta que apilada. En 1280 la columna izquierda tiene 830 px y
-            cada grupo cabe en una fila. */}
-        <div className="mt-4 flex flex-col gap-3 rounded-xl border border-border bg-surface-2 p-3 xl:grid xl:grid-cols-[minmax(0,1fr)_auto] xl:items-start xl:gap-x-5">
+            El corte se medía antes contra el ANCHO DE PANTALLA (`xl`, 1280) y
+            ahora contra el ancho de su propia columna (`@3xl`, 768 px de
+            contenedor), porque la barra ya no ocupa la página entera: vive
+            dentro de la columna del plano. El número medido sigue siendo el
+            mismo —con menos de ~570 px las dos columnas parten cada grupo en
+            dos filas y la barra sale MÁS alta que apilada—, sólo que ahora se
+            comprueba donde de verdad importa, y el corte está medido otra vez
+            sobre la pantalla nueva: la columna derecha de la barra —tintas,
+            grosor y acciones— pide 470 px fijos, así que por debajo de 1024 px
+            de columna a la izquierda le quedan 365 y las cinco herramientas
+            caen en tres filas. En 1440 la columna del plano da 855 px: la
+            barra se apila en cuatro filas de 288 px de alto, contra los 420
+            que salían partida en dos. Se parte sólo cuando de verdad cabe. */}
+        <div className="mt-4 flex flex-col gap-3 rounded-xl border border-border bg-surface-2 p-3 @5xl:grid @5xl:grid-cols-[minmax(0,1fr)_auto] @5xl:items-start @5xl:gap-x-5">
 
           <div className="flex flex-col gap-3">
 
-            <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Herramienta de dibujo">
+            {/* ── Por qué ruedan en vez de envolverse ────────────────────
+                En 390 px las cinco herramientas caían en tres filas y los
+                cinco moldes en dos: 660 px de botonera por encima de una hoja
+                de 127 px de alto. En una tira que rueda, cada grupo es una
+                fila y se ve dónde termina —el quinto botón asoma cortado, que
+                es la señal de que hay más—. Desde `sm` vuelve a envolverse,
+                que es lo correcto cuando hay ancho.
+
+                El `-my-1 py-1` no es relleno decorativo: `overflow-x` recorta
+                también en vertical, y sin ese margen el anillo de foco de un
+                botón se cortaría por arriba y por abajo. */}
+            <div className="-mx-3 overflow-x-auto px-3 py-1 -my-1 scrollbar-hide sm:mx-0 sm:my-0 sm:overflow-visible sm:px-0 sm:py-0">
+            <div className="flex w-max items-center gap-2 sm:w-auto sm:flex-wrap" role="group" aria-label="Herramienta de dibujo">
               {TOOLS.map(t => (
                 <Button
                   key={t.id}
@@ -638,6 +883,7 @@ export default function InspeccionesPage() {
                 </Button>
               ))}
             </div>
+            </div>
 
             {/* Los moldes. Van en su propio grupo y debajo de las herramientas
                 de trazo porque son la otra manera de poner algo en la hoja, no
@@ -645,7 +891,8 @@ export default function InspeccionesPage() {
                 un molde apaga la herramienta de arriba, que es lo correcto —o
                 dibujas a mano o colocas una pieza—. */}
             <div className="border-t border-border pt-3">
-              <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Moldes de cerca">
+              <div className="-mx-3 overflow-x-auto px-3 py-1 -my-1 scrollbar-hide sm:mx-0 sm:my-0 sm:overflow-visible sm:px-0 sm:py-0">
+              <div className="flex w-max items-center gap-2 sm:w-auto sm:flex-wrap" role="group" aria-label="Moldes de cerca">
                 {MOLDES.map(m => (
                   <Button
                     key={m.id}
@@ -664,6 +911,7 @@ export default function InspeccionesPage() {
                   </Button>
                 ))}
               </div>
+              </div>
               <p className="mt-2 max-w-2xl text-xs text-muted-foreground">
                 Toca el plano y la pieza aparece del tamaño de fábrica; arrastra sin levantar el
                 dedo para darle el largo y el giro. Los ángulos rectos se ajustan solos. Se
@@ -675,10 +923,10 @@ export default function InspeccionesPage() {
 
           {/* Columna derecha: la tinta, el grosor y las acciones. El filete
               vertical sólo aparece cuando de verdad hay dos columnas. */}
-          <div className="flex flex-col gap-3 xl:border-l xl:border-border xl:pl-5">
+          <div className="flex flex-col gap-3 @5xl:border-l @5xl:border-border @5xl:pl-5">
 
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
-              <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Color de la tinta">
+            <div className="-mx-3 overflow-x-auto px-3 py-1 -my-1 scrollbar-hide sm:mx-0 sm:my-0 sm:overflow-visible sm:px-0 sm:py-0 flex w-max items-center gap-x-4 gap-y-3 sm:w-auto sm:flex-wrap">
+              <div className="flex items-center gap-2 sm:flex-wrap" role="group" aria-label="Color de la tinta">
                 {INKS.map(i => (
                   <button
                     key={i.key}
@@ -723,7 +971,8 @@ export default function InspeccionesPage() {
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Acciones sobre el plano">
+            <div className="-mx-3 overflow-x-auto px-3 py-1 -my-1 scrollbar-hide sm:mx-0 sm:my-0 sm:overflow-visible sm:px-0 sm:py-0">
+            <div className="flex w-max items-center gap-2 sm:w-auto sm:flex-wrap" role="group" aria-label="Acciones sobre el plano">
               <Button type="button" variant="outline" size="icon" aria-label="Deshacer" title="Deshacer" onClick={draw.undo}>
                 <Undo2 className="size-4" aria-hidden="true" />
               </Button>
@@ -742,10 +991,13 @@ export default function InspeccionesPage() {
                 type="button"
                 variant="outline"
                 className="border-destructive/40 text-destructive hover:border-destructive hover:bg-destructive/10 hover:text-destructive"
-                onClick={draw.clear}
+                /* Si la hoja vuelve a estar en blanco, el cartel vuelve: es el
+                   mismo estado de partida y decirlo otra vez no estorba. */
+                onClick={() => { draw.clear(); verGuiaLienzo(true); }}
               >
                 <Trash2 className="size-4" aria-hidden="true" /> Limpiar
               </Button>
+            </div>
             </div>
           </div>
         </div>
@@ -760,24 +1012,98 @@ export default function InspeccionesPage() {
             un cuadrado dibujado salía rectangular en la hoja impresa. Con los
             dos topes se alcanzan a la vez y el plano no se deforma. El mapeo
             dedo→píxel no se toca: sigue escalando los dos ejes por separado. */}
-        <canvas
-          ref={canvasRef}
-          width={1180}
-          height={420}
-          aria-label="Plano del terreno, para dibujar a mano alzada"
-          aria-describedby={`${planoAyudaId} ${planoAlternativaId}`}
-          className="mt-3 block max-h-[60svh] w-full max-w-[calc(60svh*59/21)] touch-none rounded-xl border-2 border-border-strong bg-plan-paper shadow-sm"
-          style={{ cursor: activeTool === "eraser" ? "cell" : activeTool === "text" ? "text" : "crosshair" }}
-        >
-          Aquí se dibuja a mano alzada el contorno del terreno que se va a cercar.
-        </canvas>
+        {/* La hoja va dentro de una caja relativa para poder posarle encima
+            la guía de la hoja en blanco. La caja lleva el tope de ancho y el
+            lienzo se estira a ella, así los dos siguen midiendo lo mismo y la
+            guía cae justo sobre el papel y ni un píxel fuera. */}
+        <div className="relative mt-4 w-full max-w-[calc(60svh*59/21)]">
+          <canvas
+            ref={canvasRef}
+            width={1180}
+            height={420}
+            aria-label="Plano del terreno, para dibujar a mano alzada"
+            aria-describedby={`${planoAyudaId} ${planoAlternativaId}`}
+            className="block max-h-[60svh] w-full touch-none rounded-xl border-2 border-border-strong bg-plan-paper shadow-sm"
+            style={{ cursor: activeTool === "eraser" ? "cell" : activeTool === "text" ? "text" : "crosshair" }}
+          >
+            Aquí se dibuja a mano alzada el contorno del terreno que se va a cercar.
+          </canvas>
+
+          {/* ── La hoja en blanco deja de estar en blanco ─────────────────
+              Era el problema entero de esta pantalla: medio viewport ocupado
+              por un rectángulo vacío que no decía qué se esperaba de él. Ahora
+              el propio papel lo dice, y se quita solo en cuanto se toca.
+
+              Se esconde tocando el nodo y NO con estado, y es a propósito:
+              este archivo vuelve a montar el motor de dibujo en cada render
+              (fallo conocido, fuera de este encargo), y un render de más justo
+              en el `pointerdown` repintaría la cuadrícula por encima de la
+              tinta recién puesta. Escribiendo el `display` no hay render, no
+              hay remonte y el trazo sale limpio.
+
+              `aria-hidden` porque no dice nada nuevo: es el mismo texto de
+              ayuda que el lienzo ya declara en `aria-describedby`, puesto
+              donde se mira. Repetirlo en el árbol de accesibilidad sería
+              leerlo dos veces. */}
+          <div
+            ref={guiaLienzoRef}
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-1.5 px-4 text-center sm:gap-2.5"
+          >
+            <span className="flex size-9 items-center justify-center rounded-full border border-dashed border-plan-ink/30 text-plan-ink/50 sm:size-11">
+              <Pencil className="size-4 sm:size-5" />
+            </span>
+            <span className="font-heading text-sm font-bold text-plan-ink/70 sm:text-lg">
+              Empieza por un lado del terreno
+            </span>
+            <span className="hidden max-w-sm text-xs text-plan-ink/55 sm:block sm:text-sm">
+              Toca la hoja y arrastra. Con los moldes de arriba, un tramo o un
+              portón salen de un solo gesto.
+            </span>
+          </div>
+        </div>
+
+        {/* ── Qué se espera que salga de aquí ───────────────────────────
+            Debajo del lienzo quedaban 230 px en blanco en 1440 px de pantalla:
+            la columna del plano se acababa y la de los datos seguía bajando.
+            Ese hueco lo ocupa ahora lo único que faltaba de verdad —un ejemplo
+            de plano terminado y la lista de lo que hay que marcar—, que además
+            es lo que convierte una hoja en blanco en un encargo entendido.
+
+            El ejemplo NO es un dibujo aparte: sale de las mismas piezas y de
+            la misma función que pinta el plano de verdad (`moldes.ts`), así
+            que promete exactamente lo que la herramienta entrega. */}
+        <section aria-labelledby={guiaTituloId} className="mt-4 rounded-xl border border-border bg-surface-2 p-3 sm:p-4">
+          <h3 id={guiaTituloId} className="eyebrow text-muted-foreground">
+            Así se ve un plano terminado
+          </h3>
+          {/* En paralelo desde el primer píxel: apilados, la muestra y la
+              lista sumaban 330 px de un teléfono. La muestra encoge, que para
+              eso es una muestra. */}
+          <div className="mt-3 grid grid-cols-[minmax(0,9rem)_minmax(0,1fr)] items-start gap-3 sm:gap-4 @xl:grid-cols-[minmax(0,auto)_minmax(0,1fr)]">
+            <PlanoEjemplo />
+            <ul className="grid gap-2 text-sm text-muted-foreground">
+              {[
+                "Los límites del terreno, lado por lado.",
+                "Dónde va el portón de carro y dónde la puerta de persona.",
+                "Los accesos y las zonas especiales que haya que tener en cuenta.",
+                "No hace falta que esté a escala ni que salga bonito.",
+              ].map(linea => (
+                <li key={linea} className="flex gap-2">
+                  <span aria-hidden="true" className="mt-2 size-1.5 shrink-0 rounded-full bg-primary" />
+                  {linea}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
 
         {/* Alternativa honesta: un dibujo a mano no se puede describir, así que
             no se finge una descripción. Se dice qué es, para qué sirve y por
             dónde se hace lo mismo sin dibujar. Está a la vista de todos y no
             escondida en un sr-only, porque a quien dibuja con el dedo en una
             pantalla de 5 pulgadas también le sirve saberlo. */}
-        <p id={planoAlternativaId} className="mt-2 text-sm text-muted-foreground">
+        <p id={planoAlternativaId} className="mt-3 text-sm text-muted-foreground">
           El plano se dibuja con el dedo o con el ratón y no tiene equivalente con
           teclado; los moldes tampoco, porque hay que decir en qué punto de la hoja
           va cada pieza. Si no puedes dibujarlo, descríbelo por escrito al pedir la
@@ -785,37 +1111,167 @@ export default function InspeccionesPage() {
         </p>
       </section>
 
-      {/* ── Sección 2: qué hacer con el plano ─────────────────────────── */}
-      <div className={`${MEDIDA} flex flex-col items-start gap-4 py-section-sm sm:flex-row sm:items-center`}>
-        {isAdmin ? (
-          <Button type="button" size="lg" onClick={generatePDF}>
-            <ClipboardList className="size-4" aria-hidden="true" />
-            Generar informe de inspección (PDF)
-          </Button>
-        ) : (
-          <Button
-            type="button"
-            size="lg"
-            onClick={() => alert("Tu solicitud fue enviada. Un inspector de Intemperie se contactará contigo pronto.")}
-          >
-            <Send className="size-4" aria-hidden="true" />
-            Enviar solicitud de inspección
-          </Button>
-        )}
+      {/* ══ LA COLUMNA DE LA SOLICITUD (pasos 2 y 3) ══════════════════
+          Los datos y el envío son el mismo trabajo —entregar la solicitud— y
+          por eso van juntos y en dos fichas seguidas, no a media pantalla de
+          distancia. Se rellena y se envía sin mover la vista. */}
+      <div className="flex min-w-0 flex-col gap-5">
 
-        {isAdmin && (
-          <Button
-            type="button"
-            variant="link"
-            className="min-h-tap"
-            aria-expanded={showForm}
-            onClick={() => setShowForm(v => !v)}
-          >
-            {showForm ? "Ocultar formulario" : "Ver formulario completo"}
-            <ChevronDown className={`size-4 transition-transform ${showForm ? "rotate-180" : ""}`} aria-hidden="true" />
-          </Button>
-        )}
+        {/* ── Paso 2: los datos ─────────────────────────────────────────
+            Los mismos seis campos que ya existían dentro de la hoja
+            imprimible, a la vista desde el principio. El rótulo cambia según
+            quién mire: al cliente se le piden SUS datos para poder
+            contestarle; el administrador está anotando los de OTRA persona. */}
+        <section aria-labelledby={datosTituloId} className="rounded-xl border border-border bg-surface p-4 shadow-sm sm:p-5">
+          <CabeceraPaso n={2} id={datosTituloId} nivel="h2" titulo={isAdmin ? "Datos del cliente" : "Sus datos"}>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {isAdmin
+                ? "Quién pide la cerca y dónde está el terreno."
+                : "Para poder responderle y saber a dónde ir."}
+            </p>
+          </CabeceraPaso>
+          {/* Seis campos en una sola columna son 456 px de alto, y en 768 px de
+              pantalla —donde la ficha ocupa el ancho entero— sobraban 350 px a
+              la derecha de cada campo. En dos columnas son tres filas. Desde
+              `lg` la ficha vuelve a ser una columna estrecha al lado del plano
+              y los campos vuelven a apilarse, que es lo que cabe. */}
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+            {DATOS.map((f) => (
+              <p key={f.id}>
+                <label htmlFor={`v-${f.id}`} className="mb-1 block text-xs font-semibold text-foreground">
+                  {f.label}
+                </label>
+                <input
+                  id={`v-${f.id}`}
+                  type={f.type}
+                  inputMode={f.inputMode}
+                  autoComplete={f.autoComplete}
+                  value={f.value}
+                  onChange={(e) => f.set(e.target.value)}
+                  className="min-h-tap w-full rounded-md border border-border-strong bg-surface px-3 text-base text-foreground"
+                />
+              </p>
+            ))}
+          </div>
+        </section>
+
+        {/* ── Paso 3: qué pasa al enviar ────────────────────────────────
+            El botón estaba solo en medio de la página y no decía a dónde
+            llevaba. Ahora va en una ficha con el borde de la marca —es la
+            acción principal de la pantalla y se ve que lo es— y debajo, en una
+            línea, lo que ocurre al pulsarlo. No se promete nada nuevo: es
+            literalmente lo que el botón ya hacía —abrir WhatsApp con los datos
+            escritos— y el plano sigue sin viajar por el enlace, que es la
+            única letra pequeña que había que contar y no se contaba. */}
+        <section aria-labelledby={envioTituloId} className="rounded-xl border-2 border-primary/30 bg-surface p-4 shadow-sm sm:p-5">
+          <CabeceraPaso n={3} id={envioTituloId} nivel="h2" titulo={isAdmin ? "El informe" : "Enviar la solicitud"} />
+
+          {isAdmin ? (
+            <>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Abre la hoja de la inspección con el plano pegado y lanza la
+                impresión del navegador. El número de inspección sube uno.
+              </p>
+              <Button type="button" size="lg" className="mt-4 w-full" onClick={generatePDF}>
+                <ClipboardList className="size-4" aria-hidden="true" />
+                Generar informe de inspección (PDF)
+              </Button>
+            </>
+          ) : (
+            <>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Se abre WhatsApp con tus datos ya escritos; sólo tienes que
+                darle a enviar. El plano no viaja por el enlace: lo enseñas
+                desde esta misma pantalla cuando te contesten.
+              </p>
+              <Button
+                type="button"
+                size="lg"
+                className="mt-4 w-full"
+                /* Antes esto era un `alert()` y nada mas: la solicitud no salia
+                   de la pantalla. WhatsApp es el canal que esta tienda ya usa en
+                   el cotizador y en instaladores, y `whatsappHref` codifica una
+                   sola vez. El plano no viaja por un enlace de WhatsApp, asi que
+                   se dice en el mensaje en vez de fingir que va adjunto. */
+                onClick={() => {
+                  const l = (t: string, v: string) => (v.trim() ? [`\u2022 ${t}: ${v.trim()}`] : [])
+                  window.open(
+                    whatsappHref(
+                      [
+                        "Hola Intemperie, quiero solicitar una inspeccion.",
+                        "",
+                        ...l("Nombre", clientName),
+                        ...l("Telefono", telefono),
+                        ...l("Correo", correo),
+                        ...l("Direccion", direccion),
+                        ...l("Punto de referencia", referencia),
+                        ...l("Fecha deseada", fecha),
+                        "",
+                        "Tengo el plano dibujado en la web y se lo enseno cuando me escriban.",
+                      ].join("\n"),
+                    ),
+                    "_blank",
+                    "noopener,noreferrer",
+                  )
+                }}
+              >
+                <Send className="size-4" aria-hidden="true" />
+                Enviar solicitud de inspección
+              </Button>
+            </>
+          )}
+        </section>
       </div>
+      </div>
+
+      {/* ══ LA BANDA DE ADMINISTRACIÓN ═══════════════════════════════
+          Los dos públicos estaban mal contados: el administrador veía la
+          misma pantalla de cliente y su única diferencia era un enlace suelto,
+          «Ver formulario completo», al lado del botón principal y sin decir
+          qué formulario ni por qué a él sí. Detrás hay la hoja de materiales,
+          las consultas del terreno y las firmas: papeleo interno que un
+          cliente no debe ver y que a un administrador no se le puede esconder
+          en un enlace de texto.
+
+          Va en banda aparte, a lo ancho y por debajo del trabajo compartido,
+          para que se lea como lo que es: otra sección, de otra persona. El
+          ámbar es el papel que el sistema le da a lo interno y al B2B, así que
+          no hace falta inventar un color para decir «esto es de la casa».
+
+          `print:hidden` porque es interfaz, no hoja: en papel sólo va la
+          ficha. */}
+      {isAdmin && (
+        <section
+          aria-labelledby={adminTituloId}
+          className="border-y border-brand-amber-deep/25 bg-accent print:hidden"
+        >
+          <div className={`${MEDIDA} py-section-sm`}>
+            <p className="eyebrow flex items-center gap-1.5 text-accent-foreground">
+              <Lock className="size-3.5" aria-hidden="true" />
+              Sólo administración
+            </p>
+            <h2 id={adminTituloId} className="mt-2 font-heading text-xl font-bold text-foreground">
+              La hoja interna de la inspección
+            </h2>
+            <p className="mt-2 max-w-2xl text-sm text-foreground/80">
+              Materiales y especificaciones, las consultas del terreno, las
+              observaciones y las firmas. Es lo que se imprime y se lleva a la
+              obra; quien pide la inspección desde la web no lo ve.
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              className="mt-4 border-brand-amber-deep/40 bg-surface hover:border-brand-amber-deep"
+              aria-expanded={showForm}
+              onClick={() => setShowForm(v => !v)}
+            >
+              {showForm ? "Ocultar la hoja interna" : "Ver la hoja interna"}
+              <ChevronDown className={`size-4 transition-transform ${showForm ? "rotate-180" : ""}`} aria-hidden="true" />
+            </Button>
+          </div>
+        </section>
+      )}
 
       {/* ══ LA FICHA IMPRESA (sólo administración, plegable) ══════════ */}
       {(showForm || false) && isAdmin && (
