@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useId, useState, useCallback, useSyncExternalStore } from "react";
-import { ChevronDown, ClipboardList, Eraser, Grid3x3, Minus, Pencil, RectangleHorizontal, Redo2, Send, Trash2, Type, Undo2 } from "lucide-react";
+import { ChevronDown, ChevronRight, ClipboardList, Eraser, Grid3x3, Lock, MessageCircle, Minus, Pencil, RectangleHorizontal, Redo2, Send, Trash2, Type, Undo2 } from "lucide-react";
 
 import { useAuthStore } from "@/lib/store/auth-store";
 import {
@@ -222,6 +222,60 @@ function MoldeIcon({ id }: { id: MoldeId }) {
   );
 }
 
+/* ══ LOS TRES PASOS ═════════════════════════════════════════
+ *
+ * La pantalla no se leía como un procedimiento sino como un montón de piezas
+ * del mismo peso: título, botonera, hoja en blanco, párrafo y un botón suelto
+ * al final. Quien la abría no sabía qué se esperaba de él primero ni qué iba a
+ * pasar al terminar.
+ *
+ * Se numeran los tres momentos que ya existían —dibujar, dar los datos,
+ * enviar— y el número se repite en dos sitios: en la tira de arriba, que es el
+ * mapa, y en la cabecera de cada sección, que es el sitio. Es el mismo gesto
+ * de versalitas y paso numerado que el precotizador ya usa («PASO 1 ·
+ * CATÁLOGO»), así que no se inventa un lenguaje nuevo para esta pantalla.
+ *
+ * No añade ningún dato: pone nombre al orden que la página ya tenía.
+ */
+function NumeroPaso({ n, tono = "activo" }: { n: number; tono?: "activo" | "apagado" }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={`tabular flex size-7 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
+        tono === "activo"
+          ? "bg-primary text-primary-foreground"
+          : "border border-border-strong text-muted-foreground"
+      }`}
+    >
+      {n}
+    </span>
+  );
+}
+
+/* Cabecera de sección: el número, el título y, debajo, la explicación.
+   El número es decorativo (`aria-hidden`) y el orden también va en el texto
+   del encabezado —«Paso 1 · …»— para quien lo escuche en voz alta. */
+function CabeceraPaso({
+  n, titulo, id, children, nivel = "h2",
+}: {
+  n: number; titulo: string; id: string;
+  children?: React.ReactNode; nivel?: "h2" | "h3";
+}) {
+  const H = nivel;
+  return (
+    <div>
+      <div className="flex items-center gap-2.5">
+        <NumeroPaso n={n} />
+        <H id={id} className="font-heading text-xl font-bold text-foreground">
+          <span className="sr-only">Paso {n}: </span>
+          {titulo}
+        </H>
+      </div>
+      {children}
+    </div>
+  );
+}
+
 /* ══ EL MOTOR DE DIBUJO ═════════════════════════════════════ */
 function useCanvas(ref: React.RefObject<HTMLCanvasElement | null>) {
   const tool     = useRef<Tool>("pencil");
@@ -428,6 +482,11 @@ export default function InspeccionesPage() {
   const observacionesId = `${uid}-observaciones`;
   const observacionesCampoId = `${uid}-observaciones-campo`;
   const firmasId = `${uid}-firmas`;
+  const datosTituloId = `${uid}-datos-titulo`;
+  const envioTituloId = `${uid}-envio`;
+  const guiaTituloId = `${uid}-guia`;
+  const adminTituloId = `${uid}-admin`;
+  const pasosId = `${uid}-pasos`;
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const planoImgRef = useRef<HTMLImageElement | null>(null);
@@ -577,17 +636,64 @@ export default function InspeccionesPage() {
     { id: `${uid}-correo`,     label: "Correo",              value: correo,     set: setCorreo,     type: "email", autoComplete: "email", inputMode: "email" },
   ];
 
+  /* ══ LAS DOS LECTURAS DE LA MISMA PANTALLA ═══════════════
+   *
+   * Aquí entran dos personas muy distintas y hasta ahora leían lo mismo: un
+   * administrador veía «Solicitar inspección» y «Para poder responderle», que
+   * es lo que se le dice a un cliente, y su única diferencia era que el botón
+   * verde ponía otra cosa. Es la misma pantalla y las mismas piezas —no se
+   * duplica nada—, pero el rótulo dice de quién es el trabajo:
+   *
+   *   · El cliente PIDE una inspección: dibuja lo que tiene, deja cómo
+   *     localizarle y la solicitud sale por WhatsApp.
+   *   · El administrador LEVANTA la inspección en el terreno: dibuja lo que
+   *     ve, anota los datos del cliente y termina en un informe imprimible.
+   *
+   * Sólo cambian tres cadenas y el destino del paso 3. Nada de lo que se
+   * afirma aquí es nuevo: es lo que los dos botones ya hacían.
+   */
+  const CABECERA = isAdmin
+    ? {
+        antetitulo: "Administración · inspección en sitio",
+        titulo: "Ficha de inspección",
+        entrada: "Levanta el plano del terreno, anota los datos del cliente y genera el informe para imprimir.",
+      }
+    : {
+        antetitulo: "Inspección en sitio",
+        titulo: "Solicitar inspección",
+        entrada: "Dibuja el contorno de tu propiedad y déjanos cómo localizarte. Un inspector de Intemperie levanta el plano en sitio.",
+      };
+
+  const PASOS = isAdmin
+    ? ["Levanta el plano", "Datos del cliente", "Genera el informe"]
+    : ["Dibuja el plano", "Deja tus datos", "Envía la solicitud"];
+
   return (
     <div className="bg-background">
 
-      {/* ── Encabezado de la página ───────────────────────────────────── */}
+      {/* ── Encabezado de la página ─────────────────────────────────────
+          Antes eran tres líneas de texto y nada más; el orden de la pantalla
+          había que adivinarlo bajando. La tira de pasos lo dice de entrada y
+          en una sola línea desde `sm`: es un mapa, no un menú, así que no es
+          navegable —no lleva a ningún sitio— sino una lista ordenada. */}
       <div className="border-b border-border bg-surface">
         <div className={`${MEDIDA} py-section-sm`}>
-          <p className="eyebrow text-brand-green">Inspección en sitio</p>
-          <h1 className="mt-2 text-3xl font-bold text-foreground">Solicitar inspección</h1>
-          <p className="mt-2 max-w-2xl text-base text-muted-foreground">
-            Dibuja el contorno de tu propiedad para que nuestro equipo planifique tu instalación.
-          </p>
+          <p className="eyebrow text-brand-green">{CABECERA.antetitulo}</p>
+          <h1 className="mt-2 text-3xl font-bold text-foreground">{CABECERA.titulo}</h1>
+          <p className="mt-2 max-w-2xl text-base text-muted-foreground">{CABECERA.entrada}</p>
+
+          <h2 id={pasosId} className="sr-only">Cómo funciona</h2>
+          <ol aria-labelledby={pasosId} className="mt-5 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-1">
+            {PASOS.map((paso, i) => (
+              <li key={paso} className="flex items-center gap-2.5">
+                <NumeroPaso n={i + 1} tono={i === 0 ? "activo" : "apagado"} />
+                <span className="text-sm font-semibold text-foreground">{paso}</span>
+                {i < PASOS.length - 1 && (
+                  <ChevronRight className="ml-1 hidden size-4 text-muted-foreground sm:block" aria-hidden="true" />
+                )}
+              </li>
+            ))}
+          </ol>
         </div>
       </div>
 
