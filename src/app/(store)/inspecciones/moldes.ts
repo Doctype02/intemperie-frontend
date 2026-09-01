@@ -420,6 +420,13 @@ function malla(g: CanvasRenderingContext2D, length: number, w: number) {
  * justo el dato por el que se vuelve a la obra —una hoja que abre contra el
  * talud, contra el carro aparcado o contra la pared del vecino—. Se dibuja con
  * trazo discontinuo porque es un recorrido, no un material.
+ *
+ * La hoja en sí se dibuja como un RECTÁNGULO largo y estrecho, no como una
+ * raya. En un plano una raya es un eje —algo que no se puede tocar— y un
+ * rectángulo es un objeto físico, que es lo que una hoja de portón es: un paño
+ * con canto, que pesa y que hay que poder abrir. Además es lo que separa de un
+ * vistazo el portón de la puerta sin leer la etiqueta: dos rectángulos que se
+ * juntan en medio del vano, o uno solo que lo cruza entero.
  */
 function hoja(
   g: CanvasRenderingContext2D,
@@ -429,10 +436,19 @@ function hoja(
   hasta: number,
   w: number,
 ) {
+  /* El paño se dibuja en su propio sistema girado: así el rectángulo se escribe
+     recto y no hay que rotar cuatro vértices a mano. */
+  const grosor = Math.max(5, w * 2.4)
+  g.save()
+  g.translate(cx, 0)
+  g.rotate(hasta)
+  g.lineWidth = Math.max(1, w * 0.55)
+  /* Esquinas en pico y no redondeadas: un canto de paño es un canto. */
+  g.lineJoin = "miter"
   g.beginPath()
-  g.moveTo(cx, 0)
-  g.lineTo(cx + Math.cos(hasta) * radio, Math.sin(hasta) * radio)
+  g.rect(0, -grosor / 2, radio, grosor)
   g.stroke()
+  g.restore()
 
   g.save()
   g.lineWidth = Math.max(1, w * 0.6)
@@ -506,17 +522,21 @@ export function drawMolde(
     /* Dos hojas, cada una la mitad del vano. El vano queda VACÍO a propósito:
        un portón es el hueco de la cerca, y taparlo con una línea sería dibujar
        precisamente lo que no hay. */
-    poste(g, 0, 0, w * 1.4)
-    poste(g, length, 0, w * 1.4)
+    /* Las jambas de un portón se pintan más gordas que las de una puerta: son
+       las que aguantan un paño por el que entra un carro, y en el terreno son
+       otro poste. Que el par de puntos gordos se vea de lejos es media lectura
+       del símbolo antes de mirar las hojas. */
+    poste(g, 0, 0, w * 1.8)
+    poste(g, length, 0, w * 1.8)
     hoja(g, 0, length / 2, 0, APERTURA, w)
     hoja(g, length, length / 2, Math.PI, Math.PI - APERTURA, w)
   }
 
   if (id === "puerta") {
-    /* Una sola hoja, del ancho entero del vano: es la diferencia dibujada
-       entre «PRTA» y «PRTON» de la tabla de materiales. */
-    poste(g, 0, 0, w * 1.4)
-    poste(g, length, 0, w * 1.4)
+    /* Una sola hoja, del ancho entero del vano, y jambas finas: es la
+       diferencia dibujada entre «PRTA» y «PRTON» de la tabla de materiales. */
+    poste(g, 0, 0, w * 1.3)
+    poste(g, length, 0, w * 1.3)
     hoja(g, 0, length, 0, APERTURA, w)
   }
 
