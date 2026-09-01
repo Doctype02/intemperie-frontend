@@ -313,6 +313,107 @@ function tramo(
 }
 
 /**
+ * Media altura de la banda de un tramo con material declarado.
+ *
+ * Los dos tramos con textura no se dibujan como una raya sino como una BANDA,
+ * porque es dentro de ella donde cabe la textura que los distingue. Crece con
+ * el grosor del trazo por lo mismo que el poste: a trazo fino una banda de dos
+ * píxeles se cierra sola y las dos texturas acaban siendo la misma mancha.
+ */
+const bandaMedia = (w: number) => Math.max(5, w * 2.5)
+
+/**
+ * Un tramo de cerca de PVC de listones, desde el origen hacia +x.
+ *
+ * Visto desde arriba —y este plano es de situación, se mira desde arriba— una
+ * cerca de listones y una malla son las dos una línea: la diferencia real está
+ * en el alzado. Así que la diferencia aquí es SIMBÓLICA y está copiada del
+ * alzado que el sistema ya dibuja en `.diagram-picket`: dos rieles corridos y
+ * los listones verticales entre ellos, anchos y con hueco estrecho. Que sea la
+ * misma firma que la del catálogo no es coquetería: el inspector ve esa textura
+ * en la ficha del producto y la reconoce en el plano sin que nadie se la
+ * explique.
+ *
+ * Frente a la malla, esta textura es de trazo GORDO y poco tupida. Ese contraste
+ * de peso es lo que hace que las dos se distingan de lejos y fotocopiadas, que
+ * es como se leen en la obra.
+ */
+function listones(g: CanvasRenderingContext2D, length: number, w: number) {
+  const h = bandaMedia(w)
+
+  /* Los dos rieles. Son el borde del panel, y corridos de punta a punta:
+     en `.diagram-picket` los rieles son lo único que no se interrumpe. */
+  g.beginPath()
+  g.moveTo(0, -h)
+  g.lineTo(length, -h)
+  g.moveTo(0, h)
+  g.lineTo(length, h)
+  g.stroke()
+
+  /* Los listones. El paso sigue a la altura de la banda para que la proporción
+     del listón no cambie con el grosor: si el paso fuera fijo, a trazo gordo
+     los listones se tocarían y la banda saldría maciza. */
+  const paso = Math.max(8, h * 1.6)
+  g.save()
+  g.lineWidth = Math.max(1.5, w * 1.2)
+  g.lineCap = "butt"
+  for (let d = paso / 2; d < length; d += paso) {
+    g.beginPath()
+    g.moveTo(d, -h)
+    g.lineTo(d, h)
+    g.stroke()
+  }
+  g.restore()
+
+  poste(g, 0, 0, w)
+  poste(g, length, 0, w)
+}
+
+/**
+ * Un tramo de malla electrosoldada, desde el origen hacia +x.
+ *
+ * Copiado de `.diagram-mesh`, que es como el catálogo dibuja una malla cuando no
+ * hay fotografía: la retícula fina entre dos postes marcados. Los dos rasgos que
+ * la separan de los listones son los del alzado y se mantienen aquí a propósito
+ * —retícula en las DOS direcciones, y trazo fino y tupido frente al listón gordo
+ * y espaciado—, y además los postes de los extremos se pintan más gordos que los
+ * de un tramo cualquiera, que en `.diagram-mesh` son las dos barras que enmarcan
+ * el paño.
+ */
+function malla(g: CanvasRenderingContext2D, length: number, w: number) {
+  const h = bandaMedia(w)
+  const paso = Math.max(6, h * 1.2)
+
+  g.save()
+  /* Fina a propósito: en `.diagram-mesh` el hilo ocupa 2 px de cada 16. Una
+     retícula a trazo grueso se empasta y deja de leerse como retícula. */
+  g.lineWidth = Math.max(1, w * 0.55)
+  g.lineCap = "butt"
+
+  /* Los hilos verticales, y siempre uno justo en el extremo: un paño que se
+     corta a media celda parece un tramo mal terminado, no una malla. */
+  g.beginPath()
+  for (let d = 0; d < length; d += paso) {
+    g.moveTo(d, -h)
+    g.lineTo(d, h)
+  }
+  g.moveTo(length, -h)
+  g.lineTo(length, h)
+
+  /* Los tres hilos horizontales. Dos filas de celda son el mínimo para que se
+     lea «retícula» y no «escalera»: con una sola fila esto sería un listón. */
+  for (const y of [-h, 0, h]) {
+    g.moveTo(0, y)
+    g.lineTo(length, y)
+  }
+  g.stroke()
+  g.restore()
+
+  poste(g, 0, 0, w * 1.5)
+  poste(g, length, 0, w * 1.5)
+}
+
+/**
  * Una hoja de portón con su arco de apertura.
  *
  * El arco no es decoración: dice hacia dónde barre la hoja al abrirse, que es
@@ -377,6 +478,14 @@ export function drawMolde(
 
   if (id === "tramo") {
     tramo(g, length, w, { inicio: true, fin: true })
+  }
+
+  if (id === "listones") {
+    listones(g, length, w)
+  }
+
+  if (id === "malla") {
+    malla(g, length, w)
   }
 
   if (id === "esquina") {
