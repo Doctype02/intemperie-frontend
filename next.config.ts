@@ -105,6 +105,32 @@ const nextConfig: NextConfig = {
         { key: "X-Frame-Options", value: "SAMEORIGIN" },
       ],
     },
+    {
+      /* CADA DESPLIEGUE TARDABA UNA CARGA EXTRA EN VERSE.
+       *
+       * Las paginas con `revalidate` emiten
+       * `s-maxage=3600, stale-while-revalidate=31532400`. Ese segundo numero son
+       * 365 dias: el navegador puede servir la copia guardada durante un ano
+       * mientras revalida por detras. Efecto practico: quien ya habia visitado
+       * el sitio veia la version ANTERIOR despues de desplegar, y la nueva solo
+       * en la segunda carga. Costo varias vueltas de «no veo los cambios» que no
+       * eran del despliegue sino de esto.
+       *
+       * `max-age=0, must-revalidate` obliga a preguntar antes de reutilizar. No
+       * es lento: la respuesta normal es un 304 vacio. La cache de ruta de Next
+       * no se toca —es interna y sigue sirviendo la pagina prerenderizada sin
+       * recalcularla—; lo unico que cambia es que el navegador deja de ensenar
+       * una copia vieja sin preguntar.
+       *
+       * Se excluyen `_next` y `api`: los activos de `_next/static` llevan hash en
+       * el nombre y deben cachearse un ano. Por el mismo motivo NO se toca
+       * `_next/image`, que ya se intento una vez y congelaba las respuestas de
+       * error del optimizador (ver la nota de debajo). */
+      source: "/((?!_next|api).*)",
+      headers: [
+        { key: "Cache-Control", value: "public, max-age=0, must-revalidate" },
+      ],
+    },
     // NOTA: se eliminó el override `Cache-Control: immutable` sobre /_next/image.
     // Esa regla se aplicaba también a las respuestas de error del optimizador
     // (400/404/500 cuando el origen remoto falla), congelando el fallo un año en
