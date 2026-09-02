@@ -1083,14 +1083,19 @@ export default function InspeccionesPage() {
         {/* El tope de ancho va atado al mismo alto que el lienzo (72svh) y a su
               relacion 59:21. Estaba en 60svh mientras el lienzo decia 72: el
               contenedor lo estrangulaba y subir el alto no ensanchaba nada. */}
-          <div className="relative mt-4 w-full max-w-[calc(72svh*59/21)]">
+          {/* Sin tope de ancho: el lienzo es la superficie de trabajo y en esta
+              columna tiene todo el que hay. El tope existia para que no se
+              estirara mas alla de su relacion 59:21, pero eso ya lo resuelve el
+              propio `aspect` del elemento; lo unico que conseguia era dejar aire
+              muerto a su derecha en pantallas anchas. */}
+          <div className="relative mt-4 w-full">
           <canvas
             ref={canvasRef}
             width={1180}
             height={420}
             aria-label="Plano del terreno, para dibujar a mano alzada"
             aria-describedby={`${planoAyudaId} ${planoAlternativaId}`}
-            className="block max-h-[72svh] min-h-[26rem] w-full touch-none rounded-xl border-2 border-border-strong bg-plan-paper shadow-sm"
+            className="block aspect-[59/21] max-h-[76svh] min-h-[30rem] w-full touch-none rounded-xl border-2 border-border-strong bg-plan-paper shadow-sm"
             style={{ cursor: activeTool === "eraser" ? "cell" : activeTool === "text" ? "text" : "crosshair" }}
           >
             Aquí se dibuja a mano alzada el contorno del terreno que se va a cercar.
@@ -1169,7 +1174,11 @@ export default function InspeccionesPage() {
               la derecha de cada campo. En dos columnas son tres filas. Desde
               `lg` la ficha vuelve a ser una columna estrecha al lado del plano
               y los campos vuelven a apilarse, que es lo que cabe. */}
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+          {/* Dos columnas tambien en la barra lateral desde `xl`. Seis campos en
+              una sola columna estiraban la tarjeta muy por debajo del lienzo y
+              dejaban la mitad derecha en blanco. El aire baja de 3 a 2.5: siguen
+              siendo campos de 44 px, que es lo que se toca con el pulgar. */}
+          <div className="mt-4 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
             {DATOS.map((f) => (
               <p key={f.id}>
                 <label htmlFor={`v-${f.id}`} className="mb-1 block text-xs font-semibold text-foreground">
