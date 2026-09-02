@@ -99,6 +99,22 @@ type Tool = TrazoTool | MoldeId;
    del sitio usa el tope de `.shell` (80rem) porque son paginas de lectura y una
    linea de texto muy larga se lee peor; esta no lo es: es un banco de trabajo
    con un plano y un formulario al lado, y ahi el ancho es superficie util. */
+/* Los once moldes, agrupados por lo que hacen en el plano.
+ *
+ * Sueltos en una sola tira se leian como un amasijo: once botones envolviendo
+ * en dos filas sin decir por que unos van antes que otros. Agrupados, la
+ * botonera se explica sola —un tramo se estira, una union articula, un punto se
+ * clava— y quien busca «donde pongo el porton» sabe en que fila mirar.
+ *
+ * Los ids se declaran aqui y no en `moldes.ts` a proposito: aquel modulo dibuja
+ * y no debe opinar sobre como se agrupa la interfaz. Una pieza que no aparezca
+ * en ninguna familia sencillamente no se pinta, y eso se ve al instante. */
+const FAMILIAS: { titulo: string; ids: string[] }[] = [
+  { titulo: "Tramos", ids: ["tramo", "listones", "malla"] },
+  { titulo: "Uniones", ids: ["esquina", "derivacion", "tope"] },
+  { titulo: "Puntos", ids: ["porton", "puerta", "cerradura", "poste", "solar"] },
+]
+
 const MEDIDA = "shell max-w-[100rem]";
 
 /* ══ PALETA DEL PLANO ════════════════════════════════════════
@@ -926,24 +942,38 @@ export default function InspeccionesPage() {
                 dibujas a mano o colocas una pieza—. */}
             <div className="border-t border-border pt-3">
               <div className="-mx-3 overflow-x-auto px-3 py-1 -my-1 scrollbar-hide sm:mx-0 sm:my-0 sm:overflow-visible sm:px-0 sm:py-0">
-              <div className="flex w-max items-center gap-2 sm:w-auto sm:flex-wrap" role="group" aria-label="Moldes de cerca">
-                {MOLDES.map(m => (
-                  <Button
-                    key={m.id}
-                    type="button"
-                    variant={activeTool === m.id ? "default" : "outline"}
-                    aria-pressed={activeTool === m.id}
-                    title={m.hint}
-                    onClick={() => setActiveTool(m.id)}
-                    className="h-auto flex-col gap-1 px-2.5 py-2 text-xs"
-                  >
-                    <MoldeIcon id={m.id} />
-                    {m.label}
-                    {/* El dibujo de la miniatura es `aria-hidden`: lo que la
-                        pieza es y cómo se coloca sólo existe como texto aquí. */}
-                    <span className="sr-only"> — {m.hint}</span>
-                  </Button>
-                ))}
+              <div className="flex w-max flex-col gap-2.5 sm:w-auto">
+                {FAMILIAS.map(fam => {
+                  const piezas = MOLDES.filter(m => fam.ids.includes(m.id))
+                  if (!piezas.length) return null
+                  return (
+                    <div key={fam.titulo} className="flex items-start gap-3">
+                      {/* El rotulo va al lado y no encima: once piezas en una sola tira se
+                          leian como un amasijo, y tres rotulos apilados habrian sumado tres
+                          lineas de alto a una botonera que ya pesaba mas que la hoja. */}
+                      <span className="eyebrow w-16 shrink-0 pt-2 text-muted-foreground">
+                        {fam.titulo}
+                      </span>
+                      <div className="flex flex-wrap items-center gap-2" role="group" aria-label={`Moldes: ${fam.titulo}`}>
+                        {piezas.map(m => (
+                          <Button
+                            key={m.id}
+                            type="button"
+                            variant={activeTool === m.id ? "default" : "outline"}
+                            aria-pressed={activeTool === m.id}
+                            title={m.hint}
+                            onClick={() => setActiveTool(m.id)}
+                            className="h-auto flex-col gap-1 px-2.5 py-2 text-xs"
+                          >
+                            <MoldeIcon id={m.id} />
+                            {m.label}
+                            <span className="sr-only"> — {m.hint}</span>
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
               </div>
               <p className="mt-2 max-w-2xl text-xs text-muted-foreground">
