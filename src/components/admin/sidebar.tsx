@@ -12,6 +12,7 @@ import {
   FileText,
   FolderTree,
   Layers,
+  ClipboardList,
   LogOut,
   ChevronLeft,
 } from "lucide-react";
@@ -46,6 +47,12 @@ import { Button } from "@/components/ui/button";
 const navItems = [
   { href: "/admin", label: "Tablero", icon: LayoutDashboard },
   { href: "/admin/pedidos", label: "Pedidos", icon: ShoppingBag },
+  /* La ficha de inspección vivía escondida dentro de `/inspecciones`, tras una
+     banda ámbar y un botón de «Ver la hoja interna», en la misma pantalla que
+     la solicitud del cliente. Ahora es una sección del panel como cualquier
+     otra, y va junto a Pedidos porque es trabajo de campo —lo que se levanta
+     en un terreno— y no catálogo. */
+  { href: "/admin/inspecciones", label: "Inspecciones", icon: ClipboardList },
   { href: "/admin/productos", label: "Productos", icon: Package },
   { href: "/admin/categorias", label: "Categorías", icon: FolderTree },
   { href: "/admin/colecciones", label: "Colecciones", icon: Layers },

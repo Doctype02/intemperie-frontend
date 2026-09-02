@@ -2,11 +2,15 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 
-/* `/inspecciones` es la herramienta de campo del inspector: lleva la tabla
-   de materiales de la empresa —cemento, postes, tapas, cerraduras— y las
-   firmas del cliente y del vendedor. Estaba abierta sin sesion, y ademas
-   anunciada en el menu, en el pie y en el sitemap: se le ofrecia al publico
-   y a los buscadores. No es una pagina de tienda. */
+/* `/inspecciones` pide sesion. El motivo original —llevaba la tabla de
+   materiales de la empresa y las firmas— ya no aplica: ese papeleo se mudo a
+   `/admin/inspecciones` y la pantalla publica es hoy solo la solicitud del
+   cliente. La proteccion SE MANTIENE, y por dos razones que siguen en pie:
+   la ficha se rellena sola con el nombre, el telefono y el correo de la
+   sesion, y una solicitud de inspeccion es un dato de contacto de una persona
+   con una direccion de su casa detras. Abrirla al publico anonimo es una
+   decision de producto, no una limpieza de esta refactorizacion, asi que se
+   deja como estaba y se anota en el informe. */
 const protectedPaths = ["/cuenta", "/admin", "/inspecciones"];
 const adminPaths = ["/admin"];
 
