@@ -99,6 +99,22 @@ type Tool = TrazoTool | MoldeId;
    del sitio usa el tope de `.shell` (80rem) porque son paginas de lectura y una
    linea de texto muy larga se lee peor; esta no lo es: es un banco de trabajo
    con un plano y un formulario al lado, y ahi el ancho es superficie util. */
+/* Los once moldes, agrupados por lo que hacen en el plano.
+ *
+ * Sueltos en una sola tira se leian como un amasijo: once botones envolviendo
+ * en dos filas sin decir por que unos van antes que otros. Agrupados, la
+ * botonera se explica sola —un tramo se estira, una union articula, un punto se
+ * clava— y quien busca «donde pongo el porton» sabe en que fila mirar.
+ *
+ * Los ids se declaran aqui y no en `moldes.ts` a proposito: aquel modulo dibuja
+ * y no debe opinar sobre como se agrupa la interfaz. Una pieza que no aparezca
+ * en ninguna familia sencillamente no se pinta, y eso se ve al instante. */
+const FAMILIAS: { titulo: string; ids: string[] }[] = [
+  { titulo: "Tramos", ids: ["tramo", "listones", "malla"] },
+  { titulo: "Uniones", ids: ["esquina", "derivacion", "tope"] },
+  { titulo: "Puntos", ids: ["porton", "puerta", "cerradura", "poste", "solar"] },
+]
+
 const MEDIDA = "shell max-w-[100rem]";
 
 /* ══ PALETA DEL PLANO ════════════════════════════════════════
@@ -779,19 +795,44 @@ export default function InspeccionesPage() {
           Antes eran tres líneas de texto y nada más; el orden de la pantalla
           había que adivinarlo bajando. La tira de pasos lo dice de entrada y
           en una sola línea desde `sm`: es un mapa, no un menú, así que no es
-          navegable —no lleva a ningún sitio— sino una lista ordenada. */}
+          navegable —no lleva a ningún sitio— sino una lista ordenada.
+
+          ── Por qué es una banda y no un bloque ───────────────────────────
+          Esto es una herramienta de trabajo, no una página de contenido: la
+          cabecera es el rótulo de la máquina, no su portada. Apilada
+          —antetítulo, título, entrada y debajo los tres pasos— medía 278 px
+          en 1440 y los gastaba en la mitad izquierda: de x≈700 a x≈1400 no
+          había absolutamente nada, y el lienzo, que es a lo que se viene,
+          arrancaba en y=966, o sea fuera del primer viewport de un portátil.
+
+          Repartida a lo ancho —el rótulo a la izquierda, el mapa de pasos a
+          la derecha, en la MISMA banda— ocupa el hueco que ya estaba vacío en
+          vez de pedir alto nuevo. No se quita ni una palabra: se deja de
+          apilar lo que cabía al lado.
+
+          El relleno pasa de `py-section-sm` (3,5rem arriba y abajo en
+          escritorio) a un valor corto y propio: el ritmo de sección es para
+          separar secciones de una página que se lee, y aquí lo único que
+          separa es el rótulo del banco de trabajo. */}
       <div className="border-b border-border bg-surface">
-        <div className={`${MEDIDA} py-section-sm`}>
-          <p className="eyebrow text-brand-green">{CABECERA.antetitulo}</p>
-          <h1 className="mt-2 text-3xl font-bold text-foreground">{CABECERA.titulo}</h1>
-          <p className="mt-2 max-w-2xl text-base text-muted-foreground">{CABECERA.entrada}</p>
+        <div className={`${MEDIDA} flex flex-col gap-4 py-4 lg:flex-row lg:items-center lg:justify-between lg:gap-10 lg:py-5`}>
+          <div className="min-w-0">
+            <p className="eyebrow text-brand-green">{CABECERA.antetitulo}</p>
+            {/* De `text-3xl` a `text-2xl`: 30 px de titular son de portada. En
+                una herramienta el titular sólo tiene que decir en qué pantalla
+                estás, y compite con el lienzo si grita más que él. */}
+            <h1 className="mt-1 text-2xl font-bold text-foreground">{CABECERA.titulo}</h1>
+            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{CABECERA.entrada}</p>
+          </div>
 
           <h2 id={pasosId} className="sr-only">Cómo funciona</h2>
           {/* Apilada ocupaba 110 px de un teléfono para decir tres palabras.
               En una línea, y rodando si no cabe, ocupa 28 y se lee igual: es
-              un mapa de tres paradas, no una lista que haya que leer entera. */}
-          <div className="-mx-gutter mt-5 overflow-x-auto px-gutter scrollbar-hide sm:mx-0 sm:overflow-visible sm:px-0">
-            <ol aria-labelledby={pasosId} className="flex w-max items-center gap-x-1 sm:w-auto sm:flex-wrap">
+              un mapa de tres paradas, no una lista que haya que leer entera.
+              Desde `lg` deja de rodar y se ancla a la derecha de la banda, que
+              es el ancho que sobraba. */}
+          <div className="-mx-gutter overflow-x-auto px-gutter scrollbar-hide lg:mx-0 lg:shrink-0 lg:overflow-visible lg:px-0">
+            <ol aria-labelledby={pasosId} className="flex w-max items-center gap-x-1 lg:w-auto">
               {PASOS.map((paso, i) => (
                 <li key={paso} className="flex items-center gap-2.5">
                   <NumeroPaso n={i + 1} tono={i === 0 ? "activo" : "apagado"} />
@@ -901,24 +942,38 @@ export default function InspeccionesPage() {
                 dibujas a mano o colocas una pieza—. */}
             <div className="border-t border-border pt-3">
               <div className="-mx-3 overflow-x-auto px-3 py-1 -my-1 scrollbar-hide sm:mx-0 sm:my-0 sm:overflow-visible sm:px-0 sm:py-0">
-              <div className="flex w-max items-center gap-2 sm:w-auto sm:flex-wrap" role="group" aria-label="Moldes de cerca">
-                {MOLDES.map(m => (
-                  <Button
-                    key={m.id}
-                    type="button"
-                    variant={activeTool === m.id ? "default" : "outline"}
-                    aria-pressed={activeTool === m.id}
-                    title={m.hint}
-                    onClick={() => setActiveTool(m.id)}
-                    className="h-auto flex-col gap-1 px-2.5 py-2 text-xs"
-                  >
-                    <MoldeIcon id={m.id} />
-                    {m.label}
-                    {/* El dibujo de la miniatura es `aria-hidden`: lo que la
-                        pieza es y cómo se coloca sólo existe como texto aquí. */}
-                    <span className="sr-only"> — {m.hint}</span>
-                  </Button>
-                ))}
+              <div className="flex w-max flex-col gap-2.5 sm:w-auto">
+                {FAMILIAS.map(fam => {
+                  const piezas = MOLDES.filter(m => fam.ids.includes(m.id))
+                  if (!piezas.length) return null
+                  return (
+                    <div key={fam.titulo} className="flex items-start gap-3">
+                      {/* El rotulo va al lado y no encima: once piezas en una sola tira se
+                          leian como un amasijo, y tres rotulos apilados habrian sumado tres
+                          lineas de alto a una botonera que ya pesaba mas que la hoja. */}
+                      <span className="eyebrow w-16 shrink-0 pt-2 text-muted-foreground">
+                        {fam.titulo}
+                      </span>
+                      <div className="flex flex-wrap items-center gap-2" role="group" aria-label={`Moldes: ${fam.titulo}`}>
+                        {piezas.map(m => (
+                          <Button
+                            key={m.id}
+                            type="button"
+                            variant={activeTool === m.id ? "default" : "outline"}
+                            aria-pressed={activeTool === m.id}
+                            title={m.hint}
+                            onClick={() => setActiveTool(m.id)}
+                            className="h-auto flex-col gap-1 px-2.5 py-2 text-xs"
+                          >
+                            <MoldeIcon id={m.id} />
+                            {m.label}
+                            <span className="sr-only"> — {m.hint}</span>
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
               </div>
               <p className="mt-2 max-w-2xl text-xs text-muted-foreground">
@@ -1028,14 +1083,19 @@ export default function InspeccionesPage() {
         {/* El tope de ancho va atado al mismo alto que el lienzo (72svh) y a su
               relacion 59:21. Estaba en 60svh mientras el lienzo decia 72: el
               contenedor lo estrangulaba y subir el alto no ensanchaba nada. */}
-          <div className="relative mt-4 w-full max-w-[calc(72svh*59/21)]">
+          {/* Sin tope de ancho: el lienzo es la superficie de trabajo y en esta
+              columna tiene todo el que hay. El tope existia para que no se
+              estirara mas alla de su relacion 59:21, pero eso ya lo resuelve el
+              propio `aspect` del elemento; lo unico que conseguia era dejar aire
+              muerto a su derecha en pantallas anchas. */}
+          <div className="relative mt-4 w-full">
           <canvas
             ref={canvasRef}
             width={1180}
             height={420}
             aria-label="Plano del terreno, para dibujar a mano alzada"
             aria-describedby={`${planoAyudaId} ${planoAlternativaId}`}
-            className="block max-h-[72svh] min-h-[26rem] w-full touch-none rounded-xl border-2 border-border-strong bg-plan-paper shadow-sm"
+            className="block aspect-[59/21] max-h-[76svh] min-h-[30rem] w-full touch-none rounded-xl border-2 border-border-strong bg-plan-paper shadow-sm"
             style={{ cursor: activeTool === "eraser" ? "cell" : activeTool === "text" ? "text" : "crosshair" }}
           >
             Aquí se dibuja a mano alzada el contorno del terreno que se va a cercar.
@@ -1114,7 +1174,11 @@ export default function InspeccionesPage() {
               la derecha de cada campo. En dos columnas son tres filas. Desde
               `lg` la ficha vuelve a ser una columna estrecha al lado del plano
               y los campos vuelven a apilarse, que es lo que cabe. */}
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+          {/* Dos columnas tambien en la barra lateral desde `xl`. Seis campos en
+              una sola columna estiraban la tarjeta muy por debajo del lienzo y
+              dejaban la mitad derecha en blanco. El aire baja de 3 a 2.5: siguen
+              siendo campos de 44 px, que es lo que se toca con el pulgar. */}
+          <div className="mt-4 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
             {DATOS.map((f) => (
               <p key={f.id}>
                 <label htmlFor={`v-${f.id}`} className="mb-1 block text-xs font-semibold text-foreground">
