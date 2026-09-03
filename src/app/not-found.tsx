@@ -1,32 +1,34 @@
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
-import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function NotFound() {
   return (
     <>
       <Header />
-      <main id="main-content" className="flex-1 flex flex-col items-center justify-center bg-white px-4 py-24">
-        <div className="text-center max-w-md">
-          <p className="text-[120px] font-black leading-none text-green-600/10 select-none">404</p>
-          <h1 className="text-2xl font-black text-gray-900 mb-2 -mt-4">Página no encontrada</h1>
-          <p className="text-gray-500 text-sm mb-8 max-w-xs mx-auto">
+      <main
+        id="main-content"
+        className="flex flex-1 flex-col items-center justify-center bg-background px-gutter py-24"
+      >
+        <div className="max-w-md text-center">
+          <p aria-hidden="true" className="text-[120px] leading-none font-bold text-brand-green-soft select-none">
+            404
+          </p>
+          <h1 className="mt-2 text-2xl font-bold text-foreground">Página no encontrada</h1>
+          <p className="mx-auto mt-2 max-w-xs text-sm text-muted-foreground">
             Lo sentimos, la página que buscas no existe o fue movida a otra dirección.
           </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link
-              href="/"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-green-700 px-6 py-3 text-sm font-bold text-white hover:bg-green-800 transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4" /> Volver al inicio
-            </Link>
-            <Link
-              href="/productos"
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 px-6 py-3 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors"
-            >
-              Ver productos
-            </Link>
+          <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+            <Button asChild>
+              <Link href="/">
+                <ArrowLeft aria-hidden="true" /> Volver al inicio
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href="/productos">Ver productos</Link>
+            </Button>
           </div>
         </div>
       </main>

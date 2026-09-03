@@ -13,13 +13,13 @@ export function RecentlyViewedSection() {
   if (items.length === 0) return null;
 
   return (
-    <section className="bg-white border-b border-gray-100 py-8 sm:py-10">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+    <section className="border-b border-border bg-surface py-8 sm:py-10">
+      <div className="shell">
         <div className="mb-5">
-          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-green-700 mb-1">
+          <p className="eyebrow text-brand-green-deep mb-1">
             Tu historial
           </p>
-          <h2 className="text-xl sm:text-2xl font-black text-gray-900 leading-tight tracking-tight">
+          <h2 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
             Vistos recientemente
           </h2>
         </div>
@@ -31,7 +31,7 @@ export function RecentlyViewedSection() {
               href={`/productos/${product.slug}`}
               className="group flex-none w-[160px] sm:w-[180px] snap-start"
             >
-              <div className="relative aspect-square overflow-hidden rounded-xl bg-gray-100 border border-gray-100">
+              <div className="relative aspect-square overflow-hidden rounded-xl bg-surface-2 border border-border">
                 {product.imageUrl ? (
                   <Image
                     src={product.imageUrl}
@@ -43,18 +43,14 @@ export function RecentlyViewedSection() {
                     className="object-cover transition-transform duration-300 group-hover:scale-105"
                   />
                 ) : (
-                  <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
-                    <span className="text-2xl font-black text-gray-300">
-                      {product.name.charAt(0)}
-                    </span>
-                  </div>
+                  <span aria-hidden="true" className="diagram diagram-picket absolute inset-0" />
                 )}
               </div>
               <div className="mt-2 px-0.5">
-                <p className="text-xs font-bold text-gray-900 leading-snug line-clamp-2 group-hover:text-green-700 transition-colors">
+                <p className="text-xs font-bold text-foreground leading-snug line-clamp-2 group-hover:text-brand-green-deep transition-colors">
                   {product.name}
                 </p>
-                <p className="mt-0.5 text-xs text-gray-500">
+                <p className="mt-0.5 tabular text-xs text-muted-foreground">
                   ${Number(product.basePrice).toFixed(2)}{product.unit === "PANEL" ? "/panel" : "/m"}
                 </p>
               </div>

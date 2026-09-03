@@ -1,7 +1,8 @@
 "use client";
 
 // Reemplaza al layout raiz cuando el error ocurre en el, por eso debe
-// renderizar html/body y cargar sus propios estilos.
+// renderizar html/body y cargar sus propios estilos. Cuanto menos arbol,
+// mejor: aqui no se importa ni el componente Button.
 import "./globals.css";
 
 export default function GlobalError({
@@ -14,14 +15,14 @@ export default function GlobalError({
   return (
     <html lang="es">
       <body>
-        <main className="flex min-h-screen flex-col items-center justify-center bg-white px-4">
+        <main className="flex min-h-screen flex-col items-center justify-center bg-background px-4">
           <div className="text-center max-w-md">
-            <p className="text-7xl font-black text-red-500/20 mb-4">500</p>
-            <h1 className="text-2xl font-extrabold text-gray-900 mb-2">Algo salió mal</h1>
-            <p className="text-gray-500 mb-8">Ocurrió un error inesperado. Intenta de nuevo.</p>
+            <p className="text-7xl font-black text-destructive/20 mb-4">500</p>
+            <h1 className="text-2xl font-extrabold text-foreground mb-2">Algo salió mal</h1>
+            <p className="text-muted-foreground mb-8">Ocurrió un error inesperado. Intenta de nuevo.</p>
             <button
               onClick={reset}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-green-600 px-6 py-3 text-sm font-bold text-white hover:bg-green-700 transition-colors"
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-primary px-6 font-heading text-sm font-bold text-primary-foreground transition-colors hover:bg-brand-green-deep"
             >
               Reintentar
             </button>
