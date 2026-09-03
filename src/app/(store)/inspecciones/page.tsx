@@ -131,10 +131,10 @@ export default function InspeccionesPage() {
         <div className={`${MEDIDA} flex flex-col gap-4 py-4 lg:flex-row lg:items-center lg:justify-between lg:gap-10 lg:py-5`}>
           <div className="min-w-0">
             <p className="eyebrow text-brand-green">Inspección en sitio</p>
-            {/* `text-2xl` y no `text-3xl`: 30 px de titular son de portada. En
-                una herramienta el titular sólo tiene que decir en qué pantalla
-                estás, y compite con el lienzo si grita más que él. */}
-            <h1 className="mt-1 text-2xl font-bold text-foreground">Solicitar inspección</h1>
+            {/* `text-2xl` en móvil, `text-3xl` sólo desde `sm:` (escala del
+                sistema): en pantalla estrecha el titular no debe competir con
+                el lienzo; con más ancho ya hay sitio para ambos. */}
+            <h1 className="mt-1 text-2xl font-bold text-foreground sm:text-3xl">Solicitar inspección</h1>
             <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
               Dibuja el contorno de tu propiedad y déjanos cómo localizarte. Un
               inspector de Intemperie levanta el plano en sitio.

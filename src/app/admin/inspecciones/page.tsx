@@ -208,7 +208,7 @@ export default function AdminInspeccionesPage() {
               <Lock className="size-3.5" aria-hidden="true" />
               Administración · inspección en sitio
             </p>
-            <h1 className="mt-1 text-2xl font-bold text-foreground">Ficha de inspección</h1>
+            <h1 className="mt-1 text-2xl font-bold text-foreground sm:text-3xl">Ficha de inspección</h1>
             <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
               Levanta el plano del terreno, anota los datos del cliente y los
               materiales, recoge las firmas y genera el informe para imprimir.
