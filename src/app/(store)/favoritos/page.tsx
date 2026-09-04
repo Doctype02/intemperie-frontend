@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Heart, ShoppingCart, ArrowRight, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/shared/empty-state";
 import { useWishlist } from "@/lib/hooks/use-wishlist";
 import { useCartStore } from "@/lib/store/cart-store";
 import { toast } from "sonner";
@@ -32,7 +33,7 @@ export default function FavoritosPage() {
 
   if (!ready) {
     return (
-      <main className="flex-1">
+      <div id="main-content" tabIndex={-1} className="flex-1 outline-none">
         <div className="shell py-section-sm">
           <p className="sr-only" role="status">Cargando tus favoritos…</p>
           <div className="animate-pulse" aria-hidden="true">
@@ -51,27 +52,22 @@ export default function FavoritosPage() {
             </div>
           </div>
         </div>
-      </main>
+      </div>
     );
   }
 
   if (items.length === 0) {
     return (
-      <main className="flex flex-1 items-center justify-center py-section">
+      <div id="main-content" tabIndex={-1} className="flex flex-1 items-center justify-center py-section outline-none">
         {/* Un vacío sin salida es un callejón. Las dos salidas son las dos cosas
             que se pueden hacer antes de elegir producto: ver el catálogo o
             medir cuánta cerca hace falta. */}
-        <div className="shell max-w-sm text-center">
-          <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-surface-2">
-            <Heart className="h-9 w-9 text-muted-foreground" aria-hidden="true" />
-          </div>
-          <h1 className="font-heading text-xl font-bold text-foreground">
-            Todavía no has guardado nada
-          </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Toca el corazón en cualquier producto y lo tendrás aquí para compararlo con calma.
-          </p>
-          <div className="mt-6 space-y-3">
+        <div className="shell max-w-lg py-section">
+          <EmptyState
+            icon={<Heart className="size-9 text-muted-foreground" aria-hidden="true" />}
+            title="Todavía no has guardado nada"
+            body="Toca el corazón en cualquier producto y lo tendrás aquí para compararlo con calma."
+          >
             <Button size="block" asChild>
               <Link href="/productos">
                 Ver el catálogo <ArrowRight className="ml-1.5 h-4 w-4" aria-hidden="true" />
@@ -80,14 +76,14 @@ export default function FavoritosPage() {
             <Button variant="outline" size="block" asChild>
               <Link href="/calculadora">Calcular cuántos metros necesito</Link>
             </Button>
-          </div>
+          </EmptyState>
         </div>
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="flex-1">
+    <div id="main-content" tabIndex={-1} className="flex-1 outline-none">
       <div className="shell py-section-sm">
         <div className="mb-6 flex items-end justify-between gap-4">
           <div>
@@ -208,6 +204,6 @@ export default function FavoritosPage() {
           ))}
         </ul>
       </div>
-    </main>
+    </div>
   );
 }

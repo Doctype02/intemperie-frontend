@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronRight, PackageCheck, ShieldCheck, Truck } from "lucide-react";
+import { PackageCheck, ShieldCheck, Truck } from "lucide-react";
+import { Breadcrumbs } from "@/components/shared/breadcrumbs";
 import { getAllProductSlugs, getProductBySlug } from "../../_data/catalog";
 import { ProductGallery } from "@/components/products/product-gallery";
 import { ProductPurchasePanel } from "./product-detail-client";
@@ -166,30 +166,19 @@ export default async function ProductDetailPage({
       {/* El layout de la tienda ya aporta el <main>; aquí sólo el destino del
           enlace «saltar al contenido». */}
       <div id="main-content" tabIndex={-1} className="bg-background outline-none">
-        <div className="mx-auto max-w-7xl px-4 pt-4 pb-28 sm:px-6 lg:pt-6 lg:pb-14">
-          <nav aria-label="Ruta de navegación" className="mb-4 hidden sm:block">
-            <ol className="flex items-center gap-1 text-xs text-muted-foreground">
-              <li>
-                <Link href="/" className="hover:text-brand-green-deep">
-                  Inicio
-                </Link>
-              </li>
-              <ChevronRight className="size-3" aria-hidden="true" />
-              <li>
-                <Link href="/productos" className="hover:text-brand-green-deep">
-                  Productos
-                </Link>
-              </li>
-              <ChevronRight className="size-3" aria-hidden="true" />
-              <li className="truncate text-foreground" aria-current="page">
-                {product.name}
-              </li>
-            </ol>
-          </nav>
+        <div className="shell pt-4 pb-28 lg:pt-6 lg:pb-14">
+          <Breadcrumbs
+            className="mb-4"
+            items={[
+              { label: "Inicio", href: "/" },
+              { label: "Catálogo", href: "/productos" },
+              { label: product.name },
+            ]}
+          />
 
           <header className="max-w-3xl">
             {(product.collectionName || product.categoryName) && (
-              <p className="text-2xs font-semibold uppercase text-muted-foreground">
+              <p className="eyebrow text-muted-foreground">
                 {[product.collectionName, product.categoryName]
                   .filter(Boolean)
                   .join(" · ")}

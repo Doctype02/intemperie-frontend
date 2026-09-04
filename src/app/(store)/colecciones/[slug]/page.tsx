@@ -7,7 +7,8 @@ import {
 } from "../../_data/catalog";
 import { ProductGrid } from "@/components/products/product-grid";
 import { Button } from "@/components/ui/button";
-import { ChevronRight } from "lucide-react";
+import { EmptyState } from "@/components/shared/empty-state";
+import { PageHeader } from "@/components/shared/page-header";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -44,40 +45,45 @@ export default async function CollectionPage({ params }: Props) {
 
   if (!collection) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-20 text-center">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Colección no encontrada</h2>
-        <p className="text-gray-600 mb-6">La colección que buscas no existe.</p>
-        <Button asChild variant="outline">
-          <Link href="/productos">Ver todos los productos</Link>
-        </Button>
+      <div className="shell py-section">
+        <EmptyState
+          diagram="mesh"
+          title="Colección no encontrada"
+          body="La colección que buscas no existe."
+        >
+          <Button asChild variant="outline">
+            <Link href="/productos">Ver todos los productos</Link>
+          </Button>
+        </EmptyState>
       </div>
     );
   }
 
   return (
-    <div className="flex-1">
-      <div className="border-b bg-gray-50">
-        <div className="mx-auto max-w-7xl px-4 py-2.5">
-          <div className="flex items-center gap-1.5 text-[10px] md:text-xs text-gray-400">
-            <Link href="/" className="hover:text-green-600">Inicio</Link>
-            <ChevronRight className="h-3 w-3" />
-            <Link href="/productos" className="hover:text-green-600">Productos</Link>
-            <ChevronRight className="h-3 w-3" />
-            <span className="text-gray-700 font-medium">{collection.name}</span>
-          </div>
-        </div>
-      </div>
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-xl md:text-3xl font-bold text-gray-900">{collection.name}</h1>
+    <div className="pb-section-sm">
+      <PageHeader
+        crumbs={[
+          { label: "Inicio", href: "/" },
+          { label: "Catálogo", href: "/productos" },
+          { label: collection.name },
+        ]}
+        eyebrow="Línea de producto"
+        title={collection.name}
+        sub={
+          <>
+            <span className="tabular">{products.length}</span>{" "}
+            {products.length === 1 ? "modelo" : "modelos"} · precio de material
+            por metro; la instalación se cotiza aparte
+          </>
+        }
+      >
         {collection.description && (
-          <p className="text-gray-600 mt-2">{collection.description}</p>
+          <p className="mt-2 max-w-prose text-sm text-muted-foreground">
+            {collection.description}
+          </p>
         )}
-        <p className="text-sm text-gray-400 mt-1">
-          {products.length} {products.length === 1 ? "producto" : "productos"} encontrados
-        </p>
-      </div>
-
+      </PageHeader>
+      <div className="shell pt-5 sm:pt-6">
         <ProductGrid products={products} />
       </div>
     </div>
