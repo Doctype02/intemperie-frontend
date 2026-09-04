@@ -202,7 +202,8 @@ export async function prepareProductImage(
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = "high";
       // JPEG no tiene alfa: sin este relleno, un PNG transparente saldría con
-      // el fondo en negro.
+      // el fondo en negro. Fondo de exportación, no UI: este blanco forma
+      // parte del archivo generado y queda fuera de los tokens del tema.
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, targetWidth, targetHeight);
       ctx.drawImage(decoded.source, 0, 0, targetWidth, targetHeight);

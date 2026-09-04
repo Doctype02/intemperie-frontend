@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
@@ -33,7 +32,7 @@ export default function AdminContent() {
 
   useEffect(() => {
     getContentBlocks()
-      .then((r: any) => setBlocks(r || []))
+      .then((r) => setBlocks((r as ContentBlock[]) || []))
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
@@ -72,10 +71,10 @@ export default function AdminContent() {
 
   return (
     <div>
-      <h1 className="mb-8 text-2xl font-bold text-gray-900">Contenido CMS</h1>
+      <h1 className="mb-8 text-2xl font-bold text-foreground">Contenido CMS</h1>
 
       {loading ? (
-        <div className="space-y-3">{[1, 2, 3].map((i) => <div key={i} className="h-16 animate-pulse rounded-lg bg-gray-100" />)}</div>
+        <div className="space-y-3">{[1, 2, 3].map((i) => <div key={i} className="h-16 animate-pulse rounded-lg bg-surface-2" />)}</div>
       ) : (
         <div className="space-y-8">
           {Object.entries(groups).map(([section, sectionBlocks]) => (
@@ -83,26 +82,26 @@ export default function AdminContent() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg capitalize">
                   {section}
-                  <Badge className="bg-gray-100 text-gray-600">{sectionBlocks.length}</Badge>
+                  <Badge variant="spec">{sectionBlocks.length}</Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 {sectionBlocks.map((block) => (
                   <div key={block.id}>
                     <div
-                      className="flex items-start justify-between rounded-lg border p-4 cursor-pointer hover:border-green-300 transition-colors"
+                      className="flex items-start justify-between rounded-lg border border-border p-4 cursor-pointer hover:border-primary transition-colors"
                       onClick={() => openEdit(block)}
                     >
                       <div className="flex-1">
                         <div className="flex items-center gap-3">
                           <span className="text-sm font-medium">{block.title || "(sin título)"}</span>
-                          <Badge className={block.isActive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}>
+                          <Badge variant={block.isActive ? "secondary" : "ghost"}>
                             {block.isActive ? <Check className="mr-1 h-3 w-3" /> : <X className="mr-1 h-3 w-3" />}
                             {block.isActive ? "Activo" : "Inactivo"}
                           </Badge>
                         </div>
-                        {block.subtitle && <p className="mt-1 text-sm text-gray-500">{block.subtitle}</p>}
-                        {block.body && <p className="mt-1 text-sm text-gray-400 line-clamp-2">{block.body}</p>}
+                        {block.subtitle && <p className="mt-1 text-sm text-muted-foreground">{block.subtitle}</p>}
+                        {block.body && <p className="mt-1 text-sm text-muted-foreground line-clamp-2">{block.body}</p>}
                       </div>
                       <Button size="icon" variant="ghost" className="ml-4 shrink-0">
                         <Pencil className="h-4 w-4" />
@@ -110,7 +109,7 @@ export default function AdminContent() {
                     </div>
 
                     {selected === block.id && editing && (
-                      <div className="mt-3 rounded-lg border border-green-200 bg-green-50 p-4">
+                      <div className="mt-3 rounded-lg border border-brand-green/40 bg-brand-green-soft p-4">
                         <div className="grid grid-cols-2 gap-4">
                           <div>
                             <Label>Título</Label>
@@ -143,7 +142,7 @@ export default function AdminContent() {
                         </div>
                         <div className="mt-4 flex justify-end gap-3">
                           <Button variant="outline" onClick={() => { setSelected(null); setEditing(null); }}>Cancelar</Button>
-                          <Button className="bg-green-600 hover:bg-green-700" onClick={handleSave} disabled={saving}>
+                          <Button onClick={handleSave} disabled={saving}>
                             {saving ? "Guardando..." : "Guardar"}
                           </Button>
                         </div>

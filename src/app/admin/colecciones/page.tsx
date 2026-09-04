@@ -23,7 +23,7 @@ export default function AdminCollections() {
 
   const load = () => {
     getCollections()
-      .then((r: any) => setItems(r || []))
+      .then((r) => setItems((r as Collection[]) || []))
       .catch(console.error)
       .finally(() => setLoading(false));
   };
@@ -53,10 +53,10 @@ export default function AdminCollections() {
   return (
     <div>
       <div className="mb-8 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Colecciones</h1>
+        <h1 className="text-2xl font-bold text-foreground">Colecciones</h1>
         <Dialog open={dialogOpen} onOpenChange={(o) => { setDialogOpen(o); if (!o) reset(); }}>
           <DialogTrigger>
-            <Button className="bg-green-600 hover:bg-green-700" onClick={() => { reset(); setDialogOpen(true); }}>
+            <Button onClick={() => { reset(); setDialogOpen(true); }}>
               <Plus className="mr-2 h-4 w-4" /> Nueva colección
             </Button>
           </DialogTrigger>
@@ -69,7 +69,7 @@ export default function AdminCollections() {
             </div>
             <div className="flex justify-end gap-3">
               <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-              <Button className="bg-green-600 hover:bg-green-700" onClick={handleSave} disabled={saving}>
+              <Button onClick={handleSave} disabled={saving}>
                 {saving ? "Guardando..." : editing ? "Actualizar" : "Crear"}
               </Button>
             </div>
@@ -81,20 +81,20 @@ export default function AdminCollections() {
         <CardHeader><CardTitle className="text-lg">{items.length} colecciones</CardTitle></CardHeader>
         <CardContent>
           {loading ? (
-            <div className="space-y-3">{[1, 2, 3].map((i) => <div key={i} className="h-12 animate-pulse rounded bg-gray-100" />)}</div>
+            <div className="space-y-3">{[1, 2, 3].map((i) => <div key={i} className="h-12 animate-pulse rounded bg-surface-2" />)}</div>
           ) : (
             <table className="w-full text-sm">
-              <thead><tr className="border-b text-left text-gray-500"><th className="pb-3 font-medium">Nombre</th><th className="pb-3 font-medium">Slug</th><th className="pb-3 font-medium">Productos</th><th className="pb-3 text-right font-medium">Acciones</th></tr></thead>
+              <thead><tr className="border-b text-left text-muted-foreground"><th className="pb-3 font-medium">Nombre</th><th className="pb-3 font-medium">Slug</th><th className="pb-3 font-medium">Productos</th><th className="pb-3 text-right font-medium">Acciones</th></tr></thead>
               <tbody>
                 {items.map((c) => (
                   <tr key={c.id} className="border-b last:border-0">
                     <td className="py-3 font-medium">{c.name}</td>
-                    <td className="py-3 text-gray-500">{c.slug}</td>
+                    <td className="py-3 text-muted-foreground">{c.slug}</td>
                     <td className="py-3">{c._count?.products ?? 0}</td>
                     <td className="py-3">
                       <div className="flex justify-end gap-2">
                         <Button size="icon" variant="ghost" onClick={() => openEdit(c)}><Pencil className="h-4 w-4" /></Button>
-                        <Button size="icon" variant="ghost" className="text-red-500" onClick={() => handleDelete(c.id)}><Trash2 className="h-4 w-4" /></Button>
+                        <Button size="icon" variant="ghost" className="text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => handleDelete(c.id)}><Trash2 className="h-4 w-4" /></Button>
                       </div>
                     </td>
                   </tr>

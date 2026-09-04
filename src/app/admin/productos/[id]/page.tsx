@@ -150,7 +150,7 @@ export default function ProductEditor() {
     setSpecs(s => s.map((sp, idx) => idx === i ? { ...sp, [field]: val } : sp));
 
   if (loading) return (
-    <div className="flex items-center justify-center h-64 gap-2 text-gray-500">
+    <div className="flex items-center justify-center h-64 gap-2 text-muted-foreground">
       <Loader2 className="h-5 w-5 animate-spin" /> Cargando producto…
     </div>
   );
@@ -161,27 +161,28 @@ export default function ProductEditor() {
       <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-3">
           <Link href="/admin/productos">
-            <button className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition-colors">
+            <button className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
               <ArrowLeft className="h-4 w-4" /> Productos
             </button>
           </Link>
-          <ChevronRight className="h-4 w-4 text-gray-300" />
-          <span className="text-sm font-medium text-gray-700 truncate max-w-xs">
+          <ChevronRight className="h-4 w-4 text-border-strong" />
+          <span className="text-sm font-medium text-foreground truncate max-w-xs">
             {isNew ? "Nuevo producto" : (name || "Sin nombre")}
           </span>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsActive(v => !v)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+            aria-pressed={isActive}
+            className={`flex min-h-tap items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
               isActive
-                ? "bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
-                : "bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200"
+                ? "border-brand-green/40 bg-brand-green-soft text-brand-green-deep"
+                : "border-border bg-surface-2 text-muted-foreground"
             }`}>
             {isActive ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
             {isActive ? "Publicado" : "Borrador"}
           </button>
-          <Button onClick={handleSave} disabled={saving} className="bg-green-700 hover:bg-green-800">
+          <Button onClick={handleSave} disabled={saving}>
             {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
             {saving ? "Guardando…" : "Guardar"}
           </Button>
@@ -192,31 +193,31 @@ export default function ProductEditor() {
         {/* Left: info + desc + specs */}
         <div className="lg:col-span-3 space-y-5">
 
-          <div className="rounded-xl border border-gray-200 bg-white p-5">
-            <h2 className="text-sm font-semibold text-gray-700 mb-4">Información básica</h2>
+          <div className="rounded-xl border border-hairline bg-card p-5">
+            <h2 className="text-sm font-semibold text-foreground mb-4">Información básica</h2>
             <div className="space-y-4">
               <div>
-                <Label className="text-xs text-gray-500 uppercase tracking-wide mb-1 block">Nombre *</Label>
+                <Label className="text-2xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Nombre *</Label>
                 <Input value={name} onChange={e => handleNameChange(e.target.value)} placeholder="Ej: Cerca PVC Afrodita 401" className="font-medium" />
               </div>
               <div>
-                <Label className="text-xs text-gray-500 uppercase tracking-wide mb-1 block">Slug (URL) *</Label>
+                <Label className="text-2xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Slug (URL) *</Label>
                 <div className="flex gap-2">
                   <Input value={slug} onChange={e => { setSlug(e.target.value); setSlugEdited(true); }} placeholder="cerca-pvc-afrodita-401" className="font-mono text-xs" />
                   <Button variant="outline" size="sm" onClick={() => { setSlug(slugify(name)); setSlugEdited(false); }} className="shrink-0 text-xs">Auto</Button>
                 </div>
-                <p className="text-[11px] text-gray-400 mt-1">/productos/<span className="text-gray-600">{slug || "slug-del-producto"}</span></p>
+                <p className="text-2xs text-muted-foreground mt-1">/productos/<span className="text-foreground">{slug || "slug-del-producto"}</span></p>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-xs text-gray-500 uppercase tracking-wide mb-1 block">Precio base (USD) *</Label>
+                  <Label className="text-2xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Precio base (USD) *</Label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
                     <Input type="number" step="0.01" min="0" value={basePrice} onChange={e => setBasePrice(e.target.value)} className="pl-7" placeholder="0.00" />
                   </div>
                 </div>
                 <div>
-                  <Label className="text-xs text-gray-500 uppercase tracking-wide mb-1 block">Unidad</Label>
+                  <Label className="text-2xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Unidad</Label>
                   <Select value={unit} onValueChange={v => setUnit(v || "METRO")}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
@@ -229,14 +230,14 @@ export default function ProductEditor() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-xs text-gray-500 uppercase tracking-wide mb-1 block">Categoría *</Label>
+                  <Label className="text-2xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Categoría *</Label>
                   <Select value={categoryId} onValueChange={v => setCategoryId(v || "")}>
                     <SelectTrigger><SelectValue placeholder="Seleccionar…" /></SelectTrigger>
                     <SelectContent>{categories.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <Label className="text-xs text-gray-500 uppercase tracking-wide mb-1 block">Colección *</Label>
+                  <Label className="text-2xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Colección *</Label>
                   <Select value={collectionId} onValueChange={v => setCollectionId(v || "")}>
                     <SelectTrigger><SelectValue placeholder="Seleccionar…" /></SelectTrigger>
                     <SelectContent>{collections.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
@@ -244,22 +245,22 @@ export default function ProductEditor() {
                 </div>
               </div>
               <div>
-                <Label className="text-xs text-gray-500 uppercase tracking-wide mb-1 block">Stock</Label>
+                <Label className="text-2xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 block">Stock</Label>
                 <Input type="number" min="0" value={stock} onChange={e => setStock(e.target.value)} className="w-32" />
               </div>
             </div>
           </div>
 
-          <div className="rounded-xl border border-gray-200 bg-white p-5">
-            <h2 className="text-sm font-semibold text-gray-700 mb-3">Descripción</h2>
+          <div className="rounded-xl border border-hairline bg-card p-5">
+            <h2 className="text-sm font-semibold text-foreground mb-3">Descripción</h2>
             <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Describe las características, materiales, aplicaciones…" rows={5} className="resize-none" />
-            <p className="text-[11px] text-gray-400 mt-1.5">{description.length} caracteres</p>
+            <p className="text-2xs text-muted-foreground mt-1.5"><span className="tabular">{description.length}</span> caracteres</p>
           </div>
 
-          <div className="rounded-xl border border-gray-200 bg-white p-5">
+          <div className="rounded-xl border border-hairline bg-card p-5">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-semibold text-gray-700">Especificaciones técnicas</h2>
-              <button onClick={addSpec} className="flex items-center gap-1 text-xs text-green-700 font-semibold hover:text-green-800 transition-colors">
+              <h2 className="text-sm font-semibold text-foreground">Especificaciones técnicas</h2>
+              <button onClick={addSpec} className="flex items-center gap-1 text-xs text-primary font-semibold hover:text-brand-green-deep transition-colors">
                 <Plus className="h-3.5 w-3.5" /> Agregar fila
               </button>
             </div>
@@ -268,13 +269,13 @@ export default function ProductEditor() {
                 <div key={i} className="flex gap-2 items-center">
                   <Input value={sp.label} onChange={e => setSpec(i, "label", e.target.value)} placeholder="Ej: Altura" className="text-sm" />
                   <Input value={sp.value} onChange={e => setSpec(i, "value", e.target.value)} placeholder="Ej: 1.80m" className="text-sm" />
-                  <button onClick={() => removeSpec(i)} className="shrink-0 p-1.5 text-gray-400 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50">
+                  <button onClick={() => removeSpec(i)} className="shrink-0 p-1.5 text-muted-foreground hover:text-destructive transition-colors rounded-lg hover:bg-destructive/10">
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 </div>
               ))}
               {specs.length === 0 && (
-                <button onClick={addSpec} className="w-full py-6 border-2 border-dashed border-gray-200 rounded-lg text-sm text-gray-400 hover:border-green-300 hover:text-green-600 transition-colors">
+                <button onClick={addSpec} className="w-full py-6 border-2 border-dashed border-border rounded-lg text-sm text-muted-foreground hover:border-brand-green hover:text-brand-green-deep transition-colors">
                   + Agregar primera especificación
                 </button>
               )}
@@ -291,27 +292,27 @@ export default function ProductEditor() {
             onImagesChange={setImages}
           />
 
-          <div className="rounded-xl border border-gray-200 bg-white p-5">
-            <h2 className="text-sm font-semibold text-gray-700 mb-3">Vista previa</h2>
-            <div className="rounded-xl border border-gray-100 overflow-hidden">
-              <div className="relative h-40 bg-gray-50">
+          <div className="rounded-xl border border-hairline bg-card p-5">
+            <h2 className="text-sm font-semibold text-foreground mb-3">Vista previa</h2>
+            <div className="rounded-xl border border-hairline overflow-hidden">
+              <div className="relative h-40 bg-surface-2">
                 {images[0]?.url ? (
                   <Image src={images[0].url} alt={name} fill sizes="280px" className="object-cover" />
                 ) : (
-                  <div className="flex h-full items-center justify-center"><Package className="h-12 w-12 text-gray-200" /></div>
+                  <div className="flex h-full items-center justify-center"><Package className="h-12 w-12 text-border-strong" /></div>
                 )}
                 {!isActive && (
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                    <span className="bg-gray-800 text-white text-xs px-2 py-1 rounded font-semibold">Borrador</span>
+                  <div className="absolute inset-0 bg-brand-navy-deep/50 flex items-center justify-center">
+                    <span className="bg-brand-navy text-on-dark text-xs px-2 py-1 rounded font-semibold">Borrador</span>
                   </div>
                 )}
               </div>
               <div className="p-3">
-                <p className="font-semibold text-sm text-gray-900 truncate">{name || "Nombre del producto"}</p>
-                <p className="text-xs text-gray-400 truncate mt-0.5">{categories.find(c => c.id === categoryId)?.name || "Categoría"}</p>
+                <p className="font-semibold text-sm text-foreground truncate">{name || "Nombre del producto"}</p>
+                <p className="text-xs text-muted-foreground truncate mt-0.5">{categories.find(c => c.id === categoryId)?.name || "Categoría"}</p>
                 <div className="mt-2 flex items-baseline gap-1">
-                  <span className="text-base font-extrabold text-gray-900">${basePrice ? Number(basePrice).toFixed(2) : "0.00"}</span>
-                  <span className="text-xs text-gray-400">/{unit === "METRO" ? "m lineal" : unit === "PANEL" ? "panel" : "unidad"}</span>
+                  <span className="tabular text-base font-extrabold text-foreground">${basePrice ? Number(basePrice).toFixed(2) : "0.00"}</span>
+                  <span className="text-xs text-muted-foreground">/{unit === "METRO" ? "m lineal" : unit === "PANEL" ? "panel" : "unidad"}</span>
                 </div>
               </div>
             </div>

@@ -26,7 +26,7 @@ export default function AdminUsers() {
 
   useEffect(() => {
     getAdminUsers({ limit: 100 })
-      .then((r: any) => setUsers(r || []))
+      .then((r) => setUsers((r as User[]) || []))
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
@@ -40,7 +40,7 @@ export default function AdminUsers() {
 
   return (
     <div>
-      <h1 className="mb-8 text-2xl font-bold text-gray-900">Usuarios</h1>
+      <h1 className="mb-8 text-2xl font-bold text-foreground">Usuarios</h1>
 
       <Card>
         <CardHeader>
@@ -50,14 +50,14 @@ export default function AdminUsers() {
           {loading ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-14 animate-pulse rounded bg-gray-100" />
+                <div key={i} className="h-14 animate-pulse rounded bg-surface-2" />
               ))}
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b text-left text-gray-500">
+                  <tr className="border-b text-left text-muted-foreground">
                     <th className="pb-3 font-medium">Nombre</th>
                     <th className="pb-3 font-medium">Email</th>
                     <th className="pb-3 font-medium">Rol</th>
@@ -69,13 +69,13 @@ export default function AdminUsers() {
                   {users.map((user) => (
                     <tr key={user.id} className="border-b last:border-0">
                       <td className="py-3 font-medium">{user.name}</td>
-                      <td className="py-3 text-gray-600">{user.email}</td>
+                      <td className="py-3 text-muted-foreground">{user.email}</td>
                       <td className="py-3">
-                        <Badge className={user.role === "ADMIN" ? "bg-purple-100 text-purple-800" : "bg-gray-100 text-gray-800"}>
+                        <Badge variant={user.role === "ADMIN" ? "navy" : "outline"}>
                           {user.role === "ADMIN" ? "Admin" : "Cliente"}
                         </Badge>
                       </td>
-                      <td className="py-3 text-gray-500">
+                      <td className="py-3 text-muted-foreground">
                         {new Date(user.createdAt).toLocaleDateString("es-PA")}
                       </td>
                       <td className="py-3 text-right">

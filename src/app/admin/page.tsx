@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
+import { OrderStatusBadge } from "@/components/shared/order-status";
 import {
   AdminStatsUnauthorizedError,
   PENDING_ACTION,
@@ -63,17 +64,23 @@ export const metadata = {
 
 export default function AdminDashboardPage() {
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="mx-auto max-w-6xl">
       <header className="mb-6">
         <p className="eyebrow text-muted-foreground">Panel de administración</p>
         <h1 className="mt-1 text-3xl font-bold text-foreground">Tablero</h1>
       </header>
 
-      <Suspense fallback={<TableroSkeleton />}>
-        <TableroDatos />
-      </Suspense>
-
-      <AccesosDirectos />
+      {/* En `xl` los accesos pasan a una columna lateral pegajosa: el ancho que
+          en una pantalla grande se iba en aire ahora es densidad. Por debajo,
+          el apilado de siempre: cola → totales → accesos. */}
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_20rem] xl:items-start">
+        <Suspense fallback={<TableroSkeleton />}>
+          <TableroDatos />
+        </Suspense>
+        <div className="xl:sticky xl:top-8">
+          <AccesosDirectos />
+        </div>
+      </div>
     </div>
   );
 }
@@ -107,9 +114,22 @@ async function TableroDatos() {
 
   const pendientes = stats.recentOrders.filter(awaitsAction);
 
+  /* Recuento por estado sobre la misma muestra de pedidos recientes: nada que
+     la API no dé ya. El orden de aparición es el de llegada de los pedidos. */
+  const porEstado = Array.from(
+    stats.recentOrders.reduce(
+      (acc, order) => acc.set(order.status, (acc.get(order.status) ?? 0) + 1),
+      new Map<string, number>()
+    )
+  );
+
   return (
     <div className="space-y-4">
-      <ColaDeTrabajo pendientes={pendientes} muestra={stats.recentOrders.length} />
+      <ColaDeTrabajo
+        pendientes={pendientes}
+        muestra={stats.recentOrders.length}
+        porEstado={porEstado}
+      />
       <Totales stats={stats} />
     </div>
   );
@@ -129,9 +149,11 @@ function EstadoBadge({ status }: { status: string }) {
 function ColaDeTrabajo({
   pendientes,
   muestra,
+  porEstado,
 }: {
   pendientes: AdminStatsOrder[];
   muestra: number;
+  porEstado: Array<[string, number]>;
 }) {
   return (
     <section
@@ -187,6 +209,26 @@ function ColaDeTrabajo({
             </li>
           ))}
         </ul>
+      )}
+
+      {/* La muestra reciente contada por estado, como chips-enlace al listado.
+          Van encima del pie porque la nota de «sobre los N más recientes»
+          también los describe — decirla dos veces sería ruido. */}
+      {porEstado.length > 0 && (
+        <div className="border-t border-hairline px-4 py-3">
+          <ul className="flex flex-wrap gap-2" aria-label="Pedidos recientes por estado">
+            {porEstado.map(([status, n]) => (
+              <li key={status}>
+                <Link
+                  href="/admin/pedidos"
+                  className="flex min-h-tap items-center gap-1.5 rounded-lg border border-hairline bg-card px-3 text-xs font-semibold text-foreground transition-colors hover:border-primary"
+                >
+                  <OrderStatusBadge status={status} /> <span className="tabular">{n}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
 
       {/* La API devuelve una muestra de pedidos recientes, no la cola entera.
@@ -315,11 +357,13 @@ const accesos = [
  */
 function AccesosDirectos() {
   return (
-    <section aria-labelledby="accesos-titulo" className="mt-8">
+    <section aria-labelledby="accesos-titulo">
       <h2 id="accesos-titulo" className="eyebrow mb-3 text-muted-foreground">
         Ir a
       </h2>
-      <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      {/* Apilado: dos columnas desde `sm`. En la columna lateral de `xl`,
+          de nuevo una sola, que es lo que cabe en 20rem. */}
+      <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-1">
         {accesos.map((acceso) => (
           <li key={acceso.href}>
             <Link
