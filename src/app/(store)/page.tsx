@@ -17,7 +17,9 @@ import { PriceList } from "@/components/home/price-list"
 import { QuoteBand } from "@/components/home/quote-band"
 import { SegmentGrid } from "@/components/home/segment-grid"
 import { SegmentSections } from "@/components/home/segment-sections"
+import { ServicesBand } from "@/components/home/services-band"
 import { ValueStrip } from "@/components/home/value-strip"
+import { WorksStrip } from "@/components/home/works-strip"
 
 /* Portada — sistema «Perímetro».
  *
@@ -79,10 +81,15 @@ export default async function HomePage() {
 
       <MeshSection products={meshes(catalog)} />
 
+      <ServicesBand />
+
       {/* Vacía mientras todo el catálogo comparta fecha de alta. */}
       <NewArrivals products={newArrivals(catalog, 7)} />
 
       <PriceList products={cheapest(catalog, catalog.length)} />
+
+      {/* Vacía mientras no haya obras documentadas en `nosotros/content.ts`. */}
+      <WorksStrip />
 
       <QuoteBand />
     </div>
