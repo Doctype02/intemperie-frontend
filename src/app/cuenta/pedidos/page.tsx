@@ -2,11 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Eye, Package2, AlertCircle } from "lucide-react";
+import { Package2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -15,42 +13,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useAuthStore } from "@/lib/store/auth-store";
+import { OrderStatusBadge } from "@/components/shared/order-status";
 import { formatCurrency, formatDateShort } from "@/lib/utils";
 import { getOrders } from "@/lib/api/orders";
 import type { Order } from "@/types";
 
-const statusLabels: Record<string, string> = {
-  PENDING: "Pendiente",
-  CONFIRMED: "Confirmado",
-  PROCESSING: "En proceso",
-  SHIPPED: "Enviado",
-  DELIVERED: "Entregado",
-  CANCELLED: "Cancelado",
-};
-
-const statusColors: Record<string, string> = {
-  PENDING: "bg-yellow-100 text-yellow-800",
-  CONFIRMED: "bg-blue-100 text-blue-800",
-  PROCESSING: "bg-purple-100 text-purple-800",
-  SHIPPED: "bg-cyan-100 text-cyan-800",
-  DELIVERED: "bg-green-100 text-green-800",
-  CANCELLED: "bg-red-100 text-red-800",
-};
+/* Mis pedidos. El portero de sesión es AccountShell; aquí sólo se pide la
+ * lista. El estado de cada pedido usa el badge compartido del sistema. */
 
 export default function OrdersPage() {
-  const router = useRouter();
-  const { isAuthenticated } = useAuthStore();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState(false);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.push("/login");
-      return;
-    }
-
     const fetchOrders = async () => {
       try {
         const data = await getOrders();
@@ -63,51 +39,56 @@ export default function OrdersPage() {
       }
     };
     fetchOrders();
-  }, [isAuthenticated, router]);
-
-  if (loading) {
-    return (
-      <div className="max-w-5xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Mis Pedidos</h1>
-        <div className="space-y-4 animate-pulse">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-16 bg-gray-100 rounded-lg" />
-          ))}
-        </div>
-      </div>
-    );
-  }
+  }, []);
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">Mis Pedidos</h1>
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h1 className="text-xl font-bold text-foreground sm:text-2xl">Mis pedidos</h1>
+        {!loading && !fetchError && orders.length > 0 && (
+          <p className="tabular text-sm text-muted-foreground">
+            {orders.length === 1 ? "1 pedido" : `${orders.length} pedidos`}
+          </p>
+        )}
+      </div>
 
-      {fetchError ? (
-        <div className="text-center py-16">
-          <div className="w-16 h-16 mx-auto rounded-full bg-red-50 flex items-center justify-center mb-4">
-            <AlertCircle className="h-8 w-8 text-red-400" />
+      {loading ? (
+        <>
+          <div className="space-y-3" aria-hidden="true">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="h-16 animate-pulse rounded-xl bg-surface-2" />
+            ))}
           </div>
-          <h3 className="text-lg font-semibold text-gray-900">Error al cargar pedidos</h3>
-          <p className="text-gray-500 mt-1 mb-6">No pudimos conectarnos. Verifica tu conexión e intenta de nuevo.</p>
-          <Button className="bg-green-700 hover:bg-green-800" onClick={() => window.location.reload()}>
-            Reintentar
-          </Button>
+          <p role="status" className="sr-only">
+            Cargando tus pedidos…
+          </p>
+        </>
+      ) : fetchError ? (
+        <div className="rounded-xl border border-border bg-surface px-4 py-12 text-center sm:px-8">
+          <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-surface-2">
+            <AlertCircle className="size-8 text-destructive" aria-hidden="true" />
+          </div>
+          <h2 className="text-lg font-semibold text-foreground">Error al cargar pedidos</h2>
+          <p className="mt-1 mb-6 text-sm text-muted-foreground">
+            No pudimos conectarnos. Verifica tu conexión e intenta de nuevo.
+          </p>
+          <Button onClick={() => window.location.reload()}>Reintentar</Button>
         </div>
       ) : orders.length === 0 ? (
-        <div className="text-center py-16">
-          <div className="w-16 h-16 mx-auto rounded-full bg-gray-100 flex items-center justify-center mb-4">
-            <Package2 className="h-8 w-8 text-gray-400" />
+        <div className="rounded-xl border border-dashed border-border-strong bg-surface px-4 py-12 text-center sm:px-8">
+          <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-surface-2">
+            <Package2 className="size-8 text-muted-foreground" aria-hidden="true" />
           </div>
-          <h3 className="text-lg font-semibold text-gray-900">No tienes pedidos aún</h3>
-          <p className="text-gray-500 mt-1 mb-6">
+          <h2 className="text-lg font-semibold text-foreground">No tienes pedidos aún</h2>
+          <p className="mt-1 mb-6 text-sm text-muted-foreground">
             Explora nuestro catálogo y realiza tu primer pedido.
           </p>
-          <Button asChild className="bg-green-700 hover:bg-green-800">
+          <Button asChild>
             <Link href="/productos">Ver Productos</Link>
           </Button>
         </div>
       ) : (
-        <div className="border rounded-lg">
+        <div className="overflow-x-auto rounded-xl border border-border bg-surface">
           <Table>
             <TableHeader>
               <TableRow>
@@ -115,31 +96,29 @@ export default function OrdersPage() {
                 <TableHead>Fecha</TableHead>
                 <TableHead>Estado</TableHead>
                 <TableHead className="text-right">Total</TableHead>
-                <TableHead className="w-10"></TableHead>
+                <TableHead className="w-10">
+                  <span className="sr-only">Acciones</span>
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {orders.map((order) => (
                 <TableRow key={order.id}>
-                  <TableCell className="font-mono text-sm">
+                  <TableCell className="font-mono text-sm text-foreground">
                     #{order.id.slice(0, 8).toUpperCase()}
                   </TableCell>
-                  <TableCell className="text-sm">
+                  <TableCell className="tabular text-sm text-muted-foreground">
                     {formatDateShort(order.createdAt)}
                   </TableCell>
                   <TableCell>
-                    <Badge className={statusColors[order.status] || ""}>
-                      {statusLabels[order.status] || order.status}
-                    </Badge>
+                    <OrderStatusBadge status={order.status} />
                   </TableCell>
-                  <TableCell className="text-right font-medium">
+                  <TableCell className="tabular text-right font-medium text-foreground">
                     {formatCurrency(order.total)}
                   </TableCell>
                   <TableCell>
-                    <Button variant="ghost" size="icon" asChild>
-                      <Link href={`/cuenta/pedidos/${order.id}`}>
-                        <Eye className="h-4 w-4" />
-                      </Link>
+                    <Button asChild variant="outline" size="sm">
+                      <Link href={`/cuenta/pedidos/${order.id}`}>Ver</Link>
                     </Button>
                   </TableCell>
                 </TableRow>

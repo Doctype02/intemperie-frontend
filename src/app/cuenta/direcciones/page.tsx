@@ -1,26 +1,25 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { MapPin, Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useAuthStore } from "@/lib/store/auth-store";
 import { AddressForm } from "@/components/checkout/address-form";
 import { getAddresses, createAddress, updateAddress, deleteAddress } from "@/lib/api/orders";
 import type { Address } from "@/types";
 import type { AddressInput } from "@/lib/validators";
 
+/* Mis direcciones. El portero de sesión es AccountShell; aquí sólo vive el
+ * CRUD (Dialog + AddressForm), cuya lógica no cambia. */
+
 export default function AddressesPage() {
-  const router = useRouter();
-  const { isAuthenticated } = useAuthStore();
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [loading, setLoading] = useState(true);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
@@ -29,11 +28,6 @@ export default function AddressesPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.push("/login");
-      return;
-    }
-
     const fetchAddresses = async () => {
       try {
         const data = await getAddresses();
@@ -45,7 +39,7 @@ export default function AddressesPage() {
       }
     };
     fetchAddresses();
-  }, [isAuthenticated, router]);
+  }, []);
 
   const handleAddAddress = async (data: AddressInput) => {
     setIsSubmitting(true);
@@ -105,76 +99,82 @@ export default function AddressesPage() {
 
   if (loading) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-8 animate-pulse">
-        <div className="h-8 bg-gray-200 rounded w-48 mb-8" />
-        <div className="space-y-4">
-          <div className="h-24 bg-gray-100 rounded-lg" />
-          <div className="h-24 bg-gray-100 rounded-lg" />
+      <>
+        <div className="animate-pulse space-y-4" aria-hidden="true">
+          <div className="h-8 w-48 rounded bg-surface-2" />
+          <div className="h-24 rounded-xl bg-surface-2" />
+          <div className="h-24 rounded-xl bg-surface-2" />
         </div>
-      </div>
+        <p role="status" className="sr-only">
+          Cargando tus direcciones…
+        </p>
+      </>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Mis Direcciones</h1>
-        <Button onClick={() => setAddDialogOpen(true)} className="bg-green-700 hover:bg-green-800">
-          <Plus className="h-4 w-4 mr-2" /> Agregar Dirección
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-xl font-bold text-foreground sm:text-2xl">Mis direcciones</h1>
+        <Button onClick={() => setAddDialogOpen(true)}>
+          <Plus aria-hidden="true" /> Agregar dirección
         </Button>
       </div>
 
       {addresses.length === 0 ? (
-        <div className="text-center py-16">
-          <div className="w-16 h-16 mx-auto rounded-full bg-gray-100 flex items-center justify-center mb-4">
-            <MapPin className="h-8 w-8 text-gray-400" />
+        <div className="rounded-xl border border-dashed border-border-strong bg-surface px-4 py-12 text-center sm:px-8">
+          <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-surface-2">
+            <MapPin className="size-8 text-muted-foreground" aria-hidden="true" />
           </div>
-          <h3 className="text-lg font-semibold text-gray-900">Sin direcciones guardadas</h3>
-          <p className="text-gray-500 mt-1 mb-6">
+          <h2 className="text-lg font-semibold text-foreground">
+            No tienes direcciones guardadas
+          </h2>
+          <p className="mt-1 mb-6 text-sm text-muted-foreground">
             Agrega una dirección para agilizar tus compras.
           </p>
-          <Button onClick={() => setAddDialogOpen(true)} className="bg-green-700 hover:bg-green-800">
-            <Plus className="h-4 w-4 mr-2" /> Agregar Dirección
+          <Button onClick={() => setAddDialogOpen(true)}>
+            <Plus aria-hidden="true" /> Agregar dirección
           </Button>
         </div>
       ) : (
-        <div className="grid sm:grid-cols-2 gap-4">
+        <div className="grid gap-4 sm:grid-cols-2">
           {addresses.map((address) => (
-            <Card key={address.id} className="relative">
-              <CardContent className="p-5">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <p className="text-sm text-gray-600">{address.street}</p>
-                    <p className="text-sm text-gray-600">
-                      {address.city}, {address.province}
-                      {address.postalCode ? ` ${address.postalCode}` : ""}
-                    </p>
-                    <p className="text-sm text-gray-600">{address.phone}</p>
-                    {address.isDefault && (
-                      <p className="text-xs text-green-700 font-medium mt-1">Dirección principal</p>
-                    )}
-                  </div>
-                  <div className="flex gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => setEditingAddress(address)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50"
-                      onClick={() => setDeletingId(address.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+            <div key={address.id} className="rounded-xl border border-border bg-surface p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 space-y-1">
+                  <p className="text-sm text-muted-foreground">{address.street}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {address.city}, {address.province}
+                    {address.postalCode ? ` ${address.postalCode}` : ""}
+                  </p>
+                  <p className="tabular text-sm text-muted-foreground">{address.phone}</p>
+                  {address.isDefault && (
+                    <Badge variant="secondary" className="mt-1">
+                      Predeterminada
+                    </Badge>
+                  )}
                 </div>
-              </CardContent>
-            </Card>
+                <div className="flex shrink-0 gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label={`Editar dirección ${address.street}`}
+                    onClick={() => setEditingAddress(address)}
+                  >
+                    <Pencil aria-hidden="true" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    aria-label={`Eliminar dirección ${address.street}`}
+                    onClick={() => setDeletingId(address.id)}
+                  >
+                    <Trash2 aria-hidden="true" />
+                  </Button>
+                </div>
+              </div>
+            </div>
           ))}
         </div>
       )}
@@ -211,13 +211,14 @@ export default function AddressesPage() {
           <DialogHeader>
             <DialogTitle>¿Eliminar dirección?</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-gray-500">Esta acción no se puede deshacer.</p>
-          <div className="flex gap-3 mt-2">
+          <p className="text-sm text-muted-foreground">Esta acción no se puede deshacer.</p>
+          <div className="mt-2 flex gap-3">
             <Button variant="outline" className="flex-1" onClick={() => setDeletingId(null)}>
               Cancelar
             </Button>
             <Button
-              className="flex-1 bg-red-600 hover:bg-red-700"
+              variant="destructive"
+              className="flex-1"
               onClick={() => deletingId && handleDelete(deletingId)}
             >
               Eliminar
