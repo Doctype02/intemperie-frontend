@@ -52,7 +52,7 @@ export default function CartPage() {
   if (!ready) {
     return (
       <div id="main-content" tabIndex={-1} className="bg-background outline-none">
-        <div className="mx-auto max-w-4xl animate-pulse space-y-4 px-4 py-8" aria-hidden="true">
+        <div className="shell max-w-5xl animate-pulse space-y-4 py-8" aria-hidden="true">
           <div className="h-8 w-52 rounded-lg bg-surface-2" />
           <div className="overflow-hidden rounded-xl border border-border bg-surface">
             <div className="flex items-center gap-4 p-4">
@@ -105,7 +105,7 @@ export default function CartPage() {
     /* El layout de la tienda ya aporta el <main>; aquí sólo el destino del
        enlace «saltar al contenido». */
     <div id="main-content" tabIndex={-1} className="bg-background outline-none">
-      <div className="mx-auto max-w-4xl px-4 py-8">
+      <div className="shell max-w-5xl py-8">
         <div className="mb-6 flex items-center justify-between gap-4">
           <h1 className="font-heading text-xl font-bold text-foreground sm:text-2xl">
             Carrito{" "}
@@ -126,14 +126,17 @@ export default function CartPage() {
         {/* Cuánto falta para el envío gratis, con el umbral que dicta el
             servidor: esta pantalla lo tenía fijado en $50 cuando la tienda lo
             regala a partir de $500. */}
-        <FreeShippingProgress
-          quote={quote}
-          isUpdating={isUpdating}
-          className="mb-4 rounded-xl border border-border bg-surface px-4 py-3.5"
-        />
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
+          {/* Columna 1: progreso de envío + lista */}
+          <div className="min-w-0">
+            <FreeShippingProgress
+              quote={quote}
+              isUpdating={isUpdating}
+              className="mb-4 rounded-xl border border-border bg-surface px-4 py-3.5"
+            />
 
-        <div className="overflow-hidden rounded-xl border border-border bg-surface">
-          <ul>
+            <div className="overflow-hidden rounded-xl border border-border bg-surface">
+              <ul>
             {items.map((item) => {
               const minQty = item.product?.unit === "METRO" ? 10 : 1;
               const name = item.product?.name || "Producto";
@@ -223,35 +226,40 @@ export default function CartPage() {
                 </li>
               );
             })}
-          </ul>
-
-          <div className="border-t border-hairline bg-surface-sunk p-4">
-            <div className="sm:flex sm:justify-end">
-              <div className="w-full sm:w-72">
-                {/* Los pasos de cantidad quedan arriba y estas cifras abajo:
-                    sin anuncio, quien no ve la pantalla no sabe que acaba de
-                    cambiar el total de su pedido. La región viva la pone el
-                    propio bloque de importes.
-
-                    Antes el total era subtotal + 7 % y jamás incluía el envío,
-                    de modo que no coincidía con el del checkout. */}
-                <OrderTotals
-                  subtotal={cartSubtotal}
-                  quote={quote}
-                  isUpdating={isUpdating}
-                  error={error}
-                  onRetry={retry}
-                  subtotalLabel={`Subtotal (${count} ${count === 1 ? "producto" : "productos"})`}
-                />
-
-                {/* Una acción por pantalla: en móvil el botón ocupa el ancho
-                    completo y 52 px de alto, que es lo que pide un pulgar. */}
-                <Button size="block" className="mt-4" asChild>
-                  <Link href="/checkout">Ir a pagar</Link>
-                </Button>
-              </div>
+              </ul>
             </div>
           </div>
+
+          {/* Columna 2: resumen sticky con CTA persistente. En móvil el orden
+              natural del grid lo deja debajo de la lista, igual que antes. */}
+          <aside aria-label="Resumen del pedido" className="lg:sticky lg:top-20">
+            <div className="rounded-xl border border-border bg-surface p-4">
+              {/* Los pasos de cantidad quedan arriba y estas cifras abajo:
+                  sin anuncio, quien no ve la pantalla no sabe que acaba de
+                  cambiar el total de su pedido. La región viva la pone el
+                  propio bloque de importes.
+
+                  Antes el total era subtotal + 7 % y jamás incluía el envío,
+                  de modo que no coincidía con el del checkout. */}
+              <OrderTotals
+                subtotal={cartSubtotal}
+                quote={quote}
+                isUpdating={isUpdating}
+                error={error}
+                onRetry={retry}
+                subtotalLabel={`Subtotal (${count} ${count === 1 ? "producto" : "productos"})`}
+              />
+
+              {/* Una acción por pantalla: en móvil el botón ocupa el ancho
+                  completo y 52 px de alto, que es lo que pide un pulgar. */}
+              <Button size="block" className="mt-4" asChild>
+                <Link href="/checkout">Ir a pagar</Link>
+              </Button>
+              <p className="mt-3 text-center text-xs text-muted-foreground">
+                Impuesto y envío calculados por el servidor. El precio se confirma al pagar.
+              </p>
+            </div>
+          </aside>
         </div>
       </div>
     </div>

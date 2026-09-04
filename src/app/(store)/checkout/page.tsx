@@ -125,7 +125,7 @@ export default function CheckoutPage() {
   const clearCart = useCartStore((s) => s.clearCart);
 
   /* Impuesto, envío y total salen del API, no de una fórmula local. Esta
-     pantalla los calculaba bien —7 % y $5.99 sobre $500— pero acertar copiando
+     pantalla los calculaba bien —el 7 % y la tarifa plana sobre $500— pero acertar copiando
      la regla no es lo mismo que ser correcto: el día que cambie la tarifa, el
      checkout mentiría igual que mentían el carrito y el panel. Con la
      cotización del servidor las cuatro pantallas no pueden discrepar.
@@ -375,7 +375,7 @@ export default function CheckoutPage() {
 
   if (!ready) {
     return (
-      <main className="flex-1">
+      <div id="main-content" tabIndex={-1} className="flex-1 outline-none">
         <div className="shell max-w-4xl py-section-sm">
           <p className="sr-only" role="status">Preparando tu pedido…</p>
           <div className="animate-pulse space-y-4" aria-hidden="true">
@@ -388,13 +388,13 @@ export default function CheckoutPage() {
             </div>
           </div>
         </div>
-      </main>
+      </div>
     );
   }
 
   if (!isAuthenticated && !guestMode) {
     return (
-      <main className="flex flex-1 items-center justify-center py-section">
+      <div id="main-content" tabIndex={-1} className="flex flex-1 items-center justify-center py-section outline-none">
         <div className="shell max-w-sm">
           <div className="rounded-xl border border-border bg-surface p-6 shadow-sm sm:p-8">
             <ShoppingCart className="mx-auto mb-4 h-10 w-10 text-primary" aria-hidden="true" />
@@ -422,7 +422,7 @@ export default function CheckoutPage() {
             </p>
           </div>
         </div>
-      </main>
+      </div>
     );
   }
 
@@ -604,7 +604,7 @@ export default function CheckoutPage() {
         </div>
       </div>
     )}
-    <main className="flex-1" inert={tilopayFrame ? true : undefined}>
+    <div id="main-content" tabIndex={-1} className="flex-1 outline-none" inert={tilopayFrame ? true : undefined}>
       <div className="shell max-w-4xl py-section-sm">
         {/* Step indicators */}
         <nav aria-label="Progreso del checkout" className="mb-6">
@@ -961,7 +961,7 @@ export default function CheckoutPage() {
           </aside>
         </div>
       </div>
-    </main>
+    </div>
     </>
   );
 }

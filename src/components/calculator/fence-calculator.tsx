@@ -303,7 +303,7 @@ export function FenceCalculator({
   }
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-10">
+    <div className="grid gap-8 pb-24 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-10 lg:pb-0">
       <div className="min-w-0 space-y-8">
         {/* ── Paso 1 · Catálogo ─────────────────────────────────────────── */}
         <section aria-labelledby={`${uid}-eyebrow1 ${uid}-step1`}>
@@ -726,6 +726,28 @@ export function FenceCalculator({
           </p>
         </div>
       </aside>
+
+      {/* Móvil: el total siempre a la vista mientras se elige y se teclea.
+          En lg desaparece: ahí el resumen ya es sticky en la columna derecha.
+          Sin región viva aquí: el anuncio del total ya vive en el aside y
+          dos regiones anunciando el mismo total sería doble anuncio. */}
+      <div
+        className="fixed inset-x-0 bottom-0 z-40 flex items-center gap-3 border-t border-hairline bg-surface px-4 pt-3 shadow-lg lg:hidden"
+        style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+      >
+        <div className="min-w-0 flex-1">
+          <p className="text-2xs font-bold text-muted-foreground uppercase">Total estimado</p>
+          <p className="tabular truncate font-heading text-xl leading-none font-bold text-primary">
+            {money(total)}
+          </p>
+        </div>
+        <Button asChild variant="whatsapp" className="h-12 shrink-0">
+          <a href={whatsappHref(messageLines.join("\n"))} target="_blank" rel="noopener noreferrer">
+            <IconWhatsApp />
+            Enviar
+          </a>
+        </Button>
+      </div>
     </div>
   )
 }
