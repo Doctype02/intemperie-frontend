@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Layers, Ruler, ShieldCheck, Truck } from "lucide-react"
+import { Layers, ShieldCheck, Tag, Truck } from "lucide-react"
 
 /* Banda de confianza — sistema «Perímetro».
  *
@@ -20,11 +20,9 @@ import { Layers, Ruler, ShieldCheck, Truck } from "lucide-react"
  */
 export function ValueStrip({
   modelCount,
-  priceFrom,
   warrantyYears,
 }: {
   modelCount: number
-  priceFrom: number | null
   warrantyYears: number | null
 }) {
   const items = [
@@ -34,10 +32,13 @@ export function ValueStrip({
       sub: "Cerca de PVC y malla electrosoldada",
       href: "/productos",
     },
-    priceFrom != null && {
-      Icon: Ruler,
-      title: `Desde $${priceFrom.toFixed(2)} el metro`,
-      sub: "Precio por metro lineal, a la vista",
+    /* El «desde $X el metro» ya es la etiqueta gigante del hero, a cuatro
+       líneas de aquí: repetirlo gastaría la celda en un eco. Lo que esta
+       celda añade es la política que lo hace posible. */
+    {
+      Icon: Tag,
+      title: "Precio publicado",
+      sub: "Sin llamar ni esperar: mire, calcule y pida",
       href: "/productos",
     },
     warrantyYears != null && {
