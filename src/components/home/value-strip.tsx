@@ -1,96 +1,95 @@
 import Link from "next/link"
-import { Search } from "lucide-react"
+import { Layers, Ruler, ShieldCheck, Truck } from "lucide-react"
 
-/* El cajetín — sistema «Perímetro».
+/* Banda de confianza — sistema «Perímetro».
  *
- * En un plano técnico, el cajetín es la franja donde viven los datos de la
- * lámina: escala, autor, fecha. Aquí es la franja pegada al hero con el
- * buscador —que baja del hero, porque la acción del hero es ver el precio, no
- * buscar— y los tres datos comprobables de la casa.
+ * La versión anterior alineaba seis afirmaciones: «+15,000 proyectos»,
+ * «10+ países», «100% Satisfacción», «Instalación incluida»… Ninguna sale de
+ * ningún sitio verificable y «100% satisfacción» no significa nada. Una
+ * afirmación que el cliente no puede comprobar no genera confianza: la gasta.
  *
- * El dato «desde $X/m» ya NO va aquí: es el hero entero. Y el envío dice la
- * verdad simple: con pedido mínimo de 10 m todo pedido supera los $50, así que
- * el envío es gratis en todo pedido — las condiciones completas viven en
- * /envios, que es donde está la política publicada.
+ * Quedan cuatro, y las cuatro se pueden auditar:
+ *   · el número de modelos y el precio de entrada se cuentan del catálogo en
+ *     el momento de renderizar;
+ *   · la garantía máxima se lee de `attributes.warranty` del producto tope;
+ *   · el envío enlaza a /envios, que es donde está la política publicada con
+ *     sus condiciones y sus importes. Si mañana cambia, cambia el enlace.
  *
- * El buscador conserva la semántica de siempre: `<form method="get">` contra
- * /productos. Funciona sin JavaScript.
+ * Sin fotografías y sin peticiones: cuatro iconos del paquete que la cabecera
+ * ya carga.
  */
 export function ValueStrip({
   modelCount,
+  priceFrom,
   warrantyYears,
 }: {
   modelCount: number
+  priceFrom: number | null
   warrantyYears: number | null
 }) {
+  const items = [
+    modelCount > 0 && {
+      Icon: Layers,
+      title: `${modelCount} modelos en catálogo`,
+      sub: "Cerca de PVC y malla electrosoldada",
+      href: "/productos",
+    },
+    priceFrom != null && {
+      Icon: Ruler,
+      title: `Desde $${priceFrom.toFixed(2)} el metro`,
+      sub: "Precio por metro lineal, a la vista",
+      href: "/productos",
+    },
+    warrantyYears != null && {
+      Icon: ShieldCheck,
+      title: `Garantía hasta ${warrantyYears} años`,
+      sub: "Según modelo, en la ficha de cada uno",
+      href: "/productos",
+    },
+    {
+      Icon: Truck,
+      title: "Envío gratis desde $50",
+      sub: "Cobertura en las 10 provincias · ver condiciones",
+      href: "/envios",
+    },
+  ].filter(Boolean) as Array<{
+    Icon: typeof Layers
+    title: string
+    sub: string
+    href: string
+  }>
+
   return (
     <section className="border-b border-border bg-surface">
       <div className="shell">
-        <div className="grid grid-cols-2 lg:grid-cols-[minmax(0,2fr)_1fr_1fr_1fr]">
-          {/* Celda 1, la más ancha: el buscador. */}
-          <div className="col-span-2 border-b border-hairline py-3 lg:col-span-1 lg:border-r lg:border-b-0 lg:py-4 lg:pr-6">
-            <form action="/productos" method="get" role="search">
-              <label htmlFor="hero-search" className="sr-only">
-                Buscar modelo, material o altura
-              </label>
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <Search
-                    className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
-                    aria-hidden="true"
-                  />
-                  <input
-                    id="hero-search"
-                    type="search"
-                    name="search"
-                    enterKeyHint="search"
-                    className="h-11 w-full rounded-lg border border-border bg-surface pr-3 pl-9 text-base text-foreground transition-colors placeholder:text-muted-foreground focus:border-primary"
-                    placeholder="Buscar: malla, PVC, 2 m de alto…"
-                  />
+        <ul className="grid grid-cols-2 lg:grid-cols-4">
+          {items.map((item, i) => (
+            <li
+              key={item.title}
+              className={`border-border ${i % 2 === 0 ? "sm:border-r" : ""} ${
+                i < 2 ? "border-b lg:border-b-0" : ""
+              } lg:border-r lg:last:border-r-0`}
+            >
+              <Link
+                href={item.href}
+                className="flex h-full items-start gap-2.5 px-1 py-4 transition-colors hover:bg-surface-2 sm:px-4"
+              >
+                <item.Icon
+                  className="mt-0.5 size-5 shrink-0 text-brand-green"
+                  aria-hidden="true"
+                />
+                <div className="min-w-0">
+                  <p className="text-sm leading-tight font-semibold text-foreground">
+                    {item.title}
+                  </p>
+                  <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
+                    {item.sub}
+                  </p>
                 </div>
-                <button
-                  type="submit"
-                  className="h-11 shrink-0 rounded-lg bg-primary px-4 font-heading font-semibold text-primary-foreground transition-colors hover:bg-brand-green-deep"
-                >
-                  Buscar
-                </button>
-              </div>
-            </form>
-          </div>
-
-          {/* Celdas 2-4: los datos de la lámina, todos auditables. */}
-          <Link
-            href="/productos"
-            className="flex flex-col justify-center gap-0.5 border-r border-hairline px-3 py-3 transition-colors hover:bg-surface-2 lg:px-5 lg:py-4"
-          >
-            <span className="eyebrow text-muted-foreground">Catálogo</span>
-            <span className="tabular text-base font-bold text-foreground">
-              {modelCount} modelos
-            </span>
-          </Link>
-
-          {warrantyYears != null ? (
-            <div className="flex flex-col justify-center gap-0.5 px-3 py-3 lg:border-r lg:border-hairline lg:px-5 lg:py-4">
-              <span className="eyebrow text-muted-foreground">Garantía</span>
-              <span className="tabular text-base font-bold text-foreground">
-                Hasta {warrantyYears} años
-              </span>
-            </div>
-          ) : null}
-
-          <Link
-            href="/envios"
-            className="col-span-2 flex flex-col justify-center gap-0.5 border-t border-hairline px-3 py-3 transition-colors hover:bg-surface-2 lg:col-span-1 lg:border-t-0 lg:px-5 lg:py-4"
-          >
-            <span className="eyebrow text-muted-foreground">Envío gratis</span>
-            <span className="text-base font-bold text-foreground">
-              En todo pedido{" "}
-              <span className="tabular text-xs font-medium text-muted-foreground">
-                · mínimo 10 m
-              </span>
-            </span>
-          </Link>
-        </div>
+              </Link>
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   )
