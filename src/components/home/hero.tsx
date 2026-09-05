@@ -1,117 +1,96 @@
 import Image from "next/image"
-import Link from "next/link"
-import { ArrowRight, Search } from "lucide-react"
 
-import { WA_MESSAGE } from "@/components/layout/nav-data"
-import { IconWhatsApp, whatsappHref } from "@/components/ui/icon-whatsapp"
 import { mediaUrl } from "@/lib/image-utils"
+import { formatMoney } from "@/lib/utils"
 
-/* Portada, sección 1 — sistema «Perímetro».
+import { HeroCounter, type HeroModel } from "./hero-counter"
+
+/* Portada, sección 1 — «el contador cotizado», sistema «Perímetro».
  *
- * Aquí había un carrusel de cuatro diapositivas: componente de cliente, dos
- * `useEffect`, un `setInterval` de 5.5 s y cuatro fotografías a pantalla
- * completa. Se cambió por una sola imagen fija por tres razones, en este
- * orden:
+ * La portada se reconstruye alrededor de la respuesta («¿cuánto me cuesta?»),
+ * no de la búsqueda. El hero anterior planteaba la pregunta y ofrecía un
+ * buscador; este la CONTESTA: el precio real más barato del catálogo en cuerpo
+ * de cartel, una cota de plano que lo rotula («1 m instalado en su terreno»)
+ * y una cinta métrica que lo convierte en el precio de SU lote. El buscador
+ * baja al cajetín (ValueStrip), que es donde se busca en una lámina técnica.
  *
- * 1. **Comercial.** Una cerca no se compra por impulso: es ticket alto y
- *    decisión meditada. Un carrusel que rota cada 5.5 s obliga a leer contra
- *    reloj y reparte la atención entre cuatro modelos en lugar de plantear la
- *    única pregunta que importa —«¿cuánto cuesta cercar lo mío?»— y ofrecer
- *    las dos formas de responderla: buscar o preguntar por WhatsApp.
- * 2. **Rendimiento.** Las cuatro diapositivas eran `absolute inset-0`, así que
- *    el navegador las consideraba visibles y competían por ancho de banda con
- *    el LCP. Una imagen, una petición.
- * 3. **Accesibilidad.** Un carrusel con autoavance es un patrón que hay que
- *    pausar, anunciar y controlar por teclado. El que no existe no falla.
+ * Es un componente de servidor. La única isla de la portada es
+ * `<HeroCounter>`, y su HTML se sirve renderizado: sin JavaScript se ve la
+ * cifra del modelo más barato, el range nativo se arrastra y el CTA lleva a
+ * `/calculadora?metros=10`.
  *
- * El buscador se repite aquí a propósito: en móvil la cabecera no tiene sitio
- * para un campo de texto usable, y este es el primer elemento interactivo de
- * la página. Es un `<form method="get">` — funciona sin JavaScript.
+ * El H1 ya no es la etiqueta «Cercas de PVC y malla electrosoldada»: esa frase
+ * vive en la línea de contexto. El H1 es la tesis de la casa.
+ *
+ * La foto del hero se conserva en el primer viewport, pero enmarcada tras
+ * `.picket-screen`: la obra vista entre los listones de la propia cerca, con
+ * su cota de plano debajo. En móvil va DESPUÉS del bloque contador — la cifra
+ * manda.
  */
-export function Hero() {
+export function Hero({
+  models,
+  priceFrom,
+}: {
+  /* Los 15 del catálogo ordenados por precio ascendente (los deriva page.tsx). */
+  models: HeroModel[]
+  /* Precio de entrada como cadena decimal; respaldo si el catálogo llega vacío. */
+  priceFrom: string
+}) {
   return (
-    <section className="border-b border-border bg-brand-navy-deep text-on-dark">
-      <div className="shell grid gap-6 py-8 lg:grid-cols-[1.05fr_1fr] lg:items-center lg:gap-12 lg:py-14">
-        <div className="min-w-0">
-          <p className="eyebrow text-brand-green">Fabricación e instalación en Panamá</p>
+    <section className="sheet-grid border-b border-border bg-brand-navy-deep text-on-dark">
+      <div className="shell py-8 sm:py-10 lg:py-12">
+        <div className="max-w-3xl">
+          <p className="eyebrow text-brand-green">
+            Fabricamos e instalamos en La Chorrera, Panamá
+          </p>
 
-          <h1 className="mt-2 text-4xl font-bold tracking-tight text-balance lg:text-5xl">
-            Cercas de PVC y malla electrosoldada
+          <h1 className="mt-2 text-3xl font-bold tracking-tight text-balance text-on-dark sm:text-4xl lg:text-5xl">
+            Sepa hoy cuánto cuesta cercar su terreno
           </h1>
 
           <p className="mt-3 max-w-prose text-base text-on-dark-soft">
-            Cercado perimetral para casas, naves, fincas e instituciones. Le
-            decimos cuánto cuesta cercar su terreno con el precio por metro
-            lineal delante, no después de una visita.
+            Cercas de PVC y malla electrosoldada con el precio por metro
+            delante, no después de una visita.
           </p>
+        </div>
 
-          <form action="/productos" method="get" role="search" className="mt-6">
-            <label htmlFor="hero-search" className="sr-only">
-              Buscar modelo, material o altura
-            </label>
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <Search
-                  className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground"
-                  aria-hidden="true"
-                />
-                <input
-                  id="hero-search"
-                  type="search"
-                  name="search"
-                  enterKeyHint="search"
-                  className="h-12 w-full rounded-lg border border-transparent bg-surface pr-3 pl-10 text-base text-foreground transition-colors placeholder:text-muted-foreground focus:border-primary"
-                  placeholder="Ej.: malla, Atenea, PVC costero…"
-                />
-              </div>
-              <button
-                type="submit"
-                className="h-12 shrink-0 rounded-lg bg-primary px-5 font-heading font-semibold text-primary-foreground transition-colors hover:bg-brand-green-deep"
-              >
-                Buscar
-              </button>
-            </div>
-          </form>
+        <div className="mt-6">
+          {models.length > 0 ? (
+            <HeroCounter models={models} />
+          ) : (
+            /* Respaldo sin isla: el precio de entrada, server-rendered. */
+            <p className="flex items-baseline gap-2">
+              <span className="tabular text-display font-bold text-on-dark">
+                {formatMoney(priceFrom)}
+              </span>
+              <span className="text-xl font-medium text-brand-green">/metro</span>
+            </p>
+          )}
+        </div>
 
-          <div className="mt-4 flex flex-wrap gap-2">
-            <a
-              href={whatsappHref(WA_MESSAGE.quote)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex h-12 items-center gap-2 rounded-lg bg-whatsapp px-5 font-heading font-semibold text-on-dark transition-colors hover:bg-whatsapp-deep"
-            >
-              <IconWhatsApp />
-              Cotizar por WhatsApp
-            </a>
-            <Link
-              href="/calculadora"
-              className="flex h-12 items-center gap-2 rounded-lg border border-on-dark/45 bg-on-dark/10 px-5 font-heading font-semibold text-on-dark transition-colors hover:bg-on-dark/20"
-            >
-              Calcular metros
-              <ArrowRight className="size-4" aria-hidden="true" />
-            </Link>
+        {/* La foto de siempre, ahora vista entre listones. Sigue siendo la
+            única imagen del primer viewport y entra sin fundido: es la del
+            LCP anterior y no se le pone cortina. */}
+        <figure className="mt-8">
+          <div className="relative h-36 overflow-hidden rounded-lg bg-surface-2 sm:h-48">
+            <Image
+              src={mediaUrl("/products/cerca-pvc-afrodita-401/1-imagen-principal.jpg")}
+              alt="Cerca de PVC blanca instalada en el frente de una vivienda"
+              fill
+              preload
+              sizes="(max-width: 1280px) 100vw, 1216px"
+              className="object-cover object-center"
+            />
+            <div className="picket-screen" aria-hidden="true" />
           </div>
-        </div>
-
-        {/* La única imagen que descarga el primer viewport de la portada.
-            `preload` es el sustituto de `priority` en Next 16. Relación de
-            aspecto fija en ambos anchos: no hay salto de maquetación, y
-            `bg-surface-2` da el tono de espera mientras la foto viaja.
-
-            Entra directa, sin desvanecido: ésta es la candidata a LCP de la
-            portada y animarle la opacidad retrasaría la métrica justo lo que
-            durase el fundido. Un efecto de carga que hace ver la foto más
-            tarde no es un efecto de carga, es una cortina. */}
-        <div className="relative aspect-[16/10] overflow-hidden rounded-xl bg-surface-2 lg:aspect-[4/3]">
-          <Image
-            src={mediaUrl("/products/cerca-pvc-afrodita-401/1-imagen-principal.jpg")}
-            alt="Cerca de PVC blanca instalada en el frente de una vivienda"
-            fill
-            preload
-            sizes="(max-width: 1024px) 100vw, 46vw"
-            className="object-cover object-center"
-          />
-        </div>
+          <figcaption className="mx-auto mt-3 max-w-sm">
+            <span className="cota">
+              <span className="bg-brand-navy-deep px-2">
+                así se ve un tramo instalado
+              </span>
+            </span>
+          </figcaption>
+        </figure>
       </div>
     </section>
   )

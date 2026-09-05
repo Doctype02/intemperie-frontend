@@ -21,38 +21,44 @@ import { ServicesBand } from "@/components/home/services-band"
 import { ValueStrip } from "@/components/home/value-strip"
 import { WorksStrip } from "@/components/home/works-strip"
 
-/* Portada — sistema «Perímetro».
+/* Portada — «El plano cotizado», sistema «Perímetro».
  *
- * Este fichero tenía 596 líneas: dos maquetaciones de sección declaradas dos
- * veces, tres listas de productos filtradas con nombres escritos a mano
- * («afrodita», «poseid», «vesta»…), tres testimonios inventados con cinco
- * estrellas cada uno y un carrusel de cliente con cuatro fotos a pantalla
- * completa.
+ * La portada se construye alrededor de la respuesta —«¿cuánto me cuesta?»—,
+ * no de la búsqueda: el hero abre con el precio real más barato del catálogo
+ * en cuerpo de cartel y una cinta métrica que lo convierte en el precio del
+ * lote de quien mira. Una petición al catálogo y el reparto de esa lista
+ * entre secciones que ya saben pintarse; toda decisión de agrupación vive en
+ * `catalog-data.ts`.
  *
- * Ahora es lo que debe ser una portada de servidor: una petición al catálogo y
- * el reparto de esa lista entre secciones que ya saben pintarse. Toda decisión
- * de agrupación vive en `catalog-data.ts`, así que un modelo nuevo entra en su
- * segmento, en su franja de altura y en la lista de precios el día que se dé
- * de alta, sin tocar este fichero.
- *
- * Ninguna sección es de cliente. La portada entera —hero, ocho bloques de
- * catálogo y cierre— se sirve como HTML y no hidrata nada. El JavaScript que
- * queda en la página es el de la cabecera (menú móvil, sesión, favoritos,
- * carrito) y el botón flotante de WhatsApp.
+ * La única isla de cliente de la página es `<HeroCounter>` (dentro del hero):
+ * dos useState y cero fetch. Todo lo demás es HTML de servidor, y sin
+ * JavaScript la portada sigue mostrando la cifra, el range nativo y enlaces
+ * válidos.
  *
  * Orden de las secciones = orden de las preguntas del comprador:
- *   1. ¿Cuánto cuesta cercar lo mío?      → Hero, con buscador y precio de entrada
- *   2. ¿Es gente seria?                    → banda de cuatro datos comprobables
- *   3. ¿Tienen lo que necesito?            → por uso, luego una parrilla por uso
- *   4. ¿Qué altura me hace falta?          → por altura, con enlace a cada modelo
- *   5. ¿Y si no quiero PVC?                → malla, comparada por calibre
- *   6. Enséñemelo todo con el precio       → lista de precios completa
- *   7. Quiero hablar con alguien           → calculadora, WhatsApp y teléfono
+ *   1. ¿Cuánto cuesta cercar lo mío?   → Hero: la cifra, la cota y la cinta
+ *   2. ¿Y si busco algo concreto?      → Cajetín: buscador + datos auditables
+ *   3. Enséñemelo todo con el precio   → Pizarra: los 15 en tabla, con Calcular
+ *   4. ¿Qué altura me hace falta?      → Alturas, dibujadas a escala
+ *   5. ¿Tienen lo que necesito?        → Usos: parrilla, luego 3 fichas por uso
+ *   6. ¿Y si no quiero PVC?            → Malla, comparada por calibre
+ *   7. ¿Qué más hacen?                 → Servicios (calculadora, inspección…)
+ *   8. Novedades y obras               → condicionales; hoy no pintan
+ *   9. ¿Ya sé mis metros?              → Cierre con las dos únicas salidas
  */
 export const revalidate = 3600
 
 export default async function HomePage() {
   const catalog = await getCatalog()
+
+  /* Los 15 del catálogo, de menor a mayor precio, con el dinero como cadena
+     decimal: la isla del hero lo multiplica en céntimos, nunca en flotante. */
+  const heroModels = cheapest(catalog, catalog.length).map((p) => ({
+    slug: p.slug,
+    name: p.name,
+    basePrice: p.basePrice.toFixed(2),
+    unit: p.unit,
+  }))
 
   return (
     /* El enlace «Saltar al contenido» de la cabecera apunta aquí. Es un `div`
@@ -60,24 +66,23 @@ export default async function HomePage() {
        dos `main` anidados no son HTML válido. `tabIndex={-1}` para que el foco
        aterrice de verdad al saltar. */
     <div id="main-content" tabIndex={-1}>
-      {/* El hero llevaba una banda con «Desde $X / metro», «N modelos» y
-            «Garantía hasta N años», justo encima del buscador. Tres cifras
-            compitiendo por la atención con el campo de búsqueda, que es la
-            acción real de esa pantalla. Las tres siguen contadas del catálogo
-            en ValueStrip, unos píxeles más abajo. */}
-        <Hero />
+      <Hero
+        models={heroModels}
+        priceFrom={(priceFrom(catalog) ?? 0).toFixed(2)}
+      />
 
       <ValueStrip
         modelCount={catalog.length}
-        priceFrom={priceFrom(catalog)}
         warrantyYears={maxWarrantyYears(catalog)}
       />
+
+      <PriceList products={cheapest(catalog, catalog.length)} />
+
+      <HeightGuide bands={heightBands(catalog)} />
 
       <SegmentGrid segments={segmentCards(catalog)} />
 
       <SegmentSections sections={segmentSections(catalog)} />
-
-      <HeightGuide bands={heightBands(catalog)} />
 
       <MeshSection products={meshes(catalog)} />
 
@@ -85,8 +90,6 @@ export default async function HomePage() {
 
       {/* Vacía mientras todo el catálogo comparta fecha de alta. */}
       <NewArrivals products={newArrivals(catalog, 7)} />
-
-      <PriceList products={cheapest(catalog, catalog.length)} />
 
       {/* Vacía mientras no haya obras documentadas en `nosotros/content.ts`. */}
       <WorksStrip />

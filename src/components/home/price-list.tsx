@@ -33,17 +33,21 @@ export function PriceList({ products }: { products: HomeProduct[] }) {
   const hasMeters = products.some((p) => p.unit === "METRO")
 
   return (
-    <section id="precios" className="defer-paint border-b border-border bg-surface-sunk">
+    /* Sin `defer-paint`: ascendida a posición 3, queda cerca del viewport y
+       esconderla retrasaría su pintado justo cuando el visitante llega. */
+    <section id="precios" className="border-b border-border bg-surface-sunk">
+      <div className="picket-rule" aria-hidden="true" />
       <div className="shell py-8 sm:py-10 lg:py-12">
         <SectionHeader
           eyebrow="Sin llamar, sin esperar"
           title="Lista de precios completa"
           sub={`Los ${products.length} modelos del catálogo, de menor a mayor precio, con su altura y su garantía. El precio es de material; la instalación se cotiza aparte.`}
           href="/calculadora"
-          linkLabel="Calcular mi presupuesto"
+          linkLabel="Calcular mi cerca"
         />
 
-        <div className="overflow-hidden rounded-lg border border-border bg-surface">
+        {/* Marco de lámina: borde y filete exterior, como un cuadro rotulado. */}
+        <div className="overflow-hidden rounded-lg border border-border bg-surface outline-1 outline-offset-[3px] outline-border/50">
           <table className="w-full text-left">
             <caption className="sr-only">
               Precio por unidad de venta de los {products.length} modelos del
@@ -68,6 +72,9 @@ export function PriceList({ products }: { products: HomeProduct[] }) {
                 </th>
                 <th scope="col" className="px-3 py-2.5 text-right text-2xs text-muted-foreground uppercase">
                   Precio
+                </th>
+                <th scope="col" className="px-2 py-2.5 sm:px-3">
+                  <span className="sr-only">Calcular con este modelo</span>
                 </th>
               </tr>
             </thead>
@@ -101,13 +108,25 @@ export function PriceList({ products }: { products: HomeProduct[] }) {
                         ? `${p.stock} ${p.unit === "METRO" ? "m" : "u"}`
                         : "Agotado"}
                     </td>
+                    {/* En móvil el precio es la celda dominante: es el dato
+                        por el que se vino a esta tabla. */}
                     <td className="px-3 py-2.5 text-right whitespace-nowrap">
-                      <span className="text-sm font-bold text-foreground tabular-nums">
+                      <span className="text-base font-bold text-brand-green-deep tabular-nums sm:text-sm sm:text-foreground">
                         ${p.basePrice.toFixed(2)}
                       </span>
                       <span className="text-2xs font-medium text-muted-foreground">
                         {unitSuffix(p.unit)}
                       </span>
+                    </td>
+                    <td className="px-2 py-2.5 text-right whitespace-nowrap sm:px-3">
+                      <Link
+                        href={`/calculadora?producto=${p.slug}`}
+                        className="text-sm font-semibold text-brand-green-deep hover:underline"
+                      >
+                        <span className="hidden sm:inline">Calcular </span>
+                        <span aria-hidden="true">→</span>
+                        <span className="sr-only">Calcular con {p.name}</span>
+                      </Link>
                     </td>
                   </tr>
                 )
@@ -116,7 +135,7 @@ export function PriceList({ products }: { products: HomeProduct[] }) {
           </table>
         </div>
 
-        <p className="mt-3 text-xs text-muted-foreground">
+        <p className="mt-3 text-sm text-muted-foreground">
           Precios {unitLong(products[0].unit)} de material, en dólares.
           {hasMeters ? " Pedido mínimo de 10 metros lineales." : ""} La altura
           elegida y los accesorios (postes, portón, herrajes) se confirman en la

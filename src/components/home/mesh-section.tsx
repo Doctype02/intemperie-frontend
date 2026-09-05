@@ -31,6 +31,9 @@ export function MeshSection({ products }: { products: HomeProduct[] }) {
 
   return (
     <section id="malla" className="defer-paint border-b border-border bg-surface">
+      {/* La firma del producto en la cabecera: una franja fina con la trama de
+          la propia malla (.mesh-rule), no toda la sección tramada. */}
+      <div className="mesh-rule h-8 border-b border-hairline" aria-hidden="true" />
       <div className="shell py-8 sm:py-10 lg:py-12">
         <SectionHeader
           eyebrow="Acero galvanizado"
