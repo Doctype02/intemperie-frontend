@@ -38,9 +38,9 @@ export function PriceList({ products }: { products: HomeProduct[] }) {
         <SectionHeader
           eyebrow="Sin llamar, sin esperar"
           title="Lista de precios completa"
-          sub={`Los ${products.length} modelos del catálogo, de menor a mayor precio, con su altura y su garantía. El precio es de material; la instalación se cotiza aparte.`}
+          sub={`Sin llamar y sin esperar: los ${products.length} modelos con su precio. De menor a mayor, con su altura y su garantía. El precio es de material; la instalación se cotiza aparte.`}
           href="/calculadora"
-          linkLabel="Calcular mi presupuesto"
+          linkLabel="Calcular mi cerca"
         />
 
         <div className="overflow-hidden rounded-lg border border-border bg-surface">
@@ -68,6 +68,11 @@ export function PriceList({ products }: { products: HomeProduct[] }) {
                 </th>
                 <th scope="col" className="px-3 py-2.5 text-right text-2xs text-muted-foreground uppercase">
                   Precio
+                </th>
+                {/* Columna de salida al precotizador: sin cabecera visible,
+                    la flecha de cada fila ya se explica sola. */}
+                <th scope="col" className="px-3 py-2.5">
+                  <span className="sr-only">Calcular</span>
                 </th>
               </tr>
             </thead>
@@ -109,6 +114,20 @@ export function PriceList({ products }: { products: HomeProduct[] }) {
                         {unitSuffix(p.unit)}
                       </span>
                     </td>
+                    {/* El camino corto al dinero desde cada fila: la
+                        calculadora con este modelo ya elegido. En móvil la
+                        columna se reduce a la flecha, con el texto para el
+                        lector de pantalla. */}
+                    <td className="py-2.5 pr-3 pl-1 text-right whitespace-nowrap">
+                      <Link
+                        href={`/calculadora?producto=${p.slug}`}
+                        className="text-sm font-medium text-brand-green-deep hover:underline"
+                      >
+                        <span className="sr-only sm:not-sr-only">Calcular</span>
+                        <span className="sr-only"> {p.name}</span>
+                        <span aria-hidden="true"> →</span>
+                      </Link>
+                    </td>
                   </tr>
                 )
               })}
@@ -116,7 +135,7 @@ export function PriceList({ products }: { products: HomeProduct[] }) {
           </table>
         </div>
 
-        <p className="mt-3 text-xs text-muted-foreground">
+        <p className="mt-3 text-sm text-muted-foreground">
           Precios {unitLong(products[0].unit)} de material, en dólares.
           {hasMeters ? " Pedido mínimo de 10 metros lineales." : ""} La altura
           elegida y los accesorios (postes, portón, herrajes) se confirman en la
