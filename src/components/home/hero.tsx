@@ -114,7 +114,7 @@ export function Hero({
               min={10}
               step={5}
               inputMode="numeric"
-              placeholder="¿Cuántos metros tiene su terreno? Ej.: 80"
+              placeholder="Ej.: 80 m"
               className="tabular h-12 min-w-0 flex-1 rounded-xl bg-transparent px-4 text-base text-foreground placeholder:text-muted-foreground"
             />
             <button
