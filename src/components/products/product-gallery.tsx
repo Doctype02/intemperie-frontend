@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, ImageIcon, X, ZoomIn } from "lucide-react";
 import type { ProductImage } from "@/types";
+import { preloadPdpImage } from "@/components/products/pdp-image-prefetch";
 
 /* Galería de producto.
  *
@@ -96,6 +97,23 @@ export function ProductGallery({ images, productName, highlights }: ProductGalle
   const [lightbox, setLightbox] = useState(false);
   // Sólo se monta lo que se ha pedido ver; empieza con la primera.
   const [mounted, setMounted] = useState<number[]>([0]);
+
+  /* Con la ficha ya pintada y la red ociosa, se precargan las demas fotos en
+     su variante de heroe: pasar de imagen es instantaneo y el cliente nunca
+     ve una carga. Complementa (no sustituye) el montaje perezoso de abajo,
+     que sigue evitando ocho descargas compitiendo con el primer render. */
+  useEffect(() => {
+    if (images.length < 2) return;
+    const preloadRest = () => images.slice(1).forEach((img) => preloadPdpImage(img.url));
+    const id =
+      typeof window.requestIdleCallback === "function"
+        ? window.requestIdleCallback(preloadRest, { timeout: 3000 })
+        : window.setTimeout(preloadRest, 1500);
+    return () => {
+      if (typeof window.cancelIdleCallback === "function") window.cancelIdleCallback(id);
+      else window.clearTimeout(id);
+    };
+  }, [images]);
   const openerRef = useRef<HTMLButtonElement | null>(null);
   const closeRef = useRef<HTMLButtonElement | null>(null);
   const touchX = useRef<number | null>(null);
