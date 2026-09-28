@@ -149,6 +149,7 @@ export function Hero({
         {big && (
           <Link
             href={`/productos/${big.slug}`}
+            data-pdp-image={big.images![0].url}
             className="relative block aspect-[4/3] overflow-hidden rounded-2xl bg-surface-2 lg:hidden"
           >
             <Image
@@ -171,6 +172,7 @@ export function Hero({
           <div className="hidden grid-cols-2 grid-rows-[1.25fr_1fr] gap-3.5 lg:grid">
             <Link
               href={`/productos/${big.slug}`}
+            data-pdp-image={big.images![0].url}
               className="relative col-span-2 overflow-hidden rounded-2xl bg-surface-2"
             >
               <Image
@@ -192,6 +194,7 @@ export function Hero({
               <Link
                 key={p.id}
                 href={`/productos/${p.slug}`}
+                data-pdp-image={p.images![0].url}
                 className="relative overflow-hidden rounded-2xl bg-surface-2"
               >
                 <Image

@@ -115,6 +115,7 @@ export function FeaturedProducts({ products }: { products: HomeProduct[] }) {
                 <div className="mt-auto flex gap-2 pt-3">
                   <Link
                     href={`/productos/${p.slug}`}
+                    data-pdp-image={image || undefined}
                     className="flex h-11 flex-1 items-center justify-center rounded-xl bg-primary text-sm font-bold text-primary-foreground transition-colors hover:bg-brand-green-deep"
                   >
                     Comprar

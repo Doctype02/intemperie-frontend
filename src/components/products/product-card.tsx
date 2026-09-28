@@ -217,6 +217,7 @@ export function ProductCard(p: ProductCardProps) {
           {/* El único enlace de la ficha, extendido sobre toda la tarjeta. */}
           <Link
             href={`/productos/${p.slug}`}
+            data-pdp-image={primaryImage || undefined}
             className="line-clamp-2 text-sm leading-snug font-semibold text-foreground transition-colors group-hover:text-brand-green-deep after:absolute after:inset-0"
           >
             {p.name}

@@ -47,6 +47,7 @@ export function ProductTile({
   return (
     <Link
       href={`/productos/${p.slug}`}
+      data-pdp-image={image || undefined}
       className="group flex flex-col overflow-hidden rounded-lg border border-border bg-surface transition-colors hover:border-brand-green focus-visible:border-brand-green"
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-surface-2">

@@ -198,7 +198,7 @@ export default async function ProductDetailPage({
           {/* Tres celdas: en móvil caen en orden de compra (foto, panel, datos);
               en escritorio el panel ocupa la columna derecha y se queda fijo. */}
           <div className="mt-6 grid gap-6 lg:mt-8 lg:grid-cols-[minmax(0,1fr)_21rem] lg:gap-8 xl:grid-cols-[minmax(0,1fr)_23rem]">
-            <div className="lg:col-start-1 lg:row-start-1">
+            <div className="min-w-0 lg:col-start-1 lg:row-start-1">
               <ProductGallery
                 images={product.images}
                 productName={product.name}
